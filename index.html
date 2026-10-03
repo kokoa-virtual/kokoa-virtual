@@ -1840,7 +1840,7 @@ let uiRaf=0;new MutationObserver(()=>{if(uiRaf)return;uiRaf=requestAnimationFram
 document.addEventListener("reset",()=>setTimeout(mejorarUI,0),true);document.addEventListener("change",()=>setTimeout(mejorarUI,0),true);
 setInterval(mejorarUI,800);mejorarUI();
 
-const VAPID_PUBLIC="";
+const VAPID_PUBLIC="BBSAEq63e1c82MDE_NMN0TL0TO-qXe6qzVEnA3O1otUGJ0wKiVPHJy5U7NljUIqmxtQ56AagGGPZhFXziTbPbeA";
 let swReg=null,instalarEv=null,vistas=null;
 if("serviceWorker" in navigator)addEventListener("load",()=>navigator.serviceWorker.register("sw.js").then(r=>{swReg=r;pintarPush()}).catch(()=>{}));
 addEventListener("beforeinstallprompt",e=>{e.preventDefault();instalarEv=e;pintarPush()});
