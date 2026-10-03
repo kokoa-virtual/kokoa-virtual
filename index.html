@@ -849,6 +849,59 @@ body{display:flex;flex-direction:column;min-height:100vh;min-height:100dvh}
 #syncBar.err{border-radius:16px;background:var(--alert);color:#fff}
 #syncBar button{min-height:32px;padding:2px 10px;border-radius:10px;background:none;border:1.5px solid currentColor;color:inherit}
 @media print{#syncBar,.pushbox,.pk-back{display:none!important}}
+/* inventario uniforme v3 */
+#v1 input:not([type=hidden]):not([type=checkbox]):not([type=radio]),#v1 .csel,#v1 .dsel{box-sizing:border-box;width:100%;max-width:none;height:44px;min-height:44px;padding:6px 12px;border:1.5px solid var(--edge);border-radius:12px;background:var(--sheet);color:var(--ink);font:inherit;line-height:1.2}
+#v1 input[type=number]{text-align:right}
+#v1 input:disabled,#v1 .csel:disabled,#v1 .dsel:disabled{opacity:.45;cursor:not-allowed}
+#v1 tr.ns td.ed input:not([type=hidden]){border-color:var(--alert-t)}
+#v1 button[data-save]{min-height:44px;width:100%}
+#addForm{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px 14px;align-items:end}
+#addForm .aname{grid-column:span 2;min-width:0}
+#addForm #aBtn,#addForm #aCancel{width:100%;min-width:0;min-height:44px;margin:0}
+.icard .ihw{flex:1 1 auto}
+.icard .emw{display:grid;grid-template-columns:1fr;gap:10px}
+@media (min-width:761px){
+.tbl table.inv{table-layout:fixed;width:100%;min-width:1130px}
+.inv th:nth-child(1){width:170px}
+.inv th:nth-child(2){width:190px}
+.inv th:nth-child(3){width:150px}
+.inv th:nth-child(4){width:100px}
+.inv th:nth-child(5){width:160px}
+.inv th:nth-child(6){width:150px}
+.inv th:nth-child(7){width:100px}
+.inv th:nth-child(8){width:110px}
+.inv td.ed{vertical-align:middle;min-width:0}
+}
+@media (max-width:760px){
+#addForm .aname{grid-column:1/-1}
+.inv td[data-label^="Cantidad"],.inv td[data-label="Mínimo"]{order:1}
+.inv td[data-label="Motivo del cambio"],.inv td[data-label="Vence lo agregado"]{order:2;grid-column:1/-1}
+.inv td.act{order:3}
+}
+/* cabecera móvil v2 */
+@media (max-width:760px){
+header{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:8px;align-items:center}
+header .hright,header .htools{display:contents}
+header .brand{grid-column:1;grid-row:1;min-width:0;flex:none}
+header .brand h1{font-size:22px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+header #sessionUser{grid-column:2/4;grid-row:1;justify-self:end;gap:6px}
+header #sessionUser #meBtn,header #sessionUser #logoutBtn{padding:3px 10px}
+header #loggedUser{display:inline-block;max-width:8ch;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+header .htools .scan{grid-column:1;grid-row:2;width:auto;min-width:0;margin:0;gap:6px}
+header .htools .scan input{min-width:0;min-height:40px}
+header .htools .scan button{padding:7px 10px;min-height:40px}
+header #bell,header .htools #exp,header .htools #adminBtn,header .htools #usersBtn{min-height:40px;padding:7px 10px;justify-content:center;white-space:nowrap}
+header #bell{grid-column:2;grid-row:2}
+header .htools #exp{grid-column:3;grid-row:2;width:auto}
+header:has(#adminBtn:not([hidden])){grid-template-columns:repeat(6,minmax(0,1fr))}
+header:has(#adminBtn:not([hidden])) .brand{grid-column:1/4}
+header:has(#adminBtn:not([hidden])) #sessionUser{grid-column:4/7}
+header:has(#adminBtn:not([hidden])) .htools .scan{grid-column:1/5}
+header:has(#adminBtn:not([hidden])) #bell{grid-column:5/7}
+header:has(#adminBtn:not([hidden])) .htools #exp{grid-column:1/3;grid-row:3}
+header:has(#adminBtn:not([hidden])) .htools #adminBtn{grid-column:3/5;grid-row:3}
+header:has(#adminBtn:not([hidden])) .htools #usersBtn{grid-column:5/7;grid-row:3}
+}
 </style>
 </head>
 <body>
@@ -904,7 +957,7 @@ body{display:flex;flex-direction:column;min-height:100vh;min-height:100dvh}
       <form class="add" id="addForm" autocomplete="off">
         <label class="aname">Nombre<input id="aN" required maxlength="40" autocomplete="off"></label>
 
-        <label data-new>Categoría<select id="aC"></select></label>
+        <label data-new>Tipo de alimento<select id="aC"></select></label>
         <label data-new>Unidad<select id="aU"><option>kg</option><option>L</option><option>unid.</option></select></label>
         <label>Cantidad<input id="aQ" type="number" min="0" step="any" inputmode="decimal" placeholder="0"></label>
         <label>Vence este lote<input id="aE" type="date"></label>
@@ -1120,23 +1173,23 @@ function renderCats(){
  const vis=pasaF,ok=okVista;
  const alfa=(a,b)=>a.n.localeCompare(b.n,"es",{sensitivity:"base"});
  if(invLayout==="list"){const f=items.filter(i=>vis(i)&&ok(i)).sort(fOrden?ordQ:alfa);
-  $("cats").innerHTML=f.length?`<div class="tbl"><table style="min-width:860px"><thead><tr><th>Alimento</th><th>Lotes y vencimiento</th><th>Ubicación</th><th>Cantidad</th><th>Mínimo</th><th></th></tr></thead><tbody>`+
+  $("cats").innerHTML=f.length?`<div class="tbl"><table class="inv"><thead><tr><th>Alimento</th><th>Lotes y vencimiento</th><th>Ubicación</th><th>Cantidad</th><th>Motivo del cambio</th><th>Vence lo agregado</th><th>Mínimo</th><th></th></tr></thead><tbody>`+
   f.map(i=>{const s=estado(i),dv=dias(i.exp);
-   return`<tr data-e="${i.sku}" class="${sinRojo(i)?"ns u":s.low||(s.venc&&dv<=1)?"u":s.venc?"w":""}"><td class="nm"><b>${esc(i.n)}</b><div class="sku"><select data-cat aria-label="Categoría">${opts(CATS,i.k)}</select></div>${sinRojo(i)?'<div class="low">Sin stock</div>':s.low?'<div class="low">Bajo el mínimo</div>':""}</td>
+   return`<tr data-e="${i.sku}" class="${sinRojo(i)?"ns u":s.low||(s.venc&&dv<=1)?"u":s.venc?"w":""}"><td class="nm"><b>${esc(i.n)}</b><div class="sku"><select data-cat aria-label="Tipo de alimento">${opts(CATS,i.k)}</select></div>${sinRojo(i)?'<div class="low">Sin stock</div>':s.low?'<div class="low">Bajo el mínimo</div>':""}</td>
    <td data-label="Lotes y vencimiento">${lotesHtml(i)}</td>
    <td class="loc" data-label="Ubicación"><select data-zone aria-label="Zona">${zoneOpts(i.z)}</select></td>
-   <td class="ed" data-label="Cantidad (${esc(i.u)})"><input type="number" min="${i.sys}" step="any" data-q value="${i.sys}" aria-label="Cantidad ${esc(i.n)}"><div class="emw" data-emw hidden><label class="fld">Motivo<select data-em aria-label="Motivo"><option value="">Elegir motivo</option>${opts(MOTIVOS_ADD)}</select></label><label class="fld">Vence lo agregado<input type="date" data-ev aria-label="Vencimiento de lo agregado"></label></div></td>
+   <td class="ed" data-label="Cantidad (${esc(i.u)})"><input type="number" min="${i.sys}" step="any" data-q value="${i.sys}" aria-label="Cantidad ${esc(i.n)}"></td><td class="ed" data-label="Motivo del cambio"><select data-em aria-label="Motivo" disabled><option value="">Elegir motivo</option>${opts(MOTIVOS_ADD)}</select></td><td class="ed" data-label="Vence lo agregado"><input type="date" data-ev aria-label="Vencimiento de lo agregado" disabled></td>
    <td class="ed" data-label="Mínimo"><input type="number" min="0" step="any" data-mn value="${i.min}" aria-label="Mínimo ${esc(i.n)}"></td>
    <td class="act" data-label=""><button data-save="${i.sku}">Guardar</button></td></tr>`}).join("")+`</tbody></table></div>`:`<p class="sub">No hay alimentos en esta vista.</p>`}
  else
  $("cats").innerHTML=(fOrden?[[fOrden==="may"?"De mayor a menor cantidad":"De menor a mayor cantidad",items.filter(i=>vis(i)&&ok(i)).sort(ordQ)]]:CATS.map(c=>[c,items.filter(i=>i.k===c&&vis(i)&&ok(i)).sort(alfa)])).map(([c,l])=>{if(!l.length)return"";
   return`<div class="cat"><h2>${esc(c)}<small>${l.length} alimento${l.length>1?"s":""}</small></h2><div class="cgrid">`+
   l.map(i=>`<div class="icard${sinRojo(i)?" ns":""}" data-e="${i.sku}"><div class="ihw"><div class="ihead"><div class="in"><b>${esc(i.n)}</b><div class="sku">${i.u} · ${esc(zonaNombre(i.z))}</div></div></div>${lotesHtml(i)}</div>
-  <label class="fld">Categoría<select data-cat aria-label="Categoría">${opts(CATS,i.k)}</select></label>
+  <label class="fld">Tipo de alimento<select data-cat aria-label="Tipo de alimento">${opts(CATS,i.k)}</select></label>
   <label class="fld">Zona<select data-zone aria-label="Zona">${zoneOpts(i.z)}</select></label>
   <div class="frow"><label class="fld">Cantidad (${i.u})<input type="number" min="${i.sys}" step="any" data-q value="${i.sys}" aria-label="Cantidad ${esc(i.n)}"></label>
   <label class="fld">Mínimo<input type="number" min="0" step="any" data-mn value="${i.min}" aria-label="Mínimo ${esc(i.n)}"></label></div>
-  <div class="emw" data-emw hidden><label class="fld">Motivo<select data-em aria-label="Motivo"><option value="">Elegir motivo</option>${opts(MOTIVOS_ADD)}</select></label><label class="fld">Vence lo agregado<input type="date" data-ev aria-label="Vencimiento de lo agregado"></label></div>
+  <div class="emw" data-emw><label class="fld">Motivo<select data-em aria-label="Motivo" disabled><option value="">Elegir motivo</option>${opts(MOTIVOS_ADD)}</select></label><label class="fld">Vence lo agregado<input type="date" data-ev aria-label="Vencimiento de lo agregado" disabled></label></div>
   <button data-save="${i.sku}">Guardar</button></div>`).join("")+`</div></div>`}).join("")||`<p class="sub">No hay alimentos en esta vista.</p>`;
  {const v=$("aC").value;$("aC").innerHTML=opts(CATS);if(CATS.includes(v))$("aC").value=v}}
 const ICON_TRASH='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M6 6l1 14h10l1-14"/><path d="M10 10v6M14 10v6"/></svg>';
@@ -1271,7 +1324,7 @@ document.addEventListener("click",e=>{const b=e.target.closest("button"),D=b&&b.
  else if(D.save){if(!sinNombre())return;const i=items.find(a=>a.sku===D.save),r=b.closest("[data-e]"),q=r2(+r.querySelector("[data-q]").value),mn=r2(+r.querySelector("[data-mn]").value),ce=r.querySelector("[data-cat]"),cat=ce?ce.value:i.k,ze=r.querySelector("[data-zone]"),zn=ze?ze.value:i.z,mot=r.querySelector("[data-em]").value;
   const rq=r.querySelector("[data-q]").value,rm=r.querySelector("[data-mn]").value;
   if(rq===""||rm===""||!(q>=0)||!(mn>=0)){msg.textContent="Cantidad y mínimo deben ser números de 0 o más.";return}
-  if(q<i.sys){msg.textContent=`Aquí solo se puede agregar. Para quitar ${i.n} usa Comidas: Quitar.`;r.querySelector("[data-q]").value=i.sys;r.querySelector("[data-emw]").hidden=true;return}
+  if(q<i.sys){msg.textContent=`Aquí solo se puede agregar. Para quitar ${i.n} usa Comidas: Quitar.`;r.querySelector("[data-q]").value=i.sys;emHab(r,false);return}
   if(q!==i.sys&&!mot){msg.textContent=`Cambiaste la cantidad de ${i.n}. Elige el motivo antes de guardar.`;r.querySelector("[data-em]").focus();return}
   const h=[];
   if(q!==i.sys){addLog("cnt",`Entrada de ${r2(q-i.sys)} ${i.u} de ${i.n.toLowerCase()} en ${zonaNombre(i.z).toLowerCase()}: de ${i.sys} a ${q}. Motivo: ${mot.toLowerCase()}. Por ${quien()}.`);mv(i,q-i.sys,"Entrada: "+mot.toLowerCase());sumarLote(i,q-i.sys,r.querySelector("[data-ev]").value||null);i.c=null;h.push("cantidad")}
@@ -1279,16 +1332,24 @@ document.addEventListener("click",e=>{const b=e.target.closest("button"),D=b&&b.
   if(cat!==i.k){addLog("cnt",`${i.n} pasa de ${i.k.toLowerCase()} a ${cat.toLowerCase()}. Por ${quien()}.`);i.k=cat;h.push("categoría")}
   if(zn!==i.z){addLog("cnt",`${i.n} pasa de ${zonaNombre(i.z).toLowerCase()} a ${zonaNombre(zn).toLowerCase()}. Por ${quien()}.`);i.z=zn;h.push("zona")}
   msg.textContent=h.length?"":`No hay cambios que guardar en ${i.n}.`;renderAll()}});
+/*tipo inmediato*/
+document.addEventListener("change",e=>{const s=e.target.closest&&e.target.closest("[data-cat]");if(!s)return;
+ const r=s.closest("[data-e]"),i=r&&items.find(a=>a.sku===r.dataset.e);if(!i||!sinNombre()||s.value===i.k)return;
+ const antes=i.k;i.k=s.value;if(fTipo!=="*"&&fTipo!==i.k)fTipo="*";
+ addLog("cnt",`${i.n} pasa de ${antes.toLowerCase()} a ${i.k.toLowerCase()}. Por ${quien()}.`);
+ renderAll();msg.textContent=`${i.n} ahora es de tipo «${i.k}».`;
+ const n=document.querySelector(`[data-e="${i.sku}"]`);if(n){n.classList.add("hit");n.scrollIntoView({block:"center",behavior:"smooth"})}});
 document.addEventListener("keydown",e=>{if(e.key!=="Enter"||e.target.id!=="qFind")return;e.preventDefault();
  const l=matchAlimentos(qFindTxt).filter(i=>r2(i.sys-enPlato(i.sku))>0);
  if(l.length)agregarBusq(l[0].sku);else if(qFindTxt.trim())msg.textContent=`No hay alimentos con stock que coincidan con «${qFindTxt.trim()}».`});
 document.addEventListener("change",e=>{const t=e.target;
  if(t.dataset.qi){const i=items.find(a=>a.sku===t.dataset.qi),x=plate.find(a=>a.sku===t.dataset.qi);if(i&&x){x.q=r2(Math.min(i.sys,Math.max(0,x.q)));t.value=x.q;refrescarQ()}}});
+function emHab(r,on){const m=r.querySelector("[data-em]"),v=r.querySelector("[data-ev]");[m,v].forEach(x=>{if(x){x.disabled=!on;if(!on)x.value=""}});if(m&&m._b)pintarSel(m);if(v&&v._b)pintarFecha(v)}
 document.addEventListener("input",e=>{const t=e.target;
  if(t.id==="qFind"){qFindTxt=t.value;actualizarQFind()}
  if(t.dataset.qi){const x=plate.find(a=>a.sku===t.dataset.qi);if(x){const v=+t.value;x.q=Number.isFinite(v)?v:0;refrescarQ()}}
  if(t.dataset.qmo){const x=plate.find(a=>a.sku===t.dataset.qmo);if(x)x.m=t.value}
- if(t.dataset.q!==undefined){const r=t.closest("[data-e]"),i=items.find(a=>a.sku===r.dataset.e);r.querySelector("[data-emw]").hidden=r2(+t.value)===i.sys}});
+ if(t.dataset.q!==undefined){const r=t.closest("[data-e]"),i=items.find(a=>a.sku===r.dataset.e);emHab(r,r2(+t.value)!==i.sys)}});
 const ICON_MOVE='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v18M3 12h18"/><path d="M9 6l3-3 3 3M9 18l3 3 3-3M6 9l-3 3 3 3M18 9l3 3-3 3"/></svg>';
 let drag=null,noClick=0;
 const sobrePlato=(e,p)=>{const r=p.getBoundingClientRect();return e.clientX>=r.left&&e.clientX<=r.right&&e.clientY>=r.top&&e.clientY<=r.bottom};
