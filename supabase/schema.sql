@@ -17,7 +17,7 @@ begin
   insert into perfiles(id,apodo,nombre,apellido,telefono,correo,animal) values(
     new.id, coalesce(new.raw_user_meta_data->>'apodo', split_part(new.email,'@',1)),
     coalesce(new.raw_user_meta_data->>'nombre',''), coalesce(new.raw_user_meta_data->>'apellido',''),
-    coalesce(new.raw_user_meta_data->>'telefono',''), new.email,
+    coalesce(new.raw_user_meta_data->>'telefono',''), coalesce(new.raw_user_meta_data->>'correo',''),
     coalesce(new.raw_user_meta_data->>'animal',''));
   return new;
 end $$;
@@ -33,8 +33,10 @@ create trigger al_crear_usuario after insert on auth.users for each row execute 
 
 create function proteger_rol() returns trigger language plpgsql as $$
 begin
-  if new.rol is distinct from old.rol and auth.uid() is not null and not es_admin() then
-    raise exception 'Solo un admin puede cambiar roles'; end if;
+  if new.rol is distinct from old.rol and auth.uid() is not null then
+    if not es_admin() then raise exception 'Solo un admin puede cambiar roles'; end if;
+    if lower(old.apodo)='kokoa' then raise exception 'El rol de Kokoa no se puede cambiar'; end if;
+  end if;
   return new;
 end $$;
 create trigger proteger_rol before update on perfiles for each row execute function proteger_rol();
@@ -107,11 +109,12 @@ end $$;
 create function eliminar_usuario(p_id uuid) returns void language plpgsql security definer set search_path=public,auth as $$
 begin
   if p_id <> auth.uid() and not es_admin() then raise exception 'No autorizado'; end if;
+  if exists (select 1 from perfiles where id=p_id and lower(apodo)='kokoa') then raise exception 'Kokoa no se puede eliminar'; end if;
   delete from auth.users where id=p_id;
 end $$;
 
-create function correo_de_usuario(p_apodo text) returns text language sql stable security definer set search_path=public as
-$$ select correo from perfiles where lower(apodo)=lower(trim(p_apodo)) limit 1 $$;
+create function correo_de_usuario(p_apodo text) returns text language sql stable security definer set search_path=public,auth as
+$$ select u.email::text from auth.users u join perfiles p on p.id=u.id where lower(p.apodo)=lower(trim(p_apodo)) limit 1 $$;
 create function ping() returns text language sql as $$ select 'ok' $$;
 
 alter table perfiles enable row level security;  alter table zonas enable row level security;
@@ -162,7 +165,7 @@ grant insert on bitacora, comidas to authenticated;
 grant select, insert, update, delete on config to authenticated;
 grant select, insert, delete on alimentos to authenticated;
 grant select, insert, update, delete on zonas, tipos to authenticated;
-create or replace function crear_usuario(p_apodo text, p_clave text, p_nombre text, p_apellido text, p_telefono text, p_animal text, p_rol rol_usuario)
+create or replace function crear_usuario(p_apodo text, p_clave text, p_nombre text, p_apellido text, p_telefono text, p_correo text, p_animal text, p_rol rol_usuario)
 returns void language plpgsql security definer set search_path=public,auth,extensions as $$
 declare uid uuid := gen_random_uuid(); cod text; em text;
 begin
@@ -178,11 +181,11 @@ begin
   values('00000000-0000-0000-0000-000000000000',uid,'authenticated','authenticated',em,
       crypt(p_clave, gen_salt('bf')),now(),
       '{"provider":"email","providers":["email"]}',
-      jsonb_build_object('apodo',trim(p_apodo),'nombre',p_nombre,'apellido',p_apellido,'telefono',p_telefono,'animal',p_animal,'codigo',cod),now(),now(),
+      jsonb_build_object('apodo',trim(p_apodo),'nombre',p_nombre,'apellido',p_apellido,'telefono',p_telefono,'correo',coalesce(p_correo,''),'animal',p_animal,'codigo',cod),now(),now(),
       '','','','','','','','');
   insert into auth.identities(id,user_id,provider_id,identity_data,provider,last_sign_in_at,created_at,updated_at)
   values(gen_random_uuid(),uid,uid::text,jsonb_build_object('sub',uid::text,'email',em,'email_verified',true),'email',now(),now(),now());
   update perfiles set rol=p_rol where id=uid;
 end $$;
-revoke execute on function crear_usuario(text,text,text,text,text,text,rol_usuario) from public;
-grant execute on function crear_usuario(text,text,text,text,text,text,rol_usuario) to authenticated;
+revoke execute on function crear_usuario(text,text,text,text,text,text,text,rol_usuario) from public;
+grant execute on function crear_usuario(text,text,text,text,text,text,text,rol_usuario) to authenticated;
