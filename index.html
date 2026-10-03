@@ -766,6 +766,19 @@ body{font-variant-emoji:text}
 @media (max-width:760px){
 .add #aCancel[hidden]+#aBtn{margin-left:0;flex:1 1 100%}
 }
+
+.hdel{background:none;border:0;padding:4px 6px;margin:0 0 0 auto;cursor:pointer;color:var(--soft);border-radius:8px;line-height:0;flex:none;align-self:center}
+.hdel:hover,.hdel:focus-visible{color:var(--alert-t);background:color-mix(in srgb,var(--alert) 22%,transparent)}
+.hdel svg{width:18px;height:18px;display:block}
+.ledger li .hdel{float:right;margin:-2px 4px 0 8px}
+.zones .mvl li .hdel{align-self:flex-end;margin-top:-2px}
+.hhead{display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+.hhead h2{margin:0}
+.purga{display:flex;gap:10px;flex-wrap:wrap;align-items:center;justify-content:space-between;padding:12px 14px;margin:0 0 14px;border-radius:14px;background:color-mix(in srgb,var(--alert) 22%,var(--sheet));border:1.5px solid var(--alert);font-size:15px}
+.purga[hidden]{display:none}
+.purga .pb{display:flex;gap:8px;flex-wrap:wrap}
+.pie{margin:0;padding:18px 12px 10px;text-align:center;font-size:12px;color:var(--soft);opacity:.85}
+@media print{.hdel,.purga{display:none!important}}
 </style>
 </head>
 <body>
@@ -781,6 +794,7 @@ body{font-variant-emoji:text}
       <div class="auth-actions"><button type="submit">Ingresar</button></div>
     </form>
   </section>
+  <p class="pie">Con fraternal afecto de: Joaquín L. Cortés</p>
 </div>
 <header>
   <div class="brand"><h1>Kokoa Virtual</h1></div>
@@ -803,6 +817,7 @@ body{font-variant-emoji:text}
 <div class="wrap" id="wrap">
   <nav class="zones" aria-label="Zonas"><h2>Zonas</h2><div id="zones"></div><h2 class="ztit">Tipos de alimento</h2><div id="ztipos"></div><div class="zmov"><h2>Últimos movimientos</h2><ol class="mvl" id="imv"></ol></div></nav>
   <main>
+    <div class="purga" id="purgaAviso" role="alert" hidden><span id="purgaTxt"></span><span class="pb"><button type="button" class="ghost" id="purgaExp">Exportar ahora</button><button type="button" class="ghost" id="purgaOk">Entendido por hoy</button></span></div>
     <p id="msg" role="status" aria-live="polite"></p>
     <section id="v0">
       <h2>Comidas: Quitar</h2>
@@ -856,11 +871,12 @@ body{font-variant-emoji:text}
       <ol class="mvl" id="mvl"></ol>
     </section>
     <section id="v5" class="ledger" hidden>
-      <h2>Movimientos</h2>
+      <div class="hhead"><h2>Movimientos</h2><button type="button" class="ghost danger" id="histAll" hidden>Borrar todo el historial</button></div>
       <ol id="log"></ol>
     </section>
   </main>
 </div>
+<footer class="pie">Con fraternal afecto de: Joaquín L. Cortés</footer>
 
 <div id="adminModal" class="modal-backdrop" hidden>
   <section class="modal" role="dialog" aria-modal="true" aria-labelledby="adminTitle" style="width:min(760px,100%)">
@@ -1031,8 +1047,10 @@ function renderCats(){
   <div class="emw" data-emw hidden><label class="fld">Motivo<select data-em aria-label="Motivo"><option value="">Elegir motivo</option>${opts(MOTIVOS_ADD)}</select></label><label class="fld">Vence lo agregado<input type="date" data-ev aria-label="Vencimiento de lo agregado"></label></div>
   <button data-save="${i.sku}">Guardar</button></div>`).join("")+`</div></div>`}).join("")||`<p class="sub">No hay alimentos en esta vista.</p>`;
  {const v=$("aC").value;$("aC").innerHTML=opts(CATS);if(CATS.includes(v))$("aC").value=v}}
+const ICON_TRASH='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M6 6l1 14h10l1-14"/><path d="M10 10v6M14 10v6"/></svg>';
+const hBtn=(t,id)=>esAdmin()&&id?`<button type="button" class="hdel" data-hdel="${t}" data-hid="${id}" aria-label="Borrar este registro del historial" title="Borrar este registro">${ICON_TRASH}</button>`:"";
 function renderInvMov(){const R=mov.filter(m=>m.d>0).sort((a,b)=>b.t-a.t).slice(0,10);
- const h=R.length?R.map(m=>`<li><span><time>${fechaHora(m.t)}</time>${esc(m.n)}<span class="sku"> ${esc(m.w||"")}${m.p?" · Por "+esc(m.p):""}</span></span><span class="up">Se puso +${fm(Math.abs(m.d))} ${esc(m.u)}</span></li>`).join(""):"<li>Aún no hay entradas registradas. Aparecen cuando agregas stock.</li>";
+ const h=R.length?R.map(m=>`<li><span><time>${fechaHora(m.t)}</time>${esc(m.n)}<span class="sku"> ${esc(m.w||"")}${m.p?" · Por "+esc(m.p):""}</span></span><span class="up">Se puso +${fm(Math.abs(m.d))} ${esc(m.u)}</span>${hBtn("movimientos",m.id)}</li>`).join(""):"<li>Aún no hay entradas registradas. Aparecen cuando agregas stock.</li>";
  $("imv").innerHTML=h;$("imv2").innerHTML=h}
 const stepU=i=>i.u==="unid."?1:0.5,enPlato=sku=>(plate.find(x=>x.sku===sku)||{q:0}).q;
 const qSub=i=>{const dv=dias(i.exp);return`${fm(r2(i.sys-enPlato(i.sku)))} ${i.u}${i.exp&&dv<=3?" · "+vence(dv):""}`};
@@ -1114,9 +1132,9 @@ function confirmarQuitar(){if(!sinNombre())return;if(!plate.length){msg.textCont
  const f=document.querySelector("#cml li");if(f)f.scrollIntoView({block:"nearest",behavior:"smooth"})}
 function renderComidas(){const L=comidas.slice(0,10);
  $("cml").innerHTML=L.length?L.map(c=>{const D=QDEST.find(x=>x.k===(c.k==="alimento"?"almuerzo":c.k))||{l:c.k},nn=c.it.length;
-  return`<li class="${c.n?"new":""}"><span><time>${fechaHora(c.t)}</time><b>${D.l}</b>${c.nom?" «"+esc(c.nom)+"»":""}<span class="sku"> ${c.it.map(x=>esc(x.n)+" "+fm(x.q)+" "+esc(x.u)+(x.m?" ("+esc(x.m.toLowerCase())+")":"")+(x.v?" · vence "+esc(x.v):"")).join(", ")} · Por ${esc(c.por)}</span></span><span class="dn">Se quitó ${nn} alimento${nn>1?"s":""}</span></li>`}).join(""):"<li>Aún no hay comidas registradas. Arma una en el plato y presiona «Quitar del stock».</li>";
+  return`<li class="${c.n?"new":""}"><span><time>${fechaHora(c.t)}</time><b>${D.l}</b>${c.nom?" «"+esc(c.nom)+"»":""}<span class="sku"> ${c.it.map(x=>esc(x.n)+" "+fm(x.q)+" "+esc(x.u)+(x.m?" ("+esc(x.m.toLowerCase())+")":"")+(x.v?" · vence "+esc(x.v):"")).join(", ")} · Por ${esc(c.por)}</span></span><span class="dn">Se quitó ${nn} alimento${nn>1?"s":""}</span>${hBtn("comidas",c.id)}</li>`}).join(""):"<li>Aún no hay comidas registradas. Arma una en el plato y presiona «Quitar del stock».</li>";
  comidas.forEach(c=>c.n=false)}
-function renderLog(){$("log").innerHTML=logData.map(e=>`<li class="${e.k} ${e.n?"new":""}"><time>${e.ts?fechaHora(e.ts):e.t}</time>${esc(e.x)}</li>`).join("");logData.forEach(e=>e.n=false)}
+function renderLog(){$("log").innerHTML=logData.map(e=>`<li class="${e.k} ${e.n?"new":""}"><time>${e.ts?fechaHora(e.ts):e.t}</time>${esc(e.x)}${hBtn("bitacora",e.id)}</li>`).join("");$("histAll").hidden=!esAdmin();logData.forEach(e=>e.n=false)}
 const VISTAS=[[0,"Comidas: Quitar","Quitar"],[1,"Inventario: Agregar","Agregar"],[3,"Pedido sugerido","Pedido"],[4,"Gráficos","Gráficos"],[5,"Movimientos","Movimientos"]];
 function limpiarPantalla(){alOpen=false;scOpen=false;plate=[];qFindTxt="";sec=0;
  ["vtabs","zones","ztipos","imv","imv2","qFilt","qList","qMain","qDest","cml","tabs","fMenu","cats","ped","gmode","gper","gtype","gsum","gc","mvl","log","aL","aM","aSug","scanList"].forEach(id=>{const e=$(id);if(e)e.innerHTML=""});
@@ -1127,7 +1145,7 @@ function renderAll(){
  vt.querySelectorAll(".tab").forEach(b=>b.setAttribute("aria-pressed",String(+b.dataset.s===sec)));
  $("v0").hidden=sec!==0;$("v1").hidden=sec!==1;$("v3").hidden=sec!==3;$("v4").hidden=sec!==4;$("v5").hidden=sec!==5;
  const zv=sec===1;document.querySelector(".zones").hidden=!zv;$("wrap").classList.toggle("solo",!zv);
- renderAlertas();
+ renderAlertas();renderPurga();
  if(sec===0){renderQuitar();renderComidas()}
  else if(sec===1){renderZones();renderTools();renderCats();renderInvMov();actualizarAdd()}
  else if(sec===3)renderPedido();
@@ -1220,7 +1238,7 @@ $("delOk").addEventListener("click",()=>{if(!sinNombre())return;const L=items.fi
  msg.textContent=L.length>1?`${L.length} alimentos eliminados.`:"Alimento eliminado.";renderAll()});
 let adminView="menu";
 const adm=t=>{const e=$("adminMsg");e.textContent=t||"";if(t)e.scrollIntoView({block:"nearest"})};
-const esFijo=u=>String(u.apodo).toLowerCase()==="kokoa";
+const esFijo=u=>["kokoa","joa"].includes(String(u.apodo).toLowerCase());
 const AD_T={u:"Usuarios",z:"Zonas",t:"Tipos de alimentos"};
 const backBtn='<button type="button" class="ghost aback" data-ad="menu">← Volver</button>';
 const otrosOpts=(arr,skip,val,lab)=>arr.filter(x=>x!==skip).map(x=>`<option value="${esc(val(x))}">${esc(lab(x))}</option>`).join("");
@@ -1388,7 +1406,8 @@ async function guardarArchivo(nombre,blob){
  const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=nombre;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),4000);return"ok"}
 let exportando=false;
 async function exportExcel(){if(!currentUser||exportando)return;
- const X=datosExport(),hojas=X.hojas.filter(h=>h.r.length);
+ let X;try{X=sec===5?await histExport():datosExport()}catch(_){msg.textContent="No se pudo leer el historial completo. Intenta de nuevo.";return}
+ const hojas=X.hojas.filter(h=>h.r.length);
  if(!hojas.length){msg.textContent="No hay datos para exportar en esta pantalla.";return}
  exportando=true;$("exp").disabled=true;
  try{const nombre=`kokoa-${X.slug}-${new Date().toLocaleDateString("sv-SE")}.xlsx`,r=await guardarArchivo(nombre,xlsxBlob(hojas));
@@ -1396,6 +1415,34 @@ async function exportExcel(){if(!currentUser||exportando)return;
  catch(_){msg.textContent="No se pudo exportar. Intenta de nuevo."}
  finally{exportando=false;$("exp").disabled=false}}
 $("exp").addEventListener("click",exportExcel);
+/* ---- Historial: borrar (solo admins), exportar completo y aviso anual ---- */
+async function traerTodo(n,o){let a=[],d=0;for(;;){const r=ck(await SB.from(n).select("*").order(o,{ascending:false}).range(d,d+999));a=a.concat(r.data);if(r.data.length<1000)break;d+=1000}return a}
+async function histExport(){
+ const [m,c,b]=await Promise.all([traerTodo("movimientos","t"),traerTodo("comidas","t"),traerTodo("bitacora","t")]);
+ const H=(name,h,r)=>({name,h,r});
+ return{slug:"historial-completo",hojas:[
+  H("Movimientos",["Fecha y hora","Tipo","Detalle","Por"],b.map(e=>[fechaHora(Date.parse(e.t)),{cnt:"Entrada o cambio",adj:"Salida o ajuste"}[e.clase]||e.clase,e.texto,e.apodo||""])),
+  H("Entradas y salidas",["Fecha y hora","Código","Alimento","Tipo","Cantidad","Unidad","Motivo","Por"],m.map(e=>[fechaHora(Date.parse(e.t)),e.sku,e.nombre,e.tipo,+e.delta,e.unidad,e.motivo||"",e.apodo||""])),
+  H("Comidas",["Fecha y hora","Destino","Nombre","Alimentos","Por"],c.map(e=>[fechaHora(Date.parse(e.t)),e.tipo,e.nombre||"",(e.items||[]).map(x=>(x.n||x.sku)+" "+fm(+x.q||0)).join(", "),e.apodo||""]))]}}
+async function borrarHist(tabla,id){
+ if(!esAdmin()||!listo)return;
+ if(id){if(!confirm("¿Borrar este registro del historial?\nEl stock del inventario no cambia."))return}
+ else{if(!confirm("¿Borrar TODO el historial (movimientos, comidas y bitácora)?\n\nEl inventario y su stock no cambian. No se puede deshacer.\n\n¿Ya exportaste los datos?"))return;
+  if(!confirm("Última confirmación: se borrará todo el historial. ¿Continuar?"))return}
+ try{ck(await SB.rpc("borrar_historial",{p_tabla:tabla,p_id:id?+id:null}));await recargar();msg.textContent=id?"Registro borrado.":"Historial borrado."}
+ catch(x){aviso("No se pudo borrar: "+(x.message||x))}}
+document.addEventListener("click",e=>{const b=e.target.closest("[data-hdel],#histAll");if(!b)return;
+ if(b.id==="histAll")borrarHist("todo",null);else borrarHist(b.dataset.hdel,b.dataset.hid)});
+const hoyClave=()=>new Date().toLocaleDateString("sv-SE");
+function renderPurga(){const a=$("purgaAviso");if(!a)return;
+ const n=new Date(),en=n.getMonth()===3&&n.getDate()>=24;let visto="";try{visto=localStorage.getItem("kokoa-purga-visto")||""}catch(_){}
+ if(!en||!currentUser||visto===hoyClave()){a.hidden=true;return}
+ const d=31-n.getDate();
+ $("purgaTxt").innerHTML=`<b>Aviso:</b> el 1 de mayo se borrará automáticamente todo el historial (movimientos, comidas y bitácora). ${d===1?"Es <b>mañana</b>.":"Faltan <b>"+d+" días</b>."} Exporta los datos antes: pulsa «Exportar ahora».`;
+ a.hidden=false}
+$("purgaOk").addEventListener("click",()=>{try{localStorage.setItem("kokoa-purga-visto",hoyClave())}catch(_){}renderPurga()});
+$("purgaExp").addEventListener("click",()=>{sec=5;renderAll();exportExcel()});
+
 function scanMatches(){const k=norm($("scan").value),rank=i=>{const n=norm(i.n);return n===k?0:n.startsWith(k)?1:2};
  return items.filter(i=>!k||norm(i.n).includes(k)||i.sku.toLowerCase().includes(k)).sort((a,b)=>(k?rank(a)-rank(b):0)||a.n.localeCompare(b.n,"es",{sensitivity:"base"}))}
 function renderScanList(){const b=$("scanList"),inp=$("scan");if(!b)return;
@@ -1488,9 +1535,9 @@ async function cargar(){
   const [a,m,c,b,z,t]=(await Promise.all([T("alimentos","nombre"),T("movimientos","t",5000),T("comidas","t",200),T("bitacora","t",300),T("zonas","orden"),T("tipos","orden")])).map(ck);
   if(g0!==gen)return cargar();
   items.splice(0,items.length,...a.data.map(r=>({sku:r.sku,n:r.nombre,k:r.tipo,u:r.unidad,exp:r.vence,z:r.zona,sys:+r.stock,min:+r.minimo,c:r.conteo==null?null:+r.conteo,lots:(r.lotes||[]).map(l=>({q:+l.q,exp:l.exp||null}))})));
-  mov.splice(0,mov.length,...m.data.reverse().map(r=>({t:Date.parse(r.t),s:r.sku,n:r.nombre,k:r.tipo,u:r.unidad,d:+r.delta,w:r.motivo||"",p:r.apodo||"",_s:1})));movSku=null;
-  comidas.splice(0,comidas.length,...c.data.map(r=>({t:Date.parse(r.t),k:r.tipo,nom:r.nombre||"",it:r.items||[],por:r.apodo||"",n:false,_s:1})));
-  logData.splice(0,logData.length,...b.data.map(r=>({t:new Date(r.t).toTimeString().slice(0,5),ts:Date.parse(r.t),k:r.clase,n:false,x:r.texto,_s:1})));
+  mov.splice(0,mov.length,...m.data.reverse().map(r=>({t:Date.parse(r.t),s:r.sku,n:r.nombre,k:r.tipo,u:r.unidad,d:+r.delta,w:r.motivo||"",p:r.apodo||"",id:r.id,_s:1})));movSku=null;
+  comidas.splice(0,comidas.length,...c.data.map(r=>({t:Date.parse(r.t),k:r.tipo,nom:r.nombre||"",it:r.items||[],por:r.apodo||"",n:false,id:r.id,_s:1})));
+  logData.splice(0,logData.length,...b.data.map(r=>({t:new Date(r.t).toTimeString().slice(0,5),ts:Date.parse(r.t),k:r.clase,n:false,x:r.texto,id:r.id,_s:1})));
   if(z.data.length)cameras=z.data.map(r=>({id:r.id,name:r.nombre,temp:r.temp||"",max:r.max||"",bad:!!r.mala}));
   if(t.data.length){CATS.splice(0,CATS.length,...t.data.map(r=>r.nombre));Object.keys(CZ).forEach(k=>delete CZ[k]);t.data.forEach(r=>{CZ[r.nombre]=r.zona})}
   normalizar();known=new Set(items.map(i=>i.sku));fp={};items.forEach(i=>fp[i.sku]=itFp(i));fpZ=zFp();
@@ -1610,7 +1657,7 @@ function renderGraf(){
   $("gsum").innerHTML=`<span class="chip">Se puso: +${fm(ti)}</span><span class="chip bad">Se quitó: −${fm(to)}</span><span class="chip">${M.length} movimientos</span>`+(gi==="*"?'<span class="sku">Con todos los alimentos se suman kg, L y unidades.</span>':"")+(gm==="t"&&gi==="*"?CATS.map(c=>{let a=0,o=0;M.forEach(m=>{if(catDe(m)===c){m.d>0?a+=m.d:o-=m.d}});return a||o?`<span class="chip">${esc(c)}: +${fm(a)} / −${fm(o)}</span>`:""}).join(""):"");
   $("live").textContent=`En vivo, actualizado ${hora()}`;
   const R=M.slice().sort((a,b)=>b.t-a.t).slice(0,10);
-  $("mvl").innerHTML=R.length?R.map(m=>{return`<li><span><time>${fechaHora(m.t)}</time>${esc(m.n)}<span class="sku"> ${esc(m.w||"")}</span></span><span class="${m.d>0?"up":"dn"}">${m.d>0?"Se puso +":"Se quitó −"}${fm(Math.abs(m.d))} ${m.u}</span></li>`}).join(""):"<li>No hay movimientos en este período. Aparecen cuando agregas stock en Inventario: Agregar o quitas en Comidas: Quitar.</li>";
+  $("mvl").innerHTML=R.length?R.map(m=>{return`<li><span><time>${fechaHora(m.t)}</time>${esc(m.n)}<span class="sku"> ${esc(m.w||"")}</span></span><span class="${m.d>0?"up":"dn"}">${m.d>0?"Se puso +":"Se quitó −"}${fm(Math.abs(m.d))} ${m.u}</span>${hBtn("movimientos",m.id)}</li>`}).join(""):"<li>No hay movimientos en este período. Aparecen cuando agregas stock en Inventario: Agregar o quitas en Comidas: Quitar.</li>";
 }
 $("gsel").addEventListener("change",renderGraf);
 setInterval(()=>{if(!document.hidden)renderGraf()},15000);addEventListener("resize",renderGraf);
