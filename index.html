@@ -777,8 +777,29 @@ body{font-variant-emoji:text}
 .purga{display:flex;gap:10px;flex-wrap:wrap;align-items:center;justify-content:space-between;padding:12px 14px;margin:0 0 14px;border-radius:14px;background:color-mix(in srgb,var(--alert) 22%,var(--sheet));border:1.5px solid var(--alert);font-size:15px}
 .purga[hidden]{display:none}
 .purga .pb{display:flex;gap:8px;flex-wrap:wrap}
-.pie{margin:0;padding:18px 12px 10px;text-align:center;font-size:12px;color:var(--soft);opacity:.85}
+.pie{text-align:center;color:var(--soft);opacity:.85}
 @media print{.hdel,.purga{display:none!important}}
+
+/* --- móvil: filtros compactos --- */
+.zsel{display:none}
+@media (max-width:900px){
+.zones{display:block;padding:8px 10px;overflow:visible}
+.zones h2,.zones #zones,.zones #ztipos,.zones .zmov{display:none}
+.zsel{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.zsel label{display:flex;flex-direction:column;gap:2px;font-size:12px;color:var(--soft);min-width:0}
+.zsel select{width:100%;min-width:0;font:inherit;font-size:15px;padding:8px 6px;border-radius:12px;border:1px solid var(--rule);background:var(--sheet);color:var(--ink);text-overflow:ellipsis}
+}
+/* --- móvil: Exportar a la izquierda del buscador --- */
+@media (max-width:760px){
+.htools{flex-wrap:wrap}
+.htools #exp{order:-2;flex:0 0 auto;width:auto;white-space:nowrap;padding:8px 10px}
+.htools .scan{order:-1;flex:1 1 calc(100% - 120px);min-width:0}
+.htools #adminBtn,.htools #usersBtn{order:0}
+}
+/* --- pie de página: mitad de tamaño y pegado al fondo --- */
+body{display:flex;flex-direction:column;min-height:100vh;min-height:100dvh}
+.pie{margin-top:auto;font-size:6px;padding:8px 12px 6px;letter-spacing:.2px;line-height:1.2}
+#authGate .pie{position:fixed;left:0;right:0;bottom:4px;margin:0;padding:0;pointer-events:none}
 </style>
 </head>
 <body>
@@ -815,7 +836,7 @@ body{font-variant-emoji:text}
 </header>
 <nav class="views" id="views" aria-label="Secciones"><div class="vtabs" id="vtabs"></div><button type="button" class="vtog" id="theme" role="switch" aria-checked="false" aria-label="Modo oscuro"><i class="knob"></i><span class="ico il" aria-hidden="true">☀</span><span class="ico ig" aria-hidden="true">🌙</span></button></nav>
 <div class="wrap" id="wrap">
-  <nav class="zones" aria-label="Zonas"><h2>Zonas</h2><div id="zones"></div><h2 class="ztit">Tipos de alimento</h2><div id="ztipos"></div><div class="zmov"><h2>Últimos movimientos</h2><ol class="mvl" id="imv"></ol></div></nav>
+  <nav class="zones" aria-label="Zonas"><div class="zsel" id="zsel"></div><h2>Zonas</h2><div id="zones"></div><h2 class="ztit">Tipos de alimento</h2><div id="ztipos"></div><div class="zmov"><h2>Últimos movimientos</h2><ol class="mvl" id="imv"></ol></div></nav>
   <main>
     <div class="purga" id="purgaAviso" role="alert" hidden><span id="purgaTxt"></span><span class="pb"><button type="button" class="ghost" id="purgaExp">Exportar ahora</button><button type="button" class="ghost" id="purgaOk">Entendido por hoy</button></span></div>
     <p id="msg" role="status" aria-live="polite"></p>
@@ -935,7 +956,7 @@ const MOTIVOS=["Merma de cocina","Caducado","Error de porción","Cadena de frío
 const MOTIVOS_ADD=["Recepción de proveedor","Compra directa","Devolución","Sobrante de conteo","Otro"];
 const QDEST=[{k:"desayuno",l:"Desayuno",h:"Armar la comida"},{k:"almuerzo",l:"Almuerzo",h:"Armar la comida"},{k:"cena",l:"Cena",h:"Armar la comida"},{k:"otros",l:"Vencimiento/Otros",h:"Vencidos, mermas u otros"}];
 const logData=[];let movSku=null;
-let zona="*",vista="todos",sec=0,gp="d",gi="*",sync=0,chartType="bars";const mov=[],dis=[],comidas=[];let qMode="desayuno",plate=[],qFindTxt="",alOpen=false;
+let zona="*",vista="todos",sec=0,gp="d",gi="*",sync=0,chartType="bars";const mov=[],comidas=[];let disT={},gone=[],DKEY="",datosAl=false;let qMode="desayuno",plate=[],qFindTxt="",alOpen=false;
 let fTipo="*",fOrden="",fSub="",fOpen=false,gm="a";
 let qZona="*",qTipo="*",qOrden="",qSub2="",qFOpen=false,scOpen=false;
 let invLayout=(()=>{try{return localStorage.getItem("cocina-central-lay")==="list"?"list":"grid"}catch(_){return"grid"}})();
@@ -971,16 +992,37 @@ function alertas(){const a=[];
   });
  return a.sort((x,y)=>y.u-x.u)}
 function pintarAl(){$("alertPanel").hidden=!alOpen;$("alertBack").hidden=!alOpen;$("bell").setAttribute("aria-expanded",String(alOpen))}
-function renderAlertas(){pintarAl();const all=alertas(),ids=all.map(e=>e.id);dis.splice(0,dis.length,...dis.filter(x=>ids.includes(x)));
- const a=all.filter(e=>!dis.includes(e.id));
+const MS24=864e5;
+function loadDis(uid){DKEY="kokoa-alertas:"+uid;disT={};gone=[];
+ try{const g=JSON.parse(localStorage.getItem(DKEY)||"{}");
+  if(g&&g.d&&typeof g.d==="object"&&!Array.isArray(g.d))for(const[k,v]of Object.entries(g.d))if(Number.isFinite(+v))disT[k]=+v;
+  if(g&&Array.isArray(g.g))gone=g.g.filter(x=>typeof x==="string")}catch(_){}}
+function saveDis(){if(!DKEY)return;try{localStorage.setItem(DKEY,JSON.stringify({d:disT,g:gone}))}catch(_){}}
+function purgaDis(){const n=Date.now();let ch=false;
+ for(const[k,t]of Object.entries(disT))if(n-t>=MS24){delete disT[k];if(!gone.includes(k))gone.push(k);ch=true}return ch}
+function renderAlertas(){pintarAl();let ch=purgaDis();const all=alertas(),ids=all.map(e=>e.id);
+ if(datosAl){for(const k of Object.keys(disT))if(!ids.includes(k)){delete disT[k];ch=true}
+  const g2=gone.filter(x=>ids.includes(x));if(g2.length!==gone.length){gone=g2;ch=true}}
+ if(ch)saveDis();
+ const oculta=id=>id in disT||gone.includes(id),a=all.filter(e=>!oculta(e.id)),nd=Object.keys(disT).length;
  $("aT").textContent=`Alertas próximas (${a.length})`;
  $("bellN").textContent=a.length;const ur=a.some(e=>e.u);$("bell").classList.toggle("urg",ur);$("bell").setAttribute("aria-label",`Alertas: ${a.length}${ur?", hay urgentes":""}`);
- $("aL").innerHTML=a.length?a.map(e=>`<li class="${e.u?"u":""}"><div><b><span class="tag">${e.tag}:</span> ${e.t}</b><span>${e.x}</span></div><div class="ab">${e.sku?`<button class="ghost" data-go="${e.sku}">Ver</button>`:""}<button class="ghost" data-del="${e.id}" aria-label="Borrar alerta">Borrar</button></div></li>`).join(""):`<li><div><b>Sin alertas</b><span>${dis.length?"Borraste "+dis.length+(dis.length>1?" alertas.":" alerta."):"Todo está en rango y sobre el mínimo."}</span></div></li>`;
- $("aM").innerHTML=(a.length>1?`<button class="more" data-delall="1">Borrar todas</button>`:"")+(dis.length?`<button class="more" data-rest="1">Restaurar ${dis.length} borrada${dis.length>1?"s":""}</button>`:"")}
+ $("aL").innerHTML=a.length?a.map(e=>`<li class="${e.u?"u":""}"><div><b><span class="tag">${e.tag}:</span> ${e.t}</b><span>${e.x}</span></div><div class="ab">${e.sku?`<button class="ghost" data-go="${e.sku}">Ver</button>`:""}<button class="ghost" data-del="${e.id}" aria-label="Borrar alerta">Borrar</button></div></li>`).join(""):`<li><div><b>Sin alertas</b><span>${nd?"Borraste "+nd+(nd>1?" alertas.":" alerta."):"Todo está en rango y sobre el mínimo."}</span></div></li>`;
+ let nota="";if(nd){const rest=Math.min(...Object.values(disT).map(t=>MS24-(Date.now()-t))),h=Math.max(1,Math.ceil(rest/36e5));nota=`<p class="small-note">Las borradas se eliminan por completo 24 h después. La más antigua se elimina en ${h} h.</p>`}
+ $("aM").innerHTML=(a.length>1?`<button class="more" data-delall="1">Borrar todas</button>`:"")+(nd?`<button class="more" data-rest="1">Restaurar ${nd} borrada${nd>1?"s":""}</button>`+nota:"")}
+setInterval(()=>{if(currentUser&&!document.hidden)renderAlertas()},60000);
 function renderTipos(){
  if(fTipo!=="*"&&!CATS.includes(fTipo))fTipo="*";
  $("ztipos").innerHTML=`<button class="zone" data-tp="*" aria-pressed="${fTipo==="*"}">Todos los tipos<small>${items.length} alimentos</small></button>`+CATS.map(c=>{const ti=items.filter(i=>i.k===c),lo=ti.filter(i=>i.sys<i.min).length;return`<button class="zone" data-tp="${esc(c)}" aria-pressed="${fTipo===c}">${esc(c)}<small>${ti.length} alimento${ti.length===1?"":"s"}</small>${lo?`<small class="low">${lo} bajo el mínimo</small>`:""}</button>`}).join("")}
-function renderZones(){renderTipos();
+function renderZsel(){const e=$("zsel");if(!e)return;
+ const lo=l=>l.some(i=>i.sys<i.min)?" ⚠":"";
+ const zo=`<option value="*">Toda la cocina (${items.length})</option>`+cameras.map(c=>{const l=items.filter(i=>i.z===c.id);return`<option value="${esc(c.id)}"${zona===c.id?" selected":""}>${esc(c.name)} (${l.length})${lo(l)}</option>`}).join("");
+ const to=`<option value="*">Todos (${items.length})</option>`+CATS.map(c=>{const l=items.filter(i=>i.k===c);return`<option value="${esc(c)}"${fTipo===c?" selected":""}>${esc(c)} (${l.length})${lo(l)}</option>`}).join("");
+ e.innerHTML=`<label>Zona<select data-zsel="z" aria-label="Filtrar por zona">${zo}</select></label><label>Tipo<select data-zsel="t" aria-label="Filtrar por tipo de alimento">${to}</select></label>`;
+ e.querySelector('[data-zsel="z"]').value=zona;e.querySelector('[data-zsel="t"]').value=fTipo}
+document.addEventListener("change",e=>{const t=e.target.closest&&e.target.closest("[data-zsel]");if(!t)return;
+ if(t.dataset.zsel==="z")zona=t.value;else fTipo=t.value;renderAll()});
+function renderZones(){renderTipos();renderZsel();
  $("zones").innerHTML=`<button class="zone" data-z="*" aria-pressed="${zona==="*"}">Toda la cocina<small>${items.length} alimentos</small></button>`+cameras.map(c=>{const zi=items.filter(i=>i.z===c.id),lo=zi.filter(i=>i.sys<i.min).length;return`<button class="zone" data-z="${esc(c.id)}" aria-pressed="${zona===c.id}">${esc(c.name)}<small>${zi.length} alimento${zi.length===1?"":"s"}</small>${lo?`<small class="low">${lo} bajo el mínimo</small>`:""}</button>`}).join("")}
 function lotsOf(i){return Array.isArray(i.lots)?i.lots:(i.sys>0?[{q:i.sys,exp:i.exp||null}]:[])}
 function sincLotes(i){i.lots.sort((a,b)=>(a.exp||"9")<(b.exp||"9")?-1:(a.exp||"9")>(b.exp||"9")?1:0);
@@ -1137,7 +1179,7 @@ function renderComidas(){const L=comidas.slice(0,10);
 function renderLog(){$("log").innerHTML=logData.map(e=>`<li class="${e.k} ${e.n?"new":""}"><time>${e.ts?fechaHora(e.ts):e.t}</time>${esc(e.x)}${hBtn("bitacora",e.id)}</li>`).join("");$("histAll").hidden=!esAdmin();logData.forEach(e=>e.n=false)}
 const VISTAS=[[0,"Comidas: Quitar","Quitar"],[1,"Inventario: Agregar","Agregar"],[3,"Pedido sugerido","Pedido"],[4,"Gráficos","Gráficos"],[5,"Movimientos","Movimientos"]];
 function limpiarPantalla(){alOpen=false;scOpen=false;plate=[];qFindTxt="";sec=0;
- ["vtabs","zones","ztipos","imv","imv2","qFilt","qList","qMain","qDest","cml","tabs","fMenu","cats","ped","gmode","gper","gtype","gsum","gc","mvl","log","aL","aM","aSug","scanList"].forEach(id=>{const e=$(id);if(e)e.innerHTML=""});
+ ["vtabs","zones","zsel","ztipos","imv","imv2","qFilt","qList","qMain","qDest","cml","tabs","fMenu","cats","ped","gmode","gper","gtype","gsum","gc","mvl","log","aL","aM","aSug","scanList"].forEach(id=>{const e=$(id);if(e)e.innerHTML=""});
  msg.textContent="";$("bellN").textContent="0";$("addForm").reset();$("scan").value="";pintarAl()}
 function renderAll(){
  if(!currentUser){limpiarPantalla();return}
@@ -1167,9 +1209,9 @@ document.addEventListener("click",e=>{const b=e.target.closest("button"),D=b&&b.
  else if(D.gp){gp=D.gp;renderGraf()}
  else if(D.gt){chartType=D.gt;renderGraf()}
  else if(D.gm){gm=D.gm;selMov();$("gsel").value="*";renderGraf()}
- else if(D.del){dis.push(D.del);msg.textContent="";renderAll()}
- else if(D.delall){alertas().forEach(e=>{if(!dis.includes(e.id))dis.push(e.id)});msg.textContent="";renderAll()}
- else if(D.rest){dis.length=0;msg.textContent="";renderAll()}
+ else if(D.del){disT[D.del]=Date.now();saveDis();msg.textContent="";renderAll()}
+ else if(D.delall){const n=Date.now();alertas().forEach(e=>{if(!(e.id in disT)&&!gone.includes(e.id))disT[e.id]=n});saveDis();msg.textContent="";renderAll()}
+ else if(D.rest){disT={};saveDis();msg.textContent="";renderAll()}
  else if(D.v){vista=D.v;renderAll()}
  else if(D.lay){invLayout=invLayout==="grid"?"list":"grid";try{localStorage.setItem("cocina-central-lay",invLayout)}catch(_){}renderAll()}
  else if(D.z){zona=D.z;renderAll()}
@@ -1255,7 +1297,7 @@ function renderAdmin(){
     B.innerHTML=backBtn.replace('data-ad="menu"','data-ad="u"')+`<form class="aform" id="adminForm" data-f="u" autocomplete="off">
       <div class="two"><label>Usuario / apodo<input name="apodo" required maxlength="40" autocapitalize="off"></label><label>Clave (número de documento, mín. 8)<input name="cedula" type="password" required minlength="8" maxlength="72" autocapitalize="off" autocomplete="new-password"></label></div>
       <div class="two"><label>Nombre<input name="nombre" required maxlength="60"></label><label>Apellido<input name="apellido" maxlength="60"></label></div>
-      <div class="two"><label>Teléfono<input name="telefono" inputmode="tel" maxlength="30"></label><label>Correo (solo informativo)<input name="correo" type="email" maxlength="100"></label></div>
+      <div class="two"><label>Teléfono<input name="telefono" inputmode="tel" maxlength="30"></label><label>Correo<input name="correo" type="email" maxlength="100"></label></div>
       <label>Rol<select name="rol"><option value="estudiante">Estudiante</option><option value="admin">Admin</option></select></label>
       ${animalPicker("")}<div><button type="submit">Crear usuario</button></div></form>`;
   }else if(g==="u"){
@@ -1505,7 +1547,7 @@ function showAuth(){document.body.classList.add("locked");bloquear(true);$("auth
 function enterUser(u){currentUser=u;$("loggedUser").textContent=u.apodo||u.nombre;$("meEmoji").textContent=u.animal||"👤";$("authGate").hidden=true;document.body.classList.remove("locked");bloquear(false);$("loginKey").value="";$("adminBtn").hidden=u.rol!=="admin";$("usersBtn").hidden=u.rol!=="admin";renderAll()}
 function logout(){
   listo=false;if(canal){SB.removeChannel(canal);canal=null}SB.auth.signOut();
-  currentUser=null;users=[];[items,mov,comidas,logData].forEach(a=>a.splice(0));known=new Set();fp={};
+  currentUser=null;datosAl=false;disT={};gone=[];DKEY="";users=[];[items,mov,comidas,logData].forEach(a=>a.splice(0));known=new Set();fp={};
   $("loginUser").value="";$("loginKey").value="";$("loginError").textContent="";
   $("meModal").hidden=true;$("adminModal").hidden=true;$("delModal").hidden=true;$("adminBody").innerHTML="";
   showAuth();renderAll()}
@@ -1541,7 +1583,7 @@ async function cargar(){
   if(z.data.length)cameras=z.data.map(r=>({id:r.id,name:r.nombre,temp:r.temp||"",max:r.max||"",bad:!!r.mala}));
   if(t.data.length){CATS.splice(0,CATS.length,...t.data.map(r=>r.nombre));Object.keys(CZ).forEach(k=>delete CZ[k]);t.data.forEach(r=>{CZ[r.nombre]=r.zona})}
   normalizar();known=new Set(items.map(i=>i.sku));fp={};items.forEach(i=>fp[i.sku]=itFp(i));fpZ=zFp();
-  sync=1;try{renderAll()}finally{sync=0}
+  datosAl=true;sync=1;try{renderAll()}finally{sync=0}
 }
 async function recargar(){if(!currentUser||!listo)return;try{await cola;await cargar()}catch(e){aviso("No se pudo actualizar: "+(e.message||e))}}
 async function empujar(){
@@ -1570,7 +1612,6 @@ async function empujar(){
 }
 function guardar(){
   if(sync||!listo||!currentUser)return;gen++;
-  try{localStorage.setItem("kokoa-dis",JSON.stringify(dis))}catch(_){}
   cola=cola.then(empujar).catch(e=>{aviso("No se pudo guardar: "+(e.message||e)+". Se recargan los datos del servidor.");return cargar().catch(()=>{})})}
 function enVivo(){
   if(canal)SB.removeChannel(canal);
@@ -1583,7 +1624,7 @@ async function entrar(user){
   const r=await SB.from("perfiles").select("*").eq("id",user.id).single();
   if(r.error||!r.data)throw new Error("No existe tu perfil");
   const u=perfilDe(r.data);users=[u];
-  try{dis.splice(0,dis.length,...JSON.parse(localStorage.getItem("kokoa-dis")||"[]"))}catch(_){}
+  datosAl=false;loadDis(u.id);
   enterUser(u);await cargar();listo=true;enVivo()}
 async function initAuth(){try{const{data}=await SB.auth.getSession();if(data.session){await entrar(data.session.user);return}}catch(_){}showAuth()}
 $("loginForm").addEventListener("submit",async e=>{e.preventDefault();const E=$("loginError");E.textContent="";
