@@ -849,6 +849,17 @@ body{display:flex;flex-direction:column;min-height:100vh;min-height:100dvh}
 #syncBar.err{border-radius:16px;background:var(--alert);color:#fff}
 #syncBar button{min-height:32px;padding:2px 10px;border-radius:10px;background:none;border:1.5px solid currentColor;color:inherit}
 @media print{#syncBar,.pushbox,.pk-back{display:none!important}}
+/* botones y x v5 */
+#addForm{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px 14px;align-items:end}
+#addForm .aname{grid-column:span 2;min-width:0}
+#addForm .abtns{grid-column:1/-1;display:flex;justify-content:flex-end;align-items:center;gap:10px}
+#addForm .abtns #aCancel,#addForm .abtns #aBtn{width:auto;min-width:130px;margin:0;flex:0 0 auto}
+#addForm .abtns #aBtn{min-width:160px}
+.prow{position:relative;padding-right:52px}
+.prow button[data-qx]{position:absolute;top:8px;right:8px;width:32px;height:32px;min-height:32px;padding:0;border-radius:50%;line-height:1;display:grid;place-items:center}
+@media (max-width:760px){
+#addForm .aname{grid-column:1/-1}
+}
 /* inventario uniforme v3 */
 #v1 input:not([type=hidden]):not([type=checkbox]):not([type=radio]),#v1 .csel,#v1 .dsel{box-sizing:border-box;width:100%;max-width:none;height:44px;min-height:44px;padding:6px 12px;border:1.5px solid var(--edge);border-radius:12px;background:var(--sheet);color:var(--ink);font:inherit;line-height:1.2}
 #v1 input[type=number]{text-align:right}
@@ -963,8 +974,8 @@ header:has(#adminBtn:not([hidden])) .htools #usersBtn{grid-column:5/7;grid-row:3
         <label>Vence este lote<input id="aE" type="date"></label>
         <label data-new>Mínimo<input id="aMn" type="number" min="0" step="any" inputmode="decimal" value="0"></label>
         <label data-old hidden>Motivo<select id="aMo"></select></label>
-        <button type="button" class="ghost" id="aCancel" hidden>Cancelar</button>
-        <button type="submit" id="aBtn">Crear alimento</button>
+        <div class="abtns"><button type="button" class="ghost" id="aCancel" hidden>Cancelar</button>
+        <button type="submit" id="aBtn">Crear alimento</button></div>
       </form>
       <div class="asug" id="aSug" aria-live="polite" hidden></div>
       <section class="imv-m"><h2 class="qh2">Últimos movimientos</h2><ol class="mvl" id="imv2"></ol></section>
@@ -1337,7 +1348,7 @@ document.addEventListener("change",e=>{const s=e.target.closest&&e.target.closes
  const r=s.closest("[data-e]"),i=r&&items.find(a=>a.sku===r.dataset.e);if(!i||!sinNombre()||s.value===i.k)return;
  const antes=i.k;i.k=s.value;if(fTipo!=="*"&&fTipo!==i.k)fTipo="*";
  addLog("cnt",`${i.n} pasa de ${antes.toLowerCase()} a ${i.k.toLowerCase()}. Por ${quien()}.`);
- renderAll();msg.textContent=`${i.n} ahora es de tipo «${i.k}».`;
+ renderAll();
  const n=document.querySelector(`[data-e="${i.sku}"]`);if(n){n.classList.add("hit");n.scrollIntoView({block:"center",behavior:"smooth"})}});
 document.addEventListener("keydown",e=>{if(e.key!=="Enter"||e.target.id!=="qFind")return;e.preventDefault();
  const l=matchAlimentos(qFindTxt).filter(i=>r2(i.sys-enPlato(i.sku))>0);
@@ -1766,7 +1777,7 @@ meF.addEventListener("submit",async e=>{e.preventDefault();const u=currentUser;i
   if(r.error){meMsg(/duplicate|unique/i.test(r.error.message)?"Ese apodo ya existe.":r.error.message);return}
   if(pw){r=await SB.auth.updateUser({password:pw});if(r.error){meMsg(r.error.message);return}}
   Object.assign(u,d);meF.elements.cedula.value="";addLog("cnt",`Datos del usuario ${u.apodo} actualizados. Por ${u.apodo}.`);
-  $("loggedUser").textContent=u.apodo;$("meEmoji").textContent=u.animal;closeMe();msg.textContent="Tus datos se guardaron.";renderAll()});
+  $("loggedUser").textContent=u.apodo;$("meEmoji").textContent=u.animal;closeMe();msg.textContent="";renderAll()});
 $("meDel").addEventListener("click",async()=>{const u=currentUser;if(!u)return;
   if(!confirm(`¿Eliminar tu usuario «${u.apodo}»? Se cerrará la sesión y ya no podrás ingresar con él.`))return;
   const r=await SB.rpc("eliminar_usuario",{p_id:u.id});if(r.error){meMsg(r.error.message);return}closeMe();logout()});
@@ -1833,7 +1844,7 @@ function pintarTema(){const d=esOscuro();["theme","themeAuth"].forEach(id=>{cons
 pintarTema();
 
 let syncT=0;
-function syncEstado(t,tipo){const e=$("syncBar");if(!e)return;clearTimeout(syncT);
+function syncEstado(t,tipo){const e=$("syncBar");if(!e)return;clearTimeout(syncT);if(tipo!=="err"){e.hidden=true;return}
  e.className=tipo==="err"?"err":"";e.hidden=false;e.textContent=t;
  if(tipo==="err"){const b=document.createElement("button");b.type="button";b.textContent="Entendido";b.onclick=()=>{e.hidden=true};e.appendChild(b)}
  else if(tipo==="ok")syncT=setTimeout(()=>{e.hidden=true},1600)}
