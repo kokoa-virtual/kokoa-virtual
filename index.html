@@ -1234,8 +1234,7 @@ function renderAdmin(){
     B.innerHTML=`<form class="aform" id="adminForm" data-f="u" autocomplete="off">
       <div class="two"><label>Usuario / apodo<input name="apodo" required maxlength="40" autocapitalize="off"></label><label>Clave (mín. 8)<input name="cedula" type="password" required minlength="8" maxlength="72" autocapitalize="off" autocomplete="new-password"></label></div>
       <div class="two"><label>Nombre<input name="nombre" required maxlength="60"></label><label>Apellido<input name="apellido" maxlength="60"></label></div>
-      <div class="two"><label>Teléfono<input name="telefono" inputmode="tel" maxlength="30"></label><label>Correo<input name="correo" type="email" required maxlength="100"></label></div>
-      <label>Rol<select name="rol"><option value="estudiante">Estudiante</option><option value="admin">Admin</option></select></label>
+      <div class="two"><label>Teléfono<input name="telefono" inputmode="tel" maxlength="30"></label><label>Rol<select name="rol"><option value="estudiante">Estudiante</option><option value="admin">Admin</option></select></label></div>
       ${animalPicker("")}<div><button type="submit">Crear usuario</button></div></form>
       <h3 style="margin:18px 0 8px">Usuarios existentes</h3>`+users.map((u,n)=>{const yo=u===currentUser,solo=users.length<2;
       return`<div class="arow"><span class="dtx"><b>${esc(u.animal||"👤")} ${esc(u.apodo||u.nombre)}</b><small>${esc([u.nombre,u.apellido].filter(Boolean).join(" "))}${yo?" · eres tú":""}</small></span><select data-urol="${n}" aria-label="Rol"${yo?" disabled":""}><option value="estudiante"${u.rol==="admin"?"":" selected"}>Estudiante</option><option value="admin"${u.rol==="admin"?" selected":""}>Admin</option></select><button type="button" class="ghost danger" data-udel="${n}"${yo||solo?" disabled":""}>Eliminar</button></div>`}).join("")+
@@ -1314,7 +1313,7 @@ document.addEventListener("keydown",e=>{const g=e.target.closest&&e.target.close
  if(moverOrden(de,a)){const n=document.querySelector(`#ordList .ordrow[data-od="${a}"] .dgrip`);if(n)n.focus()}});
 $("adminBody").addEventListener("submit",e=>{const f=e.target.closest("form");if(!f)return;e.preventDefault();
   const v=n=>f.elements[n]?f.elements[n].value.trim():"";
-  if(f.dataset.f==="u"){const u={apodo:v("apodo"),nombre:v("nombre"),apellido:v("apellido"),telefono:v("telefono"),correo:v("correo"),animal:v("animal")},ced=v("cedula");
+  if(f.dataset.f==="u"){const u={apodo:v("apodo"),nombre:v("nombre"),apellido:v("apellido"),telefono:v("telefono"),animal:v("animal")},ced=v("cedula");
     if(!u.apodo||!ced||!u.nombre||!u.animal){adm("Falta apodo, clave, nombre o animal.");return}
     if(users.some(x=>igual(x.apodo,u.apodo))){adm("Ese usuario ya existe.");return}
     u.rol=v("rol")==="admin"?"admin":"estudiante";
@@ -1538,17 +1537,13 @@ $("loginForm").addEventListener("submit",async e=>{e.preventDefault();const E=$(
   let em=$("loginUser").value.trim();
   if(em&&!em.includes("@")){const q=await SB.rpc("correo_de_usuario",{p_apodo:em});em=(q.data||"")||"x@x.invalid"}
   const r=await SB.auth.signInWithPassword({email:em,password:$("loginKey").value});
-  if(r.error){E.textContent="Correo o clave incorrectos.";$("loginKey").value="";return}
+  if(r.error){E.textContent="Usuario o clave incorrectos.";$("loginKey").value="";return}
   try{await entrar(r.data.user)}catch(x){E.textContent="No se pudo cargar tu perfil: "+x.message}});
 async function cargarUsuarios(){const r=await SB.from("perfiles").select("*").order("apodo");if(r.error){adm(r.error.message);return}users=r.data.map(perfilDe);currentUser=users.find(u=>u.id===currentUser.id)||currentUser}
 async function delU(n,u,a,b){const r=await SB.rpc("eliminar_usuario",{p_id:u.id});if(r.error){adm(r.error.message);return}users.splice(n,1);admListo(a,b)}
 async function crearU(u,pw,ok){
-  if(!u.correo){adm("Falta el correo.");return}
-  const c=await SB.from("config").select("valor").eq("clave","codigo_registro").single();
-  const t=supabase.createClient(SB_URL,SB_KEY,{auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false,storageKey:"kokoa-tmp"}});
-  const r=await t.auth.signUp({email:u.correo,password:pw,options:{data:{apodo:u.apodo,nombre:u.nombre,apellido:u.apellido,telefono:u.telefono,animal:u.animal,codigo:c.data&&c.data.valor}}});
-  if(r.error){adm(/database error/i.test(r.error.message)?"Ese apodo ya está en uso.":/already/i.test(r.error.message)?"Ese correo ya está registrado.":r.error.message);return}
-  if(u.rol==="admin"&&r.data.user){const q=await SB.from("perfiles").update({rol:"admin"}).eq("id",r.data.user.id);if(q.error){adm("Usuario creado, pero no se pudo asignar admin: "+q.error.message);await cargarUsuarios();return}}
+  const r=await SB.rpc("crear_usuario",{p_apodo:u.apodo,p_clave:pw,p_nombre:u.nombre,p_apellido:u.apellido,p_telefono:u.telefono,p_animal:u.animal,p_rol:u.rol});
+  if(r.error){adm(r.error.message);return}
   await cargarUsuarios();ok()}
 $("adminBody").addEventListener("change",async e=>{const s=e.target.closest("[data-urol]");if(!s)return;const u=users[+s.dataset.urol];if(!u)return;
   const r=await SB.from("perfiles").update({rol:s.value}).eq("id",u.id);
