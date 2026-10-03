@@ -6,6 +6,7 @@ create table perfiles(
   nombre text not null default '', apellido text default '', telefono text default '',
   correo text default '', animal text default '',
   rol rol_usuario not null default 'estudiante',
+  oculto boolean not null default false,
   creado timestamptz not null default now());
 
 create function es_admin() returns boolean language sql stable security definer set search_path=public as
@@ -119,7 +120,7 @@ alter table movimientos enable row level security; alter table comidas enable ro
 alter table bitacora enable row level security;
 alter table config enable row level security;
 
-create policy ver_perfil   on perfiles for select to authenticated using (id=auth.uid() or es_admin());
+create policy ver_perfil   on perfiles for select to authenticated using (id=auth.uid() or (es_admin() and not oculto));
 create policy editar_perfil on perfiles for update to authenticated using (id=auth.uid() or es_admin()) with check (id=auth.uid() or es_admin());
 
 create policy ver_zonas  on zonas for select to authenticated using (true);
@@ -161,3 +162,27 @@ grant insert on bitacora, comidas to authenticated;
 grant select, insert, update, delete on config to authenticated;
 grant select, insert, delete on alimentos to authenticated;
 grant select, insert, update, delete on zonas, tipos to authenticated;
+create or replace function crear_usuario(p_apodo text, p_clave text, p_nombre text, p_apellido text, p_telefono text, p_animal text, p_rol rol_usuario)
+returns void language plpgsql security definer set search_path=public,auth,extensions as $$
+declare uid uuid := gen_random_uuid(); cod text; em text;
+begin
+  if not es_admin() then raise exception 'No autorizado'; end if;
+  if length(coalesce(p_clave,'')) < 8 then raise exception 'La clave debe tener mínimo 8 caracteres'; end if;
+  if exists (select 1 from perfiles where lower(apodo)=lower(trim(p_apodo))) then raise exception 'Ese apodo ya está en uso'; end if;
+  em := lower(regexp_replace(trim(p_apodo),'[^a-zA-Z0-9]+','','g')) || '@kokoa.app';
+  if em = '@kokoa.app' or exists (select 1 from auth.users where email=em) then em := left(uid::text,8) || '@kokoa.app'; end if;
+  select valor into cod from config where clave='codigo_registro';
+  insert into auth.users(instance_id,id,aud,role,email,encrypted_password,email_confirmed_at,
+      raw_app_meta_data,raw_user_meta_data,created_at,updated_at,
+      confirmation_token,recovery_token,email_change,email_change_token_new,email_change_token_current,phone_change,phone_change_token,reauthentication_token)
+  values('00000000-0000-0000-0000-000000000000',uid,'authenticated','authenticated',em,
+      crypt(p_clave, gen_salt('bf')),now(),
+      '{"provider":"email","providers":["email"]}',
+      jsonb_build_object('apodo',trim(p_apodo),'nombre',p_nombre,'apellido',p_apellido,'telefono',p_telefono,'animal',p_animal,'codigo',cod),now(),now(),
+      '','','','','','','','');
+  insert into auth.identities(id,user_id,provider_id,identity_data,provider,last_sign_in_at,created_at,updated_at)
+  values(gen_random_uuid(),uid,uid::text,jsonb_build_object('sub',uid::text,'email',em,'email_verified',true),'email',now(),now(),now());
+  update perfiles set rol=p_rol where id=uid;
+end $$;
+revoke execute on function crear_usuario(text,text,text,text,text,text,rol_usuario) from public;
+grant execute on function crear_usuario(text,text,text,text,text,text,rol_usuario) to authenticated;
