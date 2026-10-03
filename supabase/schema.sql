@@ -1,4 +1,5 @@
 create type rol_usuario as enum ('admin','estudiante');
+
 create table perfiles(
   id uuid primary key references auth.users(id) on delete cascade,
   apodo text not null unique,
