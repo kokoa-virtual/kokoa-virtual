@@ -6,6 +6,8 @@ jobs:
   ping:
     runs-on: ubuntu-latest
     steps:
-      - run: >
-          curl -fsS -X POST "${{ secrets.SUPABASE_URL }}/rest/v1/rpc/ping"
-          -H "apikey: ${{ secrets.SUPABASE_ANON_KEY }}" -H "Content-Type: application/json" -d '{}'
+      - run: |
+          code=$(curl -sS -o body.txt -w "%{http_code}" -X POST "${{ secrets.SUPABASE_URL }}/rest/v1/rpc/ping" -H "apikey: ${{ secrets.SUPABASE_ANON_KEY }}" -H "Content-Type: application/json" -d '{}')
+          cat body.txt
+          echo
+          [ "$code" = "200" ]
