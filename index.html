@@ -2,9 +2,16 @@
 <html lang="es">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src data: blob:; script-src 'self' 'unsafe-inline'; connect-src 'self' https://wqpwqiwkvwdfcvywatmc.supabase.co wss://wqpwqiwkvwdfcvywatmc.supabase.co; frame-src 'none'; form-action 'none'; base-uri 'none'; object-src 'none'">
+<meta http-equiv="Content-Security-Policy" content="style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; script-src 'self' 'unsafe-inline'; connect-src 'self' https://wqpwqiwkvwdfcvywatmc.supabase.co wss://wqpwqiwkvwdfcvywatmc.supabase.co; frame-src 'none'; form-action 'none'; base-uri 'none'; object-src 'none'">
 <meta name="referrer" content="no-referrer">
 <meta name="color-scheme" content="light dark">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Kokoa">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Kokoa Virtual</title>
 <script>var _t="light";try{if(localStorage.getItem("cocina-central-tema")==="dark")_t="dark"}catch(e){}document.documentElement.setAttribute("data-theme",_t)</script>
@@ -800,6 +807,48 @@ body{font-variant-emoji:text}
 body{display:flex;flex-direction:column;min-height:100vh;min-height:100dvh}
 .pie{margin-top:auto;font-size:6px;padding:8px 12px 6px;letter-spacing:.2px;line-height:1.2}
 #authGate .pie{position:fixed;left:0;right:0;bottom:4px;margin:0;padding:0;pointer-events:none}
+
+#aM .small-note{flex:1 1 100%;margin:2px 16px 14px;padding:0;line-height:1.4;overflow-wrap:anywhere}
+#aM .more{margin:8px 16px}
+.pushbox{display:flex;flex-wrap:wrap;align-items:center;border-top:1px solid var(--rule);margin-top:6px;padding:6px 0}
+.pushbox .small-note{flex:1 1 100%;margin:6px 16px;line-height:1.4}
+.pushbox .more{margin:6px 16px}
+.cs-src{display:none!important}
+.csel,.dsel{display:flex;align-items:center;justify-content:space-between;gap:8px;width:100%;max-width:none;min-height:44px;padding:6px 12px;text-align:left;cursor:pointer;background:var(--sheet);color:var(--ink);border:1.5px solid var(--rule);border-radius:12px}
+.csel>span,.dsel>span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.csel::after{content:"▾";flex:none;color:var(--soft)}
+.dsel::after{content:"📅";flex:none;font-size:15px}
+.dsel.vacia>span{color:var(--soft)}
+.csel:disabled,.dsel:disabled{opacity:.55;cursor:not-allowed}
+.gctl .csel{flex:1 1 180px;width:auto}
+.pk-back{position:fixed;inset:0;z-index:300;background:rgba(0,0,0,.45);display:flex;align-items:flex-end;justify-content:center}
+.pk{width:min(460px,100%);max-height:80vh;display:flex;flex-direction:column;background:var(--sheet);color:var(--ink);border-radius:22px 22px 0 0;box-shadow:0 -10px 40px -12px rgba(0,0,0,.5);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(min-width:700px){.pk-back{align-items:center}.pk{border-radius:22px}}
+.pk-h{padding:16px 20px 8px;font-weight:700;font-size:17px}
+.pk-q{margin:0 14px 6px;width:calc(100% - 28px)}
+.pk ul{list-style:none;margin:0;padding:6px 10px 12px;overflow:auto}
+.pk li{display:flex;align-items:center;justify-content:space-between;gap:10px;min-height:46px;padding:10px 14px;border-radius:12px;cursor:pointer}
+.pk li[aria-selected=true]{background:color-mix(in srgb,var(--blue) 20%,var(--sheet));font-weight:700}
+.pk li[aria-selected=true]::after{content:"✓";color:var(--blue-t)}
+.pk li.act{outline:2px solid var(--blue-t);outline-offset:-2px}
+.pk li[aria-disabled=true]{opacity:.45;cursor:not-allowed}
+.cal{padding:14px 14px 16px}
+.cal-h{display:flex;align-items:center;justify-content:space-between;gap:4px;margin-bottom:8px}
+.cal-h b{flex:1;text-align:center;text-transform:capitalize}
+.cal-h button{width:40px;min-height:40px;padding:0;border-radius:12px;background:none;color:var(--ink);font-size:18px;border:1.5px solid var(--rule)}
+.cal-w,.cal-g{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;text-align:center}
+.cal-w span{font-size:13px;color:var(--soft);padding:4px 0}
+.cal-g i{display:block}
+.cal-g button{min-height:42px;padding:0;border-radius:12px;background:none;color:var(--ink);border:1.5px solid transparent}
+.cal-g button.hoy{border-color:var(--blue-t)}
+.cal-g button.sel{background:var(--blue-t);color:var(--ground);font-weight:700}
+.cal-f{display:flex;gap:8px;justify-content:space-between;margin-top:12px}
+.cal-f button{flex:1;color:var(--ink);border:1.5px solid var(--rule)}
+#syncBar{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(14px + env(safe-area-inset-bottom,0px));z-index:150;max-width:min(560px,calc(100% - 24px));display:flex;gap:10px;align-items:center;padding:10px 16px;border-radius:999px;background:var(--ink);color:var(--ground);font-size:14px;box-shadow:0 8px 28px -10px rgba(0,0,0,.6)}
+#syncBar[hidden]{display:none}
+#syncBar.err{border-radius:16px;background:var(--alert);color:#fff}
+#syncBar button{min-height:32px;padding:2px 10px;border-radius:10px;background:none;border:1.5px solid currentColor;color:inherit}
+@media print{#syncBar,.pushbox,.pk-back{display:none!important}}
 </style>
 </head>
 <body>
@@ -941,9 +990,10 @@ body{display:flex;flex-direction:column;min-height:100vh;min-height:100dvh}
   </section>
 </div>
 
+<div id="syncBar" role="status" aria-live="polite" hidden></div>
 <div id="alertBack" hidden></div>
 <aside id="alertPanel" role="dialog" aria-label="Alertas próximas" hidden>
-  <section class="alerts"><h2><span id="aT">Alertas próximas</span><button type="button" class="ghost arrow" id="aClose" aria-label="Cerrar alertas" title="Cerrar alertas">✕</button></h2><ul id="aL"></ul><div id="aM"></div></section>
+  <section class="alerts"><h2><span id="aT">Alertas próximas</span><button type="button" class="ghost arrow" id="aClose" aria-label="Cerrar alertas" title="Cerrar alertas">✕</button></h2><ul id="aL"></ul><div id="aM"></div><div id="pushBox" class="pushbox"></div></section>
 </aside>
 <script src="vendor/supabase.js"></script>
 <script>
@@ -1546,7 +1596,7 @@ const bloquear=v=>["header","views","wrap"].forEach(id=>{const e=id==="header"?d
 function showAuth(){document.body.classList.add("locked");bloquear(true);$("authGate").hidden=false;$("loginUser").focus()}
 function enterUser(u){currentUser=u;$("loggedUser").textContent=u.apodo||u.nombre;$("meEmoji").textContent=u.animal||"👤";$("authGate").hidden=true;document.body.classList.remove("locked");bloquear(false);$("loginKey").value="";$("adminBtn").hidden=u.rol!=="admin";$("usersBtn").hidden=u.rol!=="admin";renderAll()}
 function logout(){
-  listo=false;if(canal){SB.removeChannel(canal);canal=null}SB.auth.signOut();
+  listo=false;if(canal){SB.removeChannel(canal);canal=null}quitarPushServidor().finally(()=>SB.auth.signOut());
   currentUser=null;datosAl=false;disT={};gone=[];DKEY="";users=[];[items,mov,comidas,logData].forEach(a=>a.splice(0));known=new Set();fp={};
   $("loginUser").value="";$("loginKey").value="";$("loginError").textContent="";
   $("meModal").hidden=true;$("adminModal").hidden=true;$("delModal").hidden=true;$("adminBody").innerHTML="";
@@ -1587,32 +1637,37 @@ async function cargar(){
 }
 async function recargar(){if(!currentUser||!listo)return;try{await cola;await cargar()}catch(e){aviso("No se pudo actualizar: "+(e.message||e))}}
 async function empujar(){
-  const adm=esAdmin(),zmod=adm&&zFp()!==fpZ,ap=currentUser.apodo;
-  if(zmod){
+  const adm=esAdmin(),zmod=adm&&zFp()!==fpZ,ap=currentUser.apodo,fallos=[];let hizo=false;
+  const w=()=>{if(!hizo){hizo=true;syncEstado("Guardando…","")}};
+  const paso=async f=>{try{await f()}catch(e){fallos.push(e.message||String(e))}};
+  if(zmod)await paso(async()=>{w();
     ck(await SB.from("zonas").upsert(cameras.map((c,n)=>({id:c.id,nombre:c.name,temp:c.temp,max:c.max,mala:c.bad,orden:n}))));
-    ck(await SB.from("tipos").upsert(CATS.map((k,n)=>({nombre:k,zona:zDe(k),orden:n}))))}
+    ck(await SB.from("tipos").upsert(CATS.map((k,n)=>({nombre:k,zona:zDe(k),orden:n}))))});
   const nuevos=items.filter(i=>!known.has(i.sku));
-  if(nuevos.length){ck(await SB.from("alimentos").insert(nuevos.map(i=>({sku:i.sku,nombre:i.n,tipo:i.k,unidad:i.u,zona:i.z,vence:i.exp||null,minimo:i.min,conteo:i.c}))));nuevos.forEach(i=>{known.add(i.sku);fp[i.sku]=itFp(i)})}
-  for(const i of items)if(known.has(i.sku)&&fp[i.sku]!==itFp(i)){ck(await SB.from("alimentos").update({nombre:i.n,tipo:i.k,unidad:i.u,zona:i.z,vence:i.exp||null,minimo:i.min,conteo:i.c}).eq("sku",i.sku));fp[i.sku]=itFp(i)}
+  if(nuevos.length)await paso(async()=>{w();ck(await SB.from("alimentos").insert(nuevos.map(i=>({sku:i.sku,nombre:i.n,tipo:i.k,unidad:i.u,zona:i.z,vence:i.exp||null,minimo:i.min,conteo:i.c}))));nuevos.forEach(i=>{known.add(i.sku);fp[i.sku]=itFp(i)})});
   for(const m of mov){if(m._s)continue;
-    const it=items.find(i=>i.sku===m.s),ex=expLote[m.s]!==undefined?expLote[m.s]:(it&&it.exp)||null;
-    ck(await SB.rpc("registrar_movimiento",{p_sku:m.s,p_delta:m.d,p_motivo:m.w||"",p_vence:m.d>0?ex:null}));m._s=1;delete expLote[m.s]}
+    await paso(async()=>{w();const it=items.find(i=>i.sku===m.s),ex=expLote[m.s]!==undefined?expLote[m.s]:(it&&it.exp)||null;
+      ck(await SB.rpc("registrar_movimiento",{p_sku:m.s,p_delta:m.d,p_motivo:m.w||"",p_vence:m.d>0?ex:null}));m._s=1;delete expLote[m.s]})}
   const lg=logData.filter(e=>!e._s).reverse();
-  if(lg.length){ck(await SB.from("bitacora").insert(lg.map(e=>({clase:e.k,texto:e.x,apodo:ap}))));lg.forEach(e=>e._s=1)}
+  if(lg.length)await paso(async()=>{w();ck(await SB.from("bitacora").insert(lg.map(e=>({clase:e.k,texto:e.x,apodo:ap}))));lg.forEach(e=>e._s=1)});
   const cm=comidas.filter(e=>!e._s).reverse();
-  if(cm.length){ck(await SB.from("comidas").insert(cm.map(e=>({tipo:e.k,nombre:e.nom,items:e.it,apodo:ap}))));cm.forEach(e=>e._s=1)}
+  if(cm.length)await paso(async()=>{w();ck(await SB.from("comidas").insert(cm.map(e=>({tipo:e.k,nombre:e.nom,items:e.it,apodo:ap}))));cm.forEach(e=>e._s=1)});
+  for(const i of items)if(known.has(i.sku)&&fp[i.sku]!==itFp(i))
+    await paso(async()=>{w();ck(await SB.from("alimentos").update({nombre:i.n,tipo:i.k,unidad:i.u,zona:i.z,vence:i.exp||null,minimo:i.min,conteo:i.c}).eq("sku",i.sku));fp[i.sku]=itFp(i)});
   const vivos=new Set(items.map(i=>i.sku)),borrar=[...known].filter(s=>!vivos.has(s));
-  if(borrar.length){ck(await SB.from("alimentos").delete().in("sku",borrar));borrar.forEach(s=>{known.delete(s);delete fp[s]})}
-  if(zmod){
+  if(borrar.length)await paso(async()=>{w();ck(await SB.from("alimentos").delete().in("sku",borrar));borrar.forEach(s=>{known.delete(s);delete fp[s]})});
+  if(zmod)await paso(async()=>{
     const kt=ck(await SB.from("tipos").select("nombre")),kz=ck(await SB.from("zonas").select("id"));
     const dt=kt.data.map(r=>r.nombre).filter(n=>!CATS.includes(n)),dz=kz.data.map(r=>r.id).filter(n=>!cameras.some(c=>c.id===n));
     if(dt.length)ck(await SB.from("tipos").delete().in("nombre",dt));
     if(dz.length)ck(await SB.from("zonas").delete().in("id",dz));
-    fpZ=zFp()}
+    fpZ=zFp()});
+  if(fallos.length)throw new Error(fallos[0]);
+  if(hizo)syncEstado("Guardado ✓","ok")
 }
 function guardar(){
   if(sync||!listo||!currentUser)return;gen++;
-  cola=cola.then(empujar).catch(e=>{aviso("No se pudo guardar: "+(e.message||e)+". Se recargan los datos del servidor.");return cargar().catch(()=>{})})}
+  cola=cola.then(empujar).catch(e=>{syncEstado("No se pudo guardar: "+(e.message||e)+". Se recargó el inventario desde el servidor.","err");return cargar().catch(()=>{})})}
 function enVivo(){
   if(canal)SB.removeChannel(canal);
   canal=SB.channel("kokoa").on("postgres_changes",{event:"*",schema:"public"},()=>{clearTimeout(recT);recT=setTimeout(recargar,100)})
@@ -1625,7 +1680,7 @@ async function entrar(user){
   if(r.error||!r.data)throw new Error("No existe tu perfil");
   const u=perfilDe(r.data);users=[u];
   datosAl=false;loadDis(u.id);
-  enterUser(u);await cargar();listo=true;enVivo()}
+  enterUser(u);await cargar();listo=true;enVivo();reactivarPush()}
 async function initAuth(){try{const{data}=await SB.auth.getSession();if(data.session){await entrar(data.session.user);return}}catch(_){}showAuth()}
 $("loginForm").addEventListener("submit",async e=>{e.preventDefault();const E=$("loginError");E.textContent="";
   const q=await SB.rpc("correo_de_usuario",{p_apodo:$("loginUser").value.trim()}),em=q.data||"x@x.invalid";
@@ -1715,6 +1770,116 @@ function pintarTema(){const d=esOscuro();["theme","themeAuth"].forEach(id=>{cons
  m.content=d?"#143627":"#1E5B3E"}
 ["theme","themeAuth"].forEach(id=>$(id).addEventListener("click",()=>{const n=esOscuro()?"light":"dark";raiz.dataset.theme=n;try{localStorage.setItem(TKEY,n)}catch(_){}pintarTema()}));
 pintarTema();
+
+let syncT=0;
+function syncEstado(t,tipo){const e=$("syncBar");if(!e)return;clearTimeout(syncT);
+ e.className=tipo==="err"?"err":"";e.hidden=false;e.textContent=t;
+ if(tipo==="err"){const b=document.createElement("button");b.type="button";b.textContent="Entendido";b.onclick=()=>{e.hidden=true};e.appendChild(b)}
+ else if(tipo==="ok")syncT=setTimeout(()=>{e.hidden=true},1600)}
+
+const _txt=o=>o?o.text:"";
+function pintarSel(s){const b=s._b;if(!b)return;const t=_txt(s.options[s.selectedIndex])||"Elegir…";
+ const sp=b.firstChild;if(sp.textContent!==t)sp.textContent=t;if(b.disabled!==s.disabled)b.disabled=s.disabled;
+ const al=s.getAttribute("aria-label");if(al&&b.getAttribute("aria-label")!==al)b.setAttribute("aria-label",al)}
+function mejorarSel(s){if(s._b)return;s.classList.add("cs-src");s.tabIndex=-1;s.setAttribute("aria-hidden","true");
+ const b=document.createElement("button");b.type="button";b.className="csel";b.setAttribute("aria-haspopup","listbox");b.innerHTML="<span></span>";
+ s.after(b);s._b=b;b._s=s;s.focus=()=>b.focus();pintarSel(s)}
+function cerrarPk(){const k=document.querySelector(".pk-back");if(k){const f=k._ret;k.remove();if(f&&f.isConnected)f.focus()}}
+function abrirLista(s){if(s.disabled)return;cerrarPk();
+ const lab=s.getAttribute("aria-label")||(s.closest("label")?[...s.closest("label").childNodes].filter(n=>n.nodeType===3).map(n=>n.textContent).join("").trim():"")||"Elegir";
+ const back=document.createElement("div");back.className="pk-back";back._ret=s._b;
+ const many=s.options.length>12;
+ back.innerHTML=`<div class="pk" role="dialog" aria-modal="true" aria-label="${lab.replace(/"/g,"")}"><div class="pk-h"></div>${many?'<input class="pk-q" type="search" placeholder="Buscar…" aria-label="Buscar en la lista" autocomplete="off">':""}<ul role="listbox"></ul></div>`;
+ back.querySelector(".pk-h").textContent=lab;
+ const ul=back.querySelector("ul");let act=s.selectedIndex;
+ const filas=[...s.options].map((o,i)=>{const li=document.createElement("li");li.setAttribute("role","option");li.dataset.i=i;li.textContent=o.text;
+  li.setAttribute("aria-selected",String(i===s.selectedIndex));if(o.disabled)li.setAttribute("aria-disabled","true");ul.appendChild(li);return li});
+ const vis=()=>filas.filter(l=>!l.hidden&&l.getAttribute("aria-disabled")!=="true");
+ const marca=()=>{filas.forEach(l=>l.classList.toggle("act",+l.dataset.i===act));const c=ul.querySelector(".act");if(c)c.scrollIntoView({block:"nearest"})};
+ const elegir=i=>{if(i<0||s.options[i].disabled)return;if(s.selectedIndex!==i){s.selectedIndex=i;s.dispatchEvent(new Event("input",{bubbles:true}));s.dispatchEvent(new Event("change",{bubbles:true}))}pintarSel(s);cerrarPk()};
+ back.addEventListener("click",e=>{e.stopPropagation();if(e.target===back){cerrarPk();return}const li=e.target.closest("li");if(li)elegir(+li.dataset.i)});
+ back.addEventListener("keydown",e=>{const v=vis();
+  if(e.key==="Escape"){e.preventDefault();e.stopPropagation();cerrarPk()}
+  else if(e.key==="ArrowDown"||e.key==="ArrowUp"){e.preventDefault();const k=v.findIndex(l=>+l.dataset.i===act),n=v[Math.max(0,Math.min(v.length-1,k+(e.key==="ArrowDown"?1:-1)))];if(n){act=+n.dataset.i;marca()}}
+  else if(e.key==="Enter"&&e.target.tagName!=="BUTTON"){e.preventDefault();elegir(act)}});
+ const q=back.querySelector(".pk-q");if(q)q.addEventListener("input",()=>{const k=norm(q.value);filas.forEach(l=>{l.hidden=!!k&&!norm(l.textContent).includes(k)});const v=vis();if(v.length&&!v.some(l=>+l.dataset.i===act))act=+v[0].dataset.i;marca()});
+ document.body.appendChild(back);marca();(q||ul).setAttribute("tabindex","-1");(q||ul).focus({preventScroll:true})}
+document.addEventListener("click",e=>{const b=e.target.closest&&e.target.closest("button.csel");
+ if(b&&b._s){e.preventDefault();abrirLista(b._s);return}
+ const x=e.target;if(x&&x.matches&&x.matches("select.cs-src")){e.preventDefault();abrirLista(x)}},true);
+
+const MESES=["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"];
+const ymd=d=>d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
+function pintarFecha(i){const b=i._b;if(!b)return;const v=/^\d{4}-\d\d-\d\d$/.test(i.value)?i.value:"",t=v?fechaExp(v):"Sin fecha";
+ if(b.firstChild.textContent!==t)b.firstChild.textContent=t;b.classList.toggle("vacia",!v);if(b.disabled!==i.disabled)b.disabled=i.disabled}
+function mejorarFecha(i){if(i._b)return;i.type="hidden";
+ const b=document.createElement("button");b.type="button";b.className="dsel";b.innerHTML="<span></span>";b.setAttribute("aria-haspopup","dialog");
+ const l=i.closest("label");if(l){const t=[...l.childNodes].filter(n=>n.nodeType===3).map(n=>n.textContent).join("").trim();if(t)b.setAttribute("aria-label",t)}
+ i.after(b);i._b=b;b._i=i;pintarFecha(i)}
+function abrirFecha(inp){cerrarPk();const hoy=new Date(),hs=ymd(hoy);
+ let sel=/^\d{4}-\d\d-\d\d$/.test(inp.value)?inp.value:"",ref=sel?new Date(sel+"T12:00:00"):hoy,vis=new Date(ref.getFullYear(),ref.getMonth(),1);
+ const back=document.createElement("div");back.className="pk-back";back._ret=inp._b;
+ back.innerHTML='<div class="pk cal" role="dialog" aria-modal="true" aria-label="Elegir fecha"></div>';const box=back.firstChild;
+ function pintar(foco){const y=vis.getFullYear(),m=vis.getMonth(),off=(new Date(y,m,1).getDay()+6)%7,n=new Date(y,m+1,0).getDate();let c="";
+  for(let k=0;k<off;k++)c+="<i></i>";
+  for(let d=1;d<=n;d++){const v=ymd(new Date(y,m,d));c+=`<button type="button" data-d="${v}" class="${v===hs?"hoy ":""}${v===sel?"sel":""}"${v===sel?' aria-pressed="true"':""}>${d}</button>`}
+  box.innerHTML=`<div class="cal-h"><button type="button" data-n="-12" aria-label="Año anterior">«</button><button type="button" data-n="-1" aria-label="Mes anterior">‹</button><b>${MESES[m]} ${y}</b><button type="button" data-n="1" aria-label="Mes siguiente">›</button><button type="button" data-n="12" aria-label="Año siguiente">»</button></div><div class="cal-w">${"LMXJVSD".split("").map(x=>"<span>"+x+"</span>").join("")}</div><div class="cal-g">${c}</div><div class="cal-f"><button type="button" class="ghost" data-hoy="1">Hoy</button><button type="button" class="ghost" data-no="1">Sin fecha</button><button type="button" class="ghost" data-x="1">Cerrar</button></div>`;
+  if(foco){const f=box.querySelector(".sel")||box.querySelector(".hoy")||box.querySelector("[data-d]");if(f)f.focus({preventScroll:true})}}
+ const poner=v=>{if(inp.value!==v){inp.value=v;inp.dispatchEvent(new Event("input",{bubbles:true}));inp.dispatchEvent(new Event("change",{bubbles:true}))}pintarFecha(inp);cerrarPk()};
+ back.addEventListener("click",e=>{e.stopPropagation();const t=e.target;if(t===back){cerrarPk();return}const b=t.closest("button");if(!b)return;
+  if(b.dataset.d)poner(b.dataset.d);else if(b.dataset.hoy)poner(hs);else if(b.dataset.no)poner("");else if(b.dataset.x)cerrarPk();
+  else if(b.dataset.n){vis=new Date(vis.getFullYear(),vis.getMonth()+ +b.dataset.n,1);pintar(false);const k=box.querySelector(`[data-n="${b.dataset.n}"]`);if(k)k.focus({preventScroll:true})}});
+ back.addEventListener("keydown",e=>{if(e.key==="Escape"){e.preventDefault();e.stopPropagation();cerrarPk()}});
+ document.body.appendChild(back);pintar(true)}
+document.addEventListener("click",e=>{const b=e.target.closest&&e.target.closest("button.dsel");if(b&&b._i){e.preventDefault();abrirFecha(b._i)}},true);
+
+function mejorarUI(){document.querySelectorAll("select:not(.cs-src):not([data-native])").forEach(mejorarSel);
+ document.querySelectorAll('input[type="date"]:not([data-native])').forEach(mejorarFecha);
+ document.querySelectorAll("select.cs-src").forEach(pintarSel);document.querySelectorAll("input[data-fecha-ok],input[type=hidden]").forEach(i=>{if(i._b&&i._b.classList.contains("dsel"))pintarFecha(i)})}
+let uiRaf=0;new MutationObserver(()=>{if(uiRaf)return;uiRaf=requestAnimationFrame(()=>{uiRaf=0;mejorarUI()})}).observe(document.body,{childList:true,subtree:true,attributes:true,attributeFilter:["disabled","value"]});
+document.addEventListener("reset",()=>setTimeout(mejorarUI,0),true);document.addEventListener("change",()=>setTimeout(mejorarUI,0),true);
+setInterval(mejorarUI,800);mejorarUI();
+
+const VAPID_PUBLIC="";
+let swReg=null,instalarEv=null,vistas=null;
+if("serviceWorker" in navigator)addEventListener("load",()=>navigator.serviceWorker.register("sw.js").then(r=>{swReg=r;pintarPush()}).catch(()=>{}));
+addEventListener("beforeinstallprompt",e=>{e.preventDefault();instalarEv=e;pintarPush()});
+addEventListener("appinstalled",()=>{instalarEv=null;pintarPush()});
+const esIOS=/iphone|ipad|ipod/i.test(navigator.userAgent)||(navigator.platform==="MacIntel"&&navigator.maxTouchPoints>1);
+const instalada=()=>matchMedia("(display-mode: standalone)").matches||navigator.standalone===true;
+const pushOk=()=>"serviceWorker" in navigator&&"Notification" in window&&"PushManager" in window;
+const pushOn=()=>{try{return pushOk()&&Notification.permission==="granted"&&localStorage.getItem("kokoa-push")==="1"}catch(_){return false}};
+const b64u=k=>{const p="=".repeat((4-k.length%4)%4),r=atob((k+p).replace(/-/g,"+").replace(/_/g,"/"));return Uint8Array.from([...r].map(c=>c.charCodeAt(0)))};
+function pintarPush(){const b=$("pushBox");if(!b)return;let h="";
+ if(instalarEv)h+='<button type="button" class="more" data-pinst="1">Instalar la app en este dispositivo</button>';
+ if(esIOS&&!instalada())h+='<p class="small-note">iPhone: toca Compartir y luego «Añadir a pantalla de inicio». Abre Kokoa desde ese ícono para poder recibir avisos.</p>';
+ else if(!pushOk())h+='<p class="small-note">Este navegador no permite avisos.</p>';
+ else if(Notification.permission==="denied")h+='<p class="small-note">Los avisos están bloqueados. Actívalos en los permisos del sitio, en la configuración del navegador.</p>';
+ else h+=pushOn()?'<p class="small-note">Avisos de stock bajo y vencimientos activados en este dispositivo.</p><button type="button" class="more" data-poff="1">Desactivar avisos</button>':'<button type="button" class="more" data-pon="1">Activar avisos en este dispositivo</button>';
+ if(b.innerHTML!==h)b.innerHTML=h}
+async function suscribirPush(){if(!VAPID_PUBLIC||!pushOk()||!currentUser)return;
+ const reg=await navigator.serviceWorker.ready;let s=await reg.pushManager.getSubscription();
+ if(!s)s=await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:b64u(VAPID_PUBLIC)});
+ const j=s.toJSON();ck(await SB.from("push_subs").upsert({endpoint:j.endpoint,p256dh:j.keys.p256dh,auth:j.keys.auth,usuario:currentUser.id}))}
+async function activarPush(){try{const p=await Notification.requestPermission();if(p==="granted"){try{localStorage.setItem("kokoa-push","1")}catch(_){}
+  await suscribirPush();const r=await navigator.serviceWorker.ready;r.showNotification("Avisos activados",{body:"Te avisaremos de stock bajo y lotes por vencer.",icon:"icons/icon-192.png",tag:"kokoa-prueba"})}}
+ catch(e){msg.textContent="No se pudieron activar los avisos: "+(e.message||e)}pintarPush()}
+async function desactivarPush(){try{localStorage.removeItem("kokoa-push")}catch(_){}
+ try{const r=await navigator.serviceWorker.ready,s=await r.pushManager.getSubscription();if(s){await SB.from("push_subs").delete().eq("endpoint",s.endpoint);await s.unsubscribe()}}catch(_){}pintarPush()}
+async function quitarPushServidor(){try{if(!pushOk())return;const r=await navigator.serviceWorker.getRegistration(),s=r&&await r.pushManager.getSubscription();if(s)await SB.from("push_subs").delete().eq("endpoint",s.endpoint)}catch(_){}}
+function reactivarPush(){if(pushOn())suscribirPush().catch(()=>{})}
+$("pushBox").addEventListener("click",async e=>{const b=e.target.closest("button");if(!b)return;
+ if(b.dataset.pon)activarPush();else if(b.dataset.poff)desactivarPush();
+ else if(b.dataset.pinst&&instalarEv){instalarEv.prompt();await instalarEv.userChoice.catch(()=>{});instalarEv=null;pintarPush()}});
+function avisarNuevas(){if(!datosAl||!currentUser)return;const u=alertas().filter(a=>a.u);
+ if(vistas===null){vistas=new Set(u.map(a=>a.id));return}
+ const n=u.filter(a=>!vistas.has(a.id));u.forEach(a=>vistas.add(a.id));
+ if(!n.length||!pushOn()||!document.hidden||!swReg)return;
+ const d=document.createElement("div");d.innerHTML=n[0].t;
+ swReg.showNotification(n.length>1?n.length+" alertas nuevas":(n[0].tag==="Hoy"?"Atención":"Aviso"),{body:n.length>1?n.slice(0,3).map(a=>{d.innerHTML=a.t;return d.textContent}).join("\n"):d.textContent,icon:"icons/icon-192.png",tag:"kokoa-alertas",renotify:true})}
+const _renderAlertas=renderAlertas;renderAlertas=function(){_renderAlertas();avisarNuevas();pintarPush()};
+const _logout=logout;logout=function(){vistas=null;return _logout.apply(this,arguments)};
+pintarPush();
 </script>
 </body>
 </html>
