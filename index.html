@@ -1442,7 +1442,7 @@ function renderComidas(){const L=comidas.slice(0,10);
  comidas.forEach(c=>c.n=false)}
 function renderLog(){$("log").innerHTML=logData.map(e=>`<li class="${e.k} ${e.n?"new":""}"><time>${e.ts?fechaHora(e.ts):e.t}</time>${esc(e.x)}${hBtn("bitacora",e.id)}</li>`).join("");$("histAll").hidden=!esAdmin();logData.forEach(e=>e.n=false)}
 const tabsHtml=ks=>VISTAS.filter(v=>ks.includes(v[0])).map(([k,l,t])=>`<button class="tab" data-s="${k}" aria-pressed="false"><span class="l-lg">${l}</span><span class="l-sm">${t}</span></button>`).join("");
-function montarTabs(){if(!$("vtabs").firstChild){$("vtabs").innerHTML=tabsHtml([0,1,3]);$("vtabs2").innerHTML=tabsHtml([4,5])}}
+function montarTabs(){if(!$("vtabs").firstChild){$("vtabs").innerHTML=tabsHtml([0,1]);$("vtabs2").innerHTML=tabsHtml([3,4,5])}}
 const VISTAS=[[0,"Comidas: Quitar","Quitar"],[1,"Inventario: Agregar","Agregar"],[3,"Pedido sugerido","Pedido"],[4,"Gráficos","Gráficos"],[5,"Movimientos","Movimientos"]];
 function limpiarPantalla(){alOpen=false;scOpen=false;plate=[];qFindTxt="";sec=0;
  ["vtabs","vtabs2","zones","zsel","ztipos","imv","imv2","qFilt","qList","qMain","qDest","cml","fMenu","cats","ped","gmode","gper","gtype","gsum","gc","mvl","log","aL","aM","aSug","scanList"].forEach(id=>{const e=$(id);if(e)e.innerHTML=""});
@@ -2111,7 +2111,7 @@ pintarPush();
 <script>
 window.PRM=(()=>{
 const KM="kokoa-modo",E={disponible:"Disponible",prestado:"Prestado",por_limpiar:"Por limpiar",en_reparacion:"En reparación",perdido:"Perdido",retirado:"Retirado"};
-const LB={0:["Prestar","Prestar"],1:["Devolver","Devolver"],3:["Préstamos en curso","En curso"],4:["Gráficos","Gráficos"],5:["Movimientos","Movimientos"]};
+const LB={0:["Prestar: Quitar","Prestar"],1:["Devolver: Agregar","Devolver"],3:["Préstamos en curso","En curso"],4:["Gráficos","Gráficos"],5:["Movimientos","Movimientos"]};
 let on=false,ok=true,imp=[],pre=[],its=[],evs=[],sel=new Set(),built=false,dvf="todos",dvc="*",dq="",dord="",fo=false,fsub="",pqTxt="",pqTipo="*",pqOrd="",pqFO=false,pqSub="",pFind="",pgm="i",pgp="d",pgi="*",pct="bars";const dsel=new Map();
 try{on=localStorage.getItem(KM)==="1"}catch(_){}
 const nq=x=>String(x||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase();
@@ -2252,9 +2252,9 @@ function build(){if(built)return;built=true;
  addEventListener("pointerup",e=>finPd(e,true));addEventListener("pointercancel",e=>finPd(e,false));
  document.addEventListener("click",async e=>{const b=e.target.closest("[data-pdel],#pHistAll");if(!b||!on||!esAdmin())return;
   try{if(b.dataset.pdel){if(!confirm("¿Borrar este registro del historial?\nNo cambia el estado de los implementos."))return;
-    const r=await SB.from("prestamo_eventos").delete().eq("id",+b.dataset.pdel).select("id");if(r.error)throw r.error;if(!r.data||!r.data.length)throw new Error("No se pudo borrar: sin permiso sobre prestamo_eventos.")}
+    const r=await SB.rpc("borrar_historial_prestamos",{p_id:+b.dataset.pdel});if(r.error)throw r.error}
    else{if(!evs.length)return;if(!confirm(`¿Borrar TODO el historial de movimientos de préstamos (${evs.length} registros)?\nNo cambia el estado de los implementos ni de los préstamos activos. No se puede deshacer.`))return;
-    const r=await SB.from("prestamo_eventos").delete().gt("id",0).select("id");if(r.error)throw r.error;if(!r.data||!r.data.length)throw new Error("No se pudo borrar: sin permiso sobre prestamo_eventos.")}
+    const r=await SB.rpc("borrar_historial_prestamos",{p_id:null});if(r.error)throw r.error}
    await load();rAll();aviso("Historial actualizado.")}catch(x){err(x)}});
  $("pv4").addEventListener("click",e=>{const a=e.target.closest("[data-pgm]"),b=e.target.closest("[data-pgp]"),c=e.target.closest("[data-pgt]");
   if(a){pgm=a.dataset.pgm;pgi="*";rGraf()}else if(b){pgp=b.dataset.pgp;rGraf()}else if(c){pct=c.dataset.pgt;rGraf()}});
