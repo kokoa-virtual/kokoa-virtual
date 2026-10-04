@@ -963,6 +963,10 @@ html{scrollbar-gutter:stable}
 .pr-main .sechead .sub{white-space:nowrap}
 .pr-new{margin-bottom:4px}
 .pr-main #nf{margin-bottom:6px}
+.pgrp{display:flex!important;align-items:center;justify-content:space-between;gap:10px;cursor:pointer;text-align:left}
+.pgi{display:flex;flex-direction:column;gap:2px;min-width:0;overflow-wrap:anywhere}
+.pqty{display:inline-flex;align-items:center;gap:8px;flex:none}
+.pqty button{width:34px;height:34px;min-height:0;padding:0;line-height:1;font-size:20px;border-radius:50%}
 #nf .abtns{grid-column:1/-1;display:flex;justify-content:flex-end;align-items:center;gap:10px;margin-left:auto}
 #nf .abtns #nCancel,#nf .abtns #nBtn{width:auto;min-width:130px;margin:0;flex:0 0 auto}
 .pr-main .asug{margin:8px 0 14px}
@@ -2058,7 +2062,7 @@ pintarPush();
 window.PRM=(()=>{
 const KM="kokoa-modo",E={disponible:"Disponible",prestado:"Prestado",por_limpiar:"Por limpiar",en_reparacion:"En reparación",perdido:"Perdido",retirado:"Retirado"};
 const LB={0:["Prestar","Prestar"],1:["Devolver","Devolver"],3:["Préstamos en curso","En curso"],4:["Gráficos","Gráficos"],5:["Movimientos","Movimientos"]};
-let on=false,ok=true,imp=[],pre=[],its=[],evs=[],sel=new Set(),built=false,dvf="todos",dvc="*",dq="",dord="",fo=false,fsub="";const dsel=new Set();
+let on=false,ok=true,imp=[],pre=[],its=[],evs=[],sel=new Set(),built=false,dvf="todos",dvc="*",dq="",dord="",fo=false,fsub="";const dsel=new Map();
 try{on=localStorage.getItem(KM)==="1"}catch(_){}
 const nq=x=>String(x||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase();
 const f=d=>d?new Date(d).toLocaleString("es-CO",{dateStyle:"short",timeStyle:"short"}):"-";
@@ -2071,7 +2075,7 @@ async function load(){
  const q=(n,o,l)=>SB.from(n).select("*").order(o,{ascending:false}).limit(l);
  const r=await Promise.all([q("implementos","codigo",1000),q("prestamos","id",500),q("prestamo_items","id",3000),q("prestamo_eventos","id",1000)]);
  ok=!r.some(x=>x.error);
- if(ok){imp=r[0].data.sort((a,b)=>a.codigo.localeCompare(b.codigo,"es"));pre=r[1].data;its=r[2].data;evs=r[3].data}
+ if(ok){imp=r[0].data.sort((a,b)=>String(a.nombre).localeCompare(String(b.nombre),"es")||a.id-b.id);pre=r[1].data;its=r[2].data;evs=r[3].data}
 }
 function lab(p){document.querySelectorAll("#vtabs .tab").forEach(b=>{const k=+b.dataset.s,v=VISTAS.find(x=>x[0]===k),t=p?LB[k]:v.slice(1);b.querySelector(".l-lg").textContent=t[0];b.querySelector(".l-sm").textContent=t[1]})}
 function pintar(){const b=$("modo");b.classList.toggle("grid",on);b.setAttribute("aria-checked",String(on));b.title=on?"Modo préstamos (clic para volver a alimentos)":"Modo alimentos (clic para ir a préstamos)"}
@@ -2081,9 +2085,9 @@ function pdf(p,rows){
  y+=7;d.setFont("helvetica","normal");d.setFontSize(9);d.text("Salida: "+f(p.salida)+"    Entregó: "+(p.entregado_por||"-"),10,y);
  y+=8;d.setFont("helvetica","bold");d.text("PRESTATARIO",10,y);d.setFont("helvetica","normal");y+=5;
  [`Nombre: ${p.nombre}`,`Documento: ${p.documento}`,`Teléfono: ${p.telefono||"-"}`].forEach(t=>{d.text(t,10,y);y+=5});
- y+=3;d.setFont("helvetica","bold");d.text("IMPLEMENTOS",10,y);y+=5;d.text("Código",10,y);d.text("Implemento",32,y);d.text("Estado al salir",80,y);d.text("Devolver antes de",108,y);d.setFont("helvetica","normal");y+=5;
- rows.forEach(i=>{if(y>175){d.addPage();y=14}d.text(String(i.codigo||""),10,y);d.text(d.splitTextToSize(String(i.nombre||""),46),32,y);d.text(String(i.cond_salida||""),80,y);d.text(f(i.vence),108,y);
-  if(i.devuelto){y+=4;d.setFontSize(8);d.text(`Devuelto ${f(i.devuelto)} · ${i.cond_regreso}${i.limpio?"":" · sin limpiar"}${i.novedad?" · "+i.novedad:""}`,32,y);d.setFontSize(9)}y+=6});
+ y+=3;d.setFont("helvetica","bold");d.text("IMPLEMENTOS",10,y);y+=5;d.text("Implemento",10,y);d.text("Estado al salir",80,y);d.text("Devolver antes de",108,y);d.setFont("helvetica","normal");y+=5;
+ rows.forEach(i=>{if(y>175){d.addPage();y=14}d.text(d.splitTextToSize(String(i.nombre||""),66),10,y);d.text(String(i.cond_salida||""),80,y);d.text(f(i.vence),108,y);
+  if(i.devuelto){y+=4;d.setFontSize(8);d.text(`Devuelto ${f(i.devuelto)} · ${i.cond_regreso}${i.limpio?"":" · sin limpiar"}${i.novedad?" · "+i.novedad:""}`,10,y);d.setFontSize(9)}y+=6});
  y=Math.max(y+6,150);if(y>190){d.addPage();y=20}
  d.setFontSize(8);d.text(d.splitTextToSize("Me comprometo a devolver los implementos completos, limpios y en la fecha indicada, y a responder por su daño o pérdida. El préstamo es gratuito. Autorizo el tratamiento de mis datos personales (Ley 1581 de 2012) para gestionar este préstamo.",W-20),10,y);
  y+=22;d.line(10,y,60,y);d.line(W-60,y,W-10,y);d.text("Firma prestatario",10,y+4);d.text("Recibe devolución",W-60,y+4);
@@ -2093,19 +2097,19 @@ const SVGF='<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="
 const ESTL={todos:"Inventario de implementos",disp:"Disponibles",pend:"Por devolver",venc:"Vencidos",lim:"Por limpiar"};
 const tipoDe=m=>(m&&m.categoria)||"Sin tipo";
 const tipos=()=>[...new Set(imp.map(tipoDe))].sort((a,b)=>a.localeCompare(b,"es"));
-const reEsc=s=>s.replace(/[.*+?^${}()|[\]\\]/g,"\\$&");
-const seqCodes=(c,q)=>{const m=/^(.*?)(\d+)$/.exec(c);return Array.from({length:q},(_,k)=>m?m[1]+String(+m[2]+k).padStart(m[2].length,"0"):(k?c+"-"+String(k+1).padStart(3,"0"):c))};
-const nextCodes=(c,q)=>{const m=/^(.*?)(\d+)$/.exec(c),b=m?m[1]:c+"-",w=m?m[2].length:3,re=new RegExp("^"+reEsc(b)+"(\\d+)$","i"),ns=imp.map(x=>re.exec(x.codigo)).filter(Boolean).map(x=>+x[1]),n=ns.length?Math.max(...ns)+1:2;return Array.from({length:q},(_,k)=>b+String(n+k).padStart(w,"0"))};
-function nMatch(){const q=nq($("nm").value.trim()),exact=q?imp.find(i=>nq(i.nombre)===q):null,sug=q?[...new Set(imp.filter(i=>{const n=nq(i.nombre);return n.includes(q)||q.includes(n)}).map(i=>i.nombre))].slice(0,6):[];return{q,exact,sug}}
+const codeNew=q=>{const ns=imp.map(x=>/^IMP-(\d+)$/i.exec(x.codigo)).filter(Boolean).map(x=>+x[1]),n=(ns.length?Math.max(...ns):0)+1;return Array.from({length:q},(_,k)=>"IMP-"+String(n+k).padStart(4,"0"))};
+const gkey=m=>nq(String(m.nombre).trim());
+const delPrio={perdido:0,retirado:1,en_reparacion:2,por_limpiar:3,disponible:4};
+function nMatch(){const q=nq($("nm").value.trim()),exact=q?imp.find(i=>gkey(i)===q):null,sug=q?[...new Set(imp.filter(i=>{const n=gkey(i);return n.includes(q)||q.includes(n)}).map(i=>i.nombre))].slice(0,6):[];return{q,exact,sug}}
 function nUpd(){const f=$("nf");if(!f)return;
  $("nCancel").hidden=![...f.elements].some(e=>e.tagName==="INPUT"&&e.value!==e.defaultValue);
  const{q,exact,sug}=nMatch(),b=$("nSug");
  f.querySelectorAll("[data-new]").forEach(e=>e.hidden=!!exact);
- $("nc").required=!exact;$("nBtn").textContent=exact?"Agregar unidad":"Crear implemento";
+ $("nBtn").textContent=exact?"Agregar unidades":"Crear implemento";
  if(!q){b.hidden=true;b.innerHTML="";return}
  b.hidden=false;
- const us=exact?imp.filter(x=>nq(x.nombre)===q):[],di=us.filter(x=>x.estado==="disponible").length;
- b.innerHTML=(exact?`<span class="ok">Ya existe: <b>${esc(exact.nombre)}</b>, ${us.length} unidad${us.length===1?"":"es"} (${di} disponible${di===1?"":"s"}). Se agrega con el siguiente código (${esc(nextCodes(exact.codigo,1)[0])}) y los mismos datos.</span>`:"<span>No existe: se creará como implemento nuevo.</span>")+(!exact&&sug.length?`<span class="chips">Sugerencias:${sug.map(n=>`<button type="button" class="sg" data-nsug="${esc(n)}">${esc(n)}</button>`).join("")}</span>`:"")}
+ const us=exact?imp.filter(x=>gkey(x)===q):[],di=us.filter(x=>x.estado==="disponible").length;
+ b.innerHTML=(exact?`<span class="ok">Ya existe: <b>${esc(exact.nombre)}</b>, ${us.length} unidad${us.length===1?"":"es"} (${di} disponible${di===1?"":"s"}). Se suman unidades con los mismos datos.</span>`:"<span>No existe: se creará como implemento nuevo.</span>")+(!exact&&sug.length?`<span class="chips">Sugerencias:${sug.map(n=>`<button type="button" class="sg" data-nsug="${esc(n)}">${esc(n)}</button>`).join("")}</span>`:"")}
 function renderPF(){const n=(dvf!=="todos")+(dvc!=="*")+(dord?1:0);
  $("pfBtn").innerHTML=SVGF+"Filtrar por"+(n?` <span class="fn">${n}</span>`:"");
  $("pfBtn").setAttribute("aria-expanded",String(fo));$("pfMenu").hidden=!fo;if(!fo)return;
@@ -2114,65 +2118,81 @@ function renderPF(){const n=(dvf!=="todos")+(dvc!=="*")+(dord?1:0);
   +(fsub==="est"?`<select data-pfsel="est" aria-label="Elegir estado">${Object.entries(ESTL).map(([k,l])=>`<option value="${k}"${k===dvf?" selected":""}>${l}</option>`).join("")}</select>`:"")
   +so("tipo","Tipo de implemento"+(dvc!=="*"?": "+esc(dvc):""),fsub==="tipo"||dvc!=="*")
   +(fsub==="tipo"?`<select data-pfsel="tipo" aria-label="Elegir tipo de implemento"><option value="*">Todos los tipos</option>${tipos().map(c=>`<option value="${esc(c)}"${c===dvc?" selected":""}>${esc(c)}</option>`).join("")}</select>`:"")
-  +so("may","Mayor plazo",dord==="may")+so("men","Menor plazo",dord==="men")
+  +so("may","Mayor cantidad",dord==="may")+so("men","Menor cantidad",dord==="men")
   +(n?`<button type="button" class="fo clr" data-pfo="clr">Quitar filtros</button>`:"")}
 const estSel=i=>{const ed=["disponible","en_reparacion","perdido","retirado"];return ed.includes(i.estado)?`<select data-est aria-label="Estado">${ed.map(x=>`<option value="${x}"${x===i.estado?" selected":""}>${E[x]}</option>`).join("")}</select>`:`<span class="pchip${i.estado==="prestado"?" on":""}">${E[i.estado]||esc(i.estado)}</span>`};
 const quienTiene=i=>{if(i.estado!=="prestado")return"";const it=its.find(x=>x.implemento_id===i.id&&!x.devuelto);if(!it)return"";const p=pre.find(x=>x.id===it.prestamo_id)||{};return`Con ${esc(p.nombre||"—")} · vence ${f(it.vence)}`};
 function rInv(lista){
- const ed=esAdmin(),A=lista.map(x=>x.i);
- const alfa=(a,b)=>a.nombre.localeCompare(b.nombre,"es",{sensitivity:"base"});
- const ordQ=(a,b)=>(dord==="may"?b.dias_plazo-a.dias_plazo:a.dias_plazo-b.dias_plazo)||alfa(a,b);
- const mal=i=>i.estado==="perdido"||i.estado==="retirado"||i.estado==="en_reparacion",ven=i=>i.estado==="prestado"&&its.some(x=>x.implemento_id===i.id&&late(x));
- const alerta=i=>i.estado==="perdido"?"Perdido":i.estado==="en_reparacion"?"En reparación":i.estado==="retirado"?"Retirado":ven(i)?"Vencido":"";
- if(!A.length)return`<p class="sub">${dq.trim()||dvc!=="*"?"Ningún implemento coincide con el filtro.":"Aún no hay implementos."+(ed?"":" Un admin puede crearlos.")}</p>`;
- if(invLayout==="list"){
-  return`<div class="tbl"><table class="impt"><thead><tr><th>Implemento</th><th>Tipo de implemento</th><th>Estado</th><th>Accesorios</th><th>Plazo (días)</th><th>Valor</th><th></th></tr></thead><tbody>`+
-  A.slice().sort(dord?ordQ:alfa).map(i=>{const a=alerta(i),q=quienTiene(i);
-   return`<tr data-e="${i.id}" class="${i.estado==="perdido"?"ns u":a?"u":""}"><td class="nm"><b>${esc(i.nombre)}</b><div class="sku">${esc(i.codigo)}</div>${a?`<div class="low">${a}</div>`:""}${q?`<div class="sku">${q}</div>`:""}</td>
-   <td data-label="Tipo de implemento">${ed?`<input data-tipo list="ngl" maxlength="40" value="${esc(i.categoria||"")}" aria-label="Tipo de implemento" placeholder="Sin tipo">`:esc(tipoDe(i))}</td>
-   <td data-label="Estado">${ed?estSel(i):E[i.estado]||esc(i.estado)}</td>
-   <td data-label="Accesorios">${ed?`<input data-acc maxlength="80" value="${esc(i.accesorios||"")}" aria-label="Accesorios">`:esc(i.accesorios||"—")}</td>
-   <td class="ed" data-label="Plazo (días)">${ed?`<input type="number" min="1" max="60" step="1" data-plz value="${i.dias_plazo}" aria-label="Plazo en días">`:i.dias_plazo+" d"}</td>
-   <td class="ed" data-label="Valor">${ed?`<input type="number" min="0" step="any" data-val value="${i.valor||0}" aria-label="Valor de reposición">`:money(i.valor)}</td>
-   <td class="act" data-label="">${ed?`<button data-isave="${i.id}">Guardar</button>`:""}</td></tr>`}).join("")+`</tbody></table></div>`}
- const grupos=dord?[[dord==="may"?"De mayor a menor plazo":"De menor a mayor plazo",A.slice().sort(ordQ)]]:tipos().map(c=>[c,A.filter(i=>tipoDe(i)===c).sort(alfa)]);
+ const ed=esAdmin(),map=new Map();
+ lista.forEach(({i})=>{const k=gkey(i);if(!map.has(k))map.set(k,[]);map.get(k).push(i)});
+ const G=[...map.entries()].map(([k,u])=>{const all=imp.filter(x=>gkey(x)===k),c=e=>all.filter(x=>x.estado===e).length,m=all[0]||u[0],
+  ven=all.filter(x=>x.estado==="prestado"&&its.some(t=>t.implemento_id===x.id&&late(t))).length;
+  return{k,n:m.nombre,t:tipoDe(m),acc:m.accesorios||"",val:m.valor||0,sh:u.length,tot:all.length,disp:c("disponible"),pres:c("prestado"),lim:c("por_limpiar"),rep:c("en_reparacion"),per:c("perdido"),ret:c("retirado"),ven}});
+ const alfa=(a,b)=>a.n.localeCompare(b.n,"es",{sensitivity:"base"}),ordQ=(a,b)=>(dord==="may"?b.tot-a.tot:a.tot-b.tot)||alfa(a,b);
+ if(!G.length)return`<p class="sub">${dq.trim()||dvc!=="*"?"Ningún implemento coincide con el filtro.":"Aún no hay implementos."+(ed?"":" Un admin puede crearlos.")}</p>`;
+ const kk=g=>encodeURIComponent(g.k),
+  res=g=>[g.disp?g.disp+" disponible"+(g.disp>1?"s":""):"",g.pres?g.pres+" prestado"+(g.pres>1?"s":""):"",g.lim?g.lim+" por limpiar":"",g.rep?g.rep+" en reparación":"",g.per?g.per+" perdido"+(g.per>1?"s":""):"",g.ret?g.ret+" retirado"+(g.ret>1?"s":""):""].filter(Boolean).join(" · ")||"Sin unidades",
+  al=g=>[g.ven?g.ven+" vencido"+(g.ven>1?"s":""):"",g.per?"Perdidos":""].filter(Boolean).join(" · "),
+  rb=g=>ed&&(g.rep+g.per+g.ret)?`<button type="button" class="ghost" data-gdisp="${kk(g)}">Pasar ${g.rep+g.per+g.ret} a disponible${g.rep+g.per+g.ret>1?"s":""}</button>`:"";
+ if(invLayout==="list")
+  return`<div class="tbl"><table class="impt"><thead><tr><th>Implemento</th><th>Tipo de implemento</th><th>Existencias</th><th>Accesorios</th><th>Valor</th><th>Cantidad</th><th></th></tr></thead><tbody>`+
+  G.sort(dord?ordQ:alfa).map(g=>`<tr data-g="${kk(g)}" class="${g.ven||g.per?"u":""}"><td class="nm"><b>${esc(g.n)}</b>${al(g)?`<div class="low">${al(g)}</div>`:""}</td>
+   <td data-label="Tipo de implemento">${ed?`<input data-tipo list="ngl" maxlength="40" value="${g.t==="Sin tipo"?"":esc(g.t)}" aria-label="Tipo de implemento" placeholder="Sin tipo">`:esc(g.t)}</td>
+   <td data-label="Existencias"><div class="sku">${res(g)}</div>${rb(g)}</td>
+   <td data-label="Accesorios">${ed?`<input data-acc maxlength="80" value="${esc(g.acc)}" aria-label="Accesorios">`:esc(g.acc||"—")}</td>
+   <td class="ed" data-label="Valor">${ed?`<input type="number" min="0" step="any" data-val value="${g.val}" aria-label="Valor de reposición">`:money(g.val)}</td>
+   <td class="ed" data-label="Cantidad">${ed?`<input type="number" min="${g.tot}" step="1" data-cant value="${g.tot}" aria-label="Cantidad de ${esc(g.n)}">`:g.tot}</td>
+   <td class="act" data-label="">${ed?`<button data-isave="${kk(g)}">Guardar</button>`:""}</td></tr>`).join("")+`</tbody></table></div>`;
+ const grupos=dord?[[dord==="may"?"De mayor a menor cantidad":"De menor a mayor cantidad",G.slice().sort(ordQ)]]:tipos().map(c=>[c,G.filter(g=>g.t===c).sort(alfa)]);
  return grupos.map(([c,l])=>{if(!l.length)return"";
-  return`<div class="cat"><h2>${esc(c)}<small>${l.length} implemento${l.length>1?"s":""}</small></h2><div class="cgrid">`+l.map(i=>{const a=alerta(i),q=quienTiene(i);
-   return`<div class="icard${i.estado==="perdido"?" ns":""}" data-e="${i.id}"><div class="ihw"><div class="ihead"><div class="in"><b>${esc(i.nombre)}</b><div class="sku">${esc(i.codigo)}${a?" · "+a:""}</div></div></div>${q?`<div class="sku">${q}</div>`:""}</div>
-   ${ed?`<label class="fld">Tipo de implemento<input data-tipo list="ngl" maxlength="40" value="${esc(i.categoria||"")}" placeholder="Sin tipo"></label>
-   <label class="fld">Estado ${estSel(i)}</label>
-   <div class="frow"><label class="fld">Plazo (días)<input type="number" min="1" max="60" step="1" data-plz value="${i.dias_plazo}"></label><label class="fld">Valor<input type="number" min="0" step="any" data-val value="${i.valor||0}"></label></div>
-   <label class="fld">Accesorios<input data-acc maxlength="80" value="${esc(i.accesorios||"")}"></label>
-   <button data-isave="${i.id}">Guardar</button>`:`<div class="sku">${E[i.estado]||esc(i.estado)} · ${i.dias_plazo} día${i.dias_plazo===1?"":"s"} · ${money(i.valor)}</div>${i.accesorios?`<div class="sku">${esc(i.accesorios)}</div>`:""}`}</div>`}).join("")+`</div></div>`}).join("")}
-
+  return`<div class="cat"><h2>${esc(c)}<small>${l.length} implemento${l.length>1?"s":""}</small></h2><div class="cgrid">`+l.map(g=>
+   `<div class="icard${g.per?" ns":""}" data-g="${kk(g)}"><div class="ihw"><div class="ihead"><div class="in"><b>${esc(g.n)}</b><div class="sku">${g.tot} unidad${g.tot===1?"":"es"}${al(g)?" · "+al(g):""}</div></div></div><div class="sku">${res(g)}</div></div>
+   ${ed?`<label class="fld">Tipo de implemento<input data-tipo list="ngl" maxlength="40" value="${g.t==="Sin tipo"?"":esc(g.t)}" placeholder="Sin tipo"></label>
+   <div class="frow"><label class="fld">Cantidad<input type="number" min="${g.tot}" step="1" data-cant value="${g.tot}"></label><label class="fld">Valor<input type="number" min="0" step="any" data-val value="${g.val}"></label></div>
+   <label class="fld">Accesorios<input data-acc maxlength="80" value="${esc(g.acc)}"></label>${rb(g)}
+   <button data-isave="${kk(g)}">Guardar</button>`:`<div class="sku">${money(g.val)}</div>${g.acc?`<div class="sku">${esc(g.acc)}</div>`:""}`}</div>`).join("")+`</div></div>`}).join("")}
 function build(){if(built)return;built=true;
  const mk=(id,h)=>{const s=document.createElement("section");s.id=id;s.hidden=true;s.innerHTML=h;$("v5").after(s)};
  mk("pv0",`<h2>Préstamo: Prestar</h2><p class="sub" id="pwarn" hidden>Falta ejecutar supabase/prestamos.sql en Supabase.</p>
  <div class="pr-grid"><div class="pr-col"><h3 class="pr-h">1. Elige los implementos</h3><input id="pq" placeholder="Buscar implemento" aria-label="Buscar implemento" autocomplete="off"><div class="pr-list" id="pl"></div></div>
  <form class="pr-form" id="pf" autocomplete="off"><h3 class="pr-h">2. Datos de quien recibe</h3>
- <div class="pr-fields"><label class="f-full">Nombre completo<input id="pn" required maxlength="80"></label><label>Documento<input id="pd" required maxlength="20"></label><label>Teléfono<input id="pt" type="tel" maxlength="20"></label><label class="f-full">Notas<input id="po" maxlength="120" placeholder="Opcional"></label></div>
+ <div class="pr-fields"><label class="f-full">Nombre completo<input id="pn" required maxlength="80"></label><label>Documento<input id="pd" required maxlength="20"></label><label>Teléfono<input id="pt" type="tel" maxlength="20"></label><label>Plazo (días)<input id="pz" type="number" min="1" max="60" step="1" value="1" required></label><label class="f-full">Notas<input id="po" maxlength="120" placeholder="Opcional"></label></div>
  <label class="pr-consent"><input id="pa" type="checkbox" required><span>La persona autoriza el tratamiento de sus datos (Ley 1581 de 2012) y acepta las condiciones del ticket.</span></label>
  <div class="pr-foot"><div id="psel" class="sub" aria-live="polite"></div><button type="submit">Prestar y generar ticket</button></div></form></div>
  <h2 class="qh2">Últimos préstamos</h2><ol class="mvl pev" id="pult"></ol>`);
  mk("pv1",`<h2>Préstamo: Devolver</h2>
- <div class="pr-pg"><aside class="pnl" aria-label="Filtros de devolución"><h2>Estado</h2><div id="pdf1"></div><h2 class="ztit">Tipos de implementos</h2><div id="pdf2"></div><h2 class="ztit">Últimas devoluciones</h2><ol class="mvl pev" id="pdf3"></ol></aside><div class="pr-main"><div id="nwrap" hidden><div class="sechead"><h2>Crear/Agregar implemento</h2><button type="button" class="ghost danger" id="pDelBtn">Eliminar implementos</button></div><form class="add" id="nf" autocomplete="off"><label class="aname">Nombre<input id="nm" required maxlength="60" autocomplete="off"></label><label data-new>Código<input id="nc" required maxlength="20" placeholder="OLLA-001"></label><label data-new>Tipo de implemento<input id="ng" maxlength="40" list="ngl" autocomplete="off"></label><datalist id="ngl"></datalist><label data-new>Accesorios<input id="na" maxlength="80" placeholder="tapa, asas…"></label><label data-new>Valor de reposición<input id="nv" type="number" min="0" step="any" inputmode="decimal" value="0"></label><label data-new>Plazo (días)<input id="np" type="number" min="1" max="60" value="3"></label><label>Cantidad<input id="nq2" type="number" min="1" max="50" step="1" inputmode="numeric" value="1"></label><div class="abtns"><button type="button" class="ghost" id="nCancel" hidden>Cancelar</button><button type="submit" id="nBtn">Crear implemento</button></div></form><div class="asug" id="nSug" aria-live="polite" hidden></div></div><div class="itool"><span class="sub" id="pcount"></span><div class="irt"><div class="fwrap"><button type="button" class="ghost fbtn" id="pfBtn" aria-haspopup="true" aria-expanded="false">Filtrar por</button><div class="fmenu" id="pfMenu" hidden></div></div><button type="button" class="vtog" id="pvtog" data-lay="1" role="switch" aria-checked="true" aria-label="Alternar vista del inventario entre lista y cuadrícula" title="Lista / Cuadrícula"><i class="knob"></i><svg class="ico il" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M9 6h11M9 12h11M9 18h11"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/></svg><svg class="ico ig" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="1.5"/><rect x="13.5" y="13.5" width="6.5" height="6.5" rx="1.5"/></svg></button></div></div><div id="pdev"></div></div></div>`);
+ <div class="pr-pg"><aside class="pnl" aria-label="Filtros de devolución"><h2>Estado</h2><div id="pdf1"></div><h2 class="ztit">Tipos de implementos</h2><div id="pdf2"></div><h2 class="ztit">Últimas devoluciones</h2><ol class="mvl pev" id="pdf3"></ol></aside><div class="pr-main"><div id="nwrap" hidden><div class="sechead"><h2>Crear/Agregar implemento</h2><button type="button" class="ghost danger" id="pDelBtn">Eliminar implementos</button></div><form class="add" id="nf" autocomplete="off"><label class="aname">Nombre<input id="nm" required maxlength="60" autocomplete="off"></label><label data-new>Tipo de implemento<input id="ng" maxlength="40" list="ngl" autocomplete="off"></label><datalist id="ngl"></datalist><label data-new>Accesorios<input id="na" maxlength="80" placeholder="tapa, asas…"></label><label data-new>Valor de reposición<input id="nv" type="number" min="0" step="any" inputmode="decimal" value="0"></label><label>Cantidad<input id="nq2" type="number" min="1" max="50" step="1" inputmode="numeric" value="1"></label><div class="abtns"><button type="button" class="ghost" id="nCancel" hidden>Cancelar</button><button type="submit" id="nBtn">Crear implemento</button></div></form><div class="asug" id="nSug" aria-live="polite" hidden></div></div><div class="itool"><span class="sub" id="pcount"></span><div class="irt"><div class="fwrap"><button type="button" class="ghost fbtn" id="pfBtn" aria-haspopup="true" aria-expanded="false">Filtrar por</button><div class="fmenu" id="pfMenu" hidden></div></div><button type="button" class="vtog" id="pvtog" data-lay="1" role="switch" aria-checked="true" aria-label="Alternar vista del inventario entre lista y cuadrícula" title="Lista / Cuadrícula"><i class="knob"></i><svg class="ico il" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M9 6h11M9 12h11M9 18h11"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/></svg><svg class="ico ig" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="1.5"/><rect x="13.5" y="13.5" width="6.5" height="6.5" rx="1.5"/></svg></button></div></div><div id="pdev"></div></div></div>`);
  mk("pv3",`<h2>Préstamos en curso</h2><div id="pcur"></div>`);
  mk("pv4",`<h2>Gráficos de préstamos</h2><div class="gsum" id="pgs"></div><div id="pgr"></div>`);
  mk("pv5",`<h2>Movimientos de préstamos</h2><ol class="mvl pev" id="pev"></ol>`);
  $("pq").oninput=rPrestar;
- $("pv0").addEventListener("click",e=>{const b=e.target.closest("[data-pi]");if(!b)return;const i=b.dataset.pi;sel.has(i)?sel.delete(i):sel.add(i);rPrestar()});
+ const gpm=(e,d)=>{const k=decodeURIComponent(e),u=imp.filter(i=>i.estado==="disponible"&&gkey(i)===k);
+  if(d>0){const x=u.find(i=>!sel.has(String(i.id)));if(x)sel.add(String(x.id))}else{const x=[...u].reverse().find(i=>sel.has(String(i.id)));if(x)sel.delete(String(x.id))}rPrestar()};
+ $("pv0").addEventListener("click",e=>{const m=e.target.closest("[data-pm]");if(m){gpm(m.dataset.pm,-1);return}const pp=e.target.closest("[data-pp]");if(pp){gpm(pp.dataset.pp,1);return}const g=e.target.closest("[data-pg]");if(g)gpm(g.dataset.pg,1)});
+ $("pv0").addEventListener("keydown",e=>{if(e.key!=="Enter"&&e.key!==" ")return;const g=e.target.closest("[data-pg]");if(!g||e.target!==g)return;e.preventDefault();gpm(g.dataset.pg,1)});
  $("pf").onsubmit=async e=>{e.preventDefault();const ids=[...sel].map(Number);if(!ids.length){aviso("Elige al menos un implemento.","err");return}
-  try{const r=(await SB.rpc("crear_prestamo",{p_nombre:$("pn").value,p_documento:$("pd").value,p_telefono:$("pt").value,p_ids:ids,p_notas:$("po").value}));if(r.error)throw r.error;
+  const dias=Math.floor(+$("pz").value);if(!(dias>=1&&dias<=60)){aviso("El plazo debe ser de 1 a 60 días.","err");$("pz").focus();return}
+  const base={p_nombre:$("pn").value,p_documento:$("pd").value,p_telefono:$("pt").value,p_ids:ids,p_notas:$("po").value};
+  try{let r=await SB.rpc("crear_prestamo",{...base,p_dias:dias});
+   if(r.error&&(r.error.code==="PGRST202"||/schema cache|could not find the function/i.test(r.error.message||""))){
+    const u=await SB.from("implementos").update({dias_plazo:dias}).in("id",ids).select();if(u.error)throw u.error;if(!u.data||u.data.length<ids.length)throw new Error("No se pudo fijar el plazo: sin permiso sobre implementos.");
+    r=await SB.rpc("crear_prestamo",base)}
+   if(r.error)throw r.error;
    sel.clear();$("pf").reset();await load();rAll();pdf(r.data,its.filter(i=>i.prestamo_id===r.data.id));aviso("Préstamo "+r.data.numero+" registrado.")}catch(x){err(x)}};
  $("pv1").addEventListener("click",async e=>{
   if(e.target.closest("#pfBtn")){fo=!fo;fsub="";renderPF();return}
   const po=e.target.closest("[data-pfo]");if(po){const k=po.dataset.pfo;if(k==="est"||k==="tipo"){fsub=fsub===k?"":k;renderPF();return}if(k==="may"||k==="men")dord=dord===k?"":k;if(k==="clr"){dvf="todos";dvc="*";dord=""}fo=false;fsub="";rDevolver(true);return}
   const ns=e.target.closest("[data-nsug]");if(ns){$("nm").value=ns.dataset.nsug;nUpd();$("nq2").focus();return}
-  const sv=e.target.closest("[data-isave]");if(sv){const r=sv.closest("[data-e]"),id=+sv.dataset.isave,m=imp.find(x=>x.id===id);if(!m)return;
-   const plz=Math.floor(+r.querySelector("[data-plz]").value),val=+r.querySelector("[data-val]").value;
-   if(!(plz>=1&&plz<=60)){aviso("El plazo debe ser de 1 a 60 días.","err");return}if(!(val>=0)){aviso("El valor debe ser 0 o más.","err");return}
-   const o={categoria:r.querySelector("[data-tipo]").value.trim(),accesorios:r.querySelector("[data-acc]").value.trim(),valor:val,dias_plazo:plz},se=r.querySelector("select[data-est]");if(se&&se.value!==m.estado)o.estado=se.value;
-   try{const q=await SB.from("implementos").update(o).eq("id",id).select();if(q.error)throw q.error;if(!q.data||!q.data.length)throw new Error("No se pudo guardar: sin permiso.");await load();rAll();aviso("Guardado: "+m.nombre+" ("+m.codigo+").")}catch(x){err(x)}return}
+  const gd=e.target.closest("[data-gdisp]");if(gd){const k=decodeURIComponent(gd.dataset.gdisp),ids=imp.filter(x=>gkey(x)===k&&["en_reparacion","perdido","retirado"].includes(x.estado)).map(x=>x.id);if(!ids.length)return;
+   try{const q=await SB.from("implementos").update({estado:"disponible"}).in("id",ids).select();if(q.error)throw q.error;if(!q.data||!q.data.length)throw new Error("No se pudo actualizar: sin permiso.");await load();rAll();aviso(ids.length+" unidad"+(ids.length>1?"es":"")+" disponible"+(ids.length>1?"s":"")+".")}catch(x){err(x)}return}
+  const sv=e.target.closest("[data-isave]");if(sv){const k=decodeURIComponent(sv.dataset.isave),r=sv.closest("[data-g]"),all=imp.filter(x=>gkey(x)===k);if(!all.length)return;
+   const val=+r.querySelector("[data-val]").value,cant=Math.floor(+r.querySelector("[data-cant]").value);
+   if(!(val>=0)){aviso("El valor debe ser 0 o más.","err");return}
+   if(!(cant>=all.length)){aviso(`Aquí solo se puede agregar. Para quitar ${all[0].nombre} usa «Eliminar implementos».`);r.querySelector("[data-cant]").value=all.length;return}
+   const o={categoria:r.querySelector("[data-tipo]").value.trim(),accesorios:r.querySelector("[data-acc]").value.trim(),valor:val};
+   try{const q=await SB.from("implementos").update(o).in("id",all.map(x=>x.id)).select();if(q.error)throw q.error;if(!q.data||!q.data.length)throw new Error("No se pudo guardar: sin permiso.");
+    if(cant>all.length){const ex=codeNew(cant-all.length).map(c=>({codigo:c,nombre:all[0].nombre,...o,dias_plazo:1})),w=await SB.from("implementos").insert(ex);if(w.error)throw w.error}
+    await load();rAll();aviso("Guardado: "+all[0].nombre+".")}catch(x){err(x)}return}
   const fl=e.target.closest("[data-pf]");if(fl){dvf=fl.dataset.pf;rDevolver(true);return}
   const ct=e.target.closest("[data-pc]");if(ct){dvc=ct.dataset.pc;rDevolver(true);return}
   const b=e.target.closest("[data-rec],[data-lim]");if(!b)return;
@@ -2181,37 +2201,40 @@ function build(){if(built)return;built=true;
  $("pv1").addEventListener("submit",async e=>{if(e.target.id!=="nf")return;e.preventDefault();if(!esAdmin())return;
   const n=$("nm").value.trim();if(!n)return;
   const{exact,sug}=nMatch(),q=Math.max(1,Math.min(50,Math.floor(+$("nq2").value||1)));let rows;
-  if(exact){rows=nextCodes(exact.codigo,q).map(c=>({codigo:c,nombre:exact.nombre,categoria:exact.categoria||"",accesorios:exact.accesorios||"",valor:exact.valor||0,dias_plazo:exact.dias_plazo||3}))}
+  if(exact){const cs=codeNew(q);rows=cs.map(c=>({codigo:c,nombre:exact.nombre,categoria:exact.categoria||"",accesorios:exact.accesorios||"",valor:exact.valor||0,dias_plazo:1}))}
   else{if(sug.length&&!confirm(`«${n}» no existe. Hay implementos parecidos: ${sug.join(", ")}.\n¿Crear «${n}» como implemento nuevo?`))return;
-   const c0=$("nc").value.trim();if(!c0){aviso("Escribe el código del implemento.","err");$("nc").focus();return}
-   rows=seqCodes(c0,q).map(c=>({codigo:c,nombre:n,categoria:$("ng").value.trim(),accesorios:$("na").value.trim(),valor:+$("nv").value||0,dias_plazo:Math.max(1,Math.min(60,Math.floor(+$("np").value)||3))}))}
-  const dup=rows.find(r=>imp.some(x=>x.codigo.toLowerCase()===r.codigo.toLowerCase()));if(dup){aviso("Ya existe un implemento con el código "+dup.codigo+".","err");return}
-  try{const r=await SB.from("implementos").insert(rows);if(r.error)throw r.error;$("nf").reset();await load();rAll();nUpd();aviso(rows.length>1?rows.length+" implementos agregados.":"Implemento "+(exact?"agregado":"creado")+": "+rows[0].codigo+".")}catch(x){err(x)}});
+   rows=codeNew(q).map(c=>({codigo:c,nombre:n,categoria:$("ng").value.trim(),accesorios:$("na").value.trim(),valor:+$("nv").value||0,dias_plazo:1}))}
+  try{const r=await SB.from("implementos").insert(rows);if(r.error)throw r.error;$("nf").reset();await load();rAll();nUpd();aviso(rows.length>1?rows.length+" unidades agregadas.":"Implemento "+(exact?"agregado":"creado")+": "+n+".")}catch(x){err(x)}});
  $("pv1").addEventListener("change",e=>{const x=e.target.closest("[data-pfsel]");if(!x)return;if(x.dataset.pfsel==="est")dvf=x.value;else dvc=x.value;fo=false;fsub="";rDevolver(true)});
  $("pv1").addEventListener("input",e=>{if(e.target.closest("#nf"))nUpd()});
  $("pv1").addEventListener("reset",e=>{if(e.target.id==="nf")setTimeout(nUpd)});
  const dm=document.createElement("div");dm.id="pdelModal";dm.className="modal-backdrop";dm.hidden=true;
- dm.innerHTML='<section class="modal" role="dialog" aria-modal="true" aria-labelledby="pdelTitle" style="width:min(640px,100%)"><div class="modal-head"><h2 id="pdelTitle">Eliminar implementos</h2><button type="button" class="ghost" id="pcloseDel">Cerrar</button></div><p class="small-note">Marca los implementos que quieres borrar. No se puede deshacer. Los que están prestados no se pueden eliminar.</p><input id="pdelFind" type="search" placeholder="Buscar implemento" aria-label="Buscar implemento" autocomplete="off" style="width:100%;margin:10px 0 12px"><div id="pdelList" class="dlist"></div><p id="pdelMsg" class="admin-msg" role="alert"></p><div class="editor-actions" style="justify-content:space-between;align-items:center"><span class="small-note" id="pdelCount"></span><button type="button" class="danger" id="pdelOk" disabled>Eliminar seleccionados</button></div></section>';
+ dm.innerHTML='<section class="modal" role="dialog" aria-modal="true" aria-labelledby="pdelTitle" style="width:min(640px,100%)"><div class="modal-head"><h2 id="pdelTitle">Eliminar implementos</h2><button type="button" class="ghost" id="pcloseDel">Cerrar</button></div><p class="small-note">Indica cuántas unidades de cada implemento quieres borrar. No se puede deshacer. Las prestadas no se pueden eliminar.</p><input id="pdelFind" type="search" placeholder="Buscar implemento" aria-label="Buscar implemento" autocomplete="off" style="width:100%;margin:10px 0 12px"><div id="pdelList" class="dlist"></div><p id="pdelMsg" class="admin-msg" role="alert"></p><div class="editor-actions" style="justify-content:space-between;align-items:center"><span class="small-note" id="pdelCount"></span><button type="button" class="danger" id="pdelOk" disabled>Eliminar seleccionados</button></div></section>';
  document.body.appendChild(dm);
- const rDel=()=>{const k=nq($("pdelFind").value),l=imp.filter(i=>!k||nq(i.nombre+" "+i.codigo).includes(k));
-  $("pdelList").innerHTML=l.length?l.map(i=>`<label class="dli"><input type="checkbox" data-pdl="${i.id}"${dsel.has(i.id)?" checked":""}${i.estado==="prestado"?" disabled":""}><span class="dtx"><b>${esc(i.nombre)}</b><small>${esc(i.codigo)} · ${esc(tipoDe(i))} · ${E[i.estado]||esc(i.estado)}</small></span></label>`).join(""):'<p class="small-note">No hay implementos que coincidan.</p>';
-  const n=dsel.size;$("pdelCount").textContent=n?`${n} seleccionado${n>1?"s":""}`:"Nada seleccionado";$("pdelOk").disabled=!n};
+ const dGrp=()=>{const m=new Map();imp.forEach(i=>{const k=gkey(i);if(!m.has(k))m.set(k,{k,n:i.nombre,u:[]});m.get(k).u.push(i)});return[...m.values()].map(g=>({...g,ok:g.u.filter(x=>x.estado!=="prestado").length})).sort((a,b)=>a.n.localeCompare(b.n,"es",{sensitivity:"base"}))};
+ const rDel=()=>{const k=nq($("pdelFind").value),l=dGrp().filter(g=>!k||nq(g.n).includes(k));
+  $("pdelList").innerHTML=l.length?l.map(g=>`<div class="dli" style="cursor:default"><span class="dtx" style="flex:1 1 auto;min-width:0"><b>${esc(g.n)}</b><small>${g.u.length} unidad${g.u.length===1?"":"es"}${g.u.length-g.ok?" · "+(g.u.length-g.ok)+" prestada"+(g.u.length-g.ok>1?"s":""):""}</small></span><label class="fld" style="flex:none;gap:2px;align-items:flex-end">Eliminar<input type="number" min="0" max="${g.ok}" step="1" data-pdg="${encodeURIComponent(g.k)}" value="${dsel.get(g.k)||0}" ${g.ok?"":"disabled "}style="width:76px;height:auto;min-height:36px;padding:4px 8px" aria-label="Unidades de ${esc(g.n)} a eliminar"></label></div>`).join(""):'<p class="small-note">No hay implementos que coincidan.</p>';updDel()};
+ const updDel=()=>{const n=[...dsel.values()].reduce((a,b)=>a+b,0);$("pdelCount").textContent=n?`${n} unidad${n>1?"es":""} a eliminar`:"Nada seleccionado";$("pdelOk").disabled=!n};
  const cDel=()=>{dm.hidden=true};
  $("pv1").addEventListener("click",e=>{if(!e.target.closest("#pDelBtn"))return;dsel.clear();$("pdelFind").value="";$("pdelMsg").textContent="";rDel();dm.hidden=false;$("pdelFind").focus()});
  $("pcloseDel").onclick=cDel;bdClose(dm,cDel);addEventListener("keydown",e=>{if(e.key==="Escape"&&!dm.hidden)cDel()});
  $("pdelFind").oninput=rDel;
- $("pdelList").addEventListener("change",e=>{const c=e.target.closest("[data-pdl]");if(!c)return;c.checked?dsel.add(+c.dataset.pdl):dsel.delete(+c.dataset.pdl);rDel()});
- $("pdelOk").onclick=async()=>{const L=imp.filter(i=>dsel.has(i.id)&&i.estado!=="prestado");if(!L.length)return;
-  if(!confirm(`¿Eliminar ${L.length} implemento${L.length>1?"s":""}?\n${L.slice(0,8).map(i=>i.nombre+" ("+i.codigo+")").join(", ")}${L.length>8?"…":""}\nNo se puede deshacer.`))return;
-  try{const r=await SB.from("implementos").delete().in("id",L.map(i=>i.id)).select();if(r.error)throw r.error;if(!r.data||!r.data.length)throw new Error("No se pudo eliminar: sin permiso.");
-   dsel.clear();cDel();await load();rAll();nUpd();aviso(r.data.length>1?r.data.length+" implementos eliminados.":"Implemento eliminado.")}catch(x){$("pdelMsg").textContent=(x.message||String(x))+(/foreign|violates|referenc/i.test(x.message||"")?" (tiene préstamos registrados; márcalo como «Retirado» en lugar de eliminarlo)":"")}};
+ $("pdelList").addEventListener("input",e=>{const c=e.target.closest("[data-pdg]");if(!c)return;const k=decodeURIComponent(c.dataset.pdg),mx=+c.max||0,v=Math.max(0,Math.min(mx,Math.floor(+c.value)||0));v?dsel.set(k,v):dsel.delete(k);updDel()});
+ $("pdelOk").onclick=async()=>{const G=dGrp(),pick=[];G.forEach(g=>{const n=dsel.get(g.k)||0;if(n)pick.push(...g.u.filter(x=>x.estado!=="prestado").sort((a,b)=>(delPrio[a.estado]??9)-(delPrio[b.estado]??9)||b.id-a.id).slice(0,n))});
+  if(!pick.length)return;
+  const res=G.filter(g=>dsel.get(g.k)).map(g=>dsel.get(g.k)+"× "+g.n).join(", ");
+  if(!confirm(`¿Eliminar ${pick.length} unidad${pick.length>1?"es":""}?\n${res}\nNo se puede deshacer.`))return;
+  try{const r=await SB.from("implementos").delete().in("id",pick.map(i=>i.id)).select();if(r.error)throw r.error;if(!r.data||!r.data.length)throw new Error("No se pudo eliminar: sin permiso.");
+   dsel.clear();cDel();await load();rAll();nUpd();aviso(r.data.length>1?r.data.length+" unidades eliminadas.":"Unidad eliminada.")}catch(x){$("pdelMsg").textContent=(x.message||String(x))+(/foreign|violates|referenc/i.test(x.message||"")?" (tiene préstamos registrados; márcalo como «Retirado» en lugar de eliminarlo)":"")}};
  $("pv3").addEventListener("click",e=>{const b=e.target.closest("[data-tk]");if(!b)return;const p=pre.find(x=>x.id==b.dataset.tk);if(p)pdf(p,its.filter(i=>i.prestamo_id===p.id))});
 }
-function rPrestar(){$("pwarn").hidden=ok;const q=$("pq").value.trim().toLowerCase();
- const l=imp.filter(i=>i.estado==="disponible"&&(i.nombre+i.codigo+(i.categoria||"")).toLowerCase().includes(q));
- set("pl",l.map(i=>{const s=sel.has(String(i.id));return`<button type="button" class="zone" data-pi="${i.id}" aria-pressed="${s}"><b>${esc(i.nombre)}</b><small>${esc(i.codigo)} · ${i.dias_plazo} día${i.dias_plazo===1?"":"s"}${i.accesorios?" · "+esc(i.accesorios):""}</small></button>`}).join("")||'<p class="sub">No hay implementos disponibles.</p>');
- const n=imp.filter(i=>sel.has(String(i.id)));
- $("psel").innerHTML=n.length?`<b>${n.length} seleccionado${n.length===1?"":"s"}:</b> ${n.map(i=>esc(i.nombre)).join(", ")}`:"Ningún implemento seleccionado";
+function rPrestar(){$("pwarn").hidden=ok;const q=nq($("pq").value.trim());
+ const av=imp.filter(i=>i.estado==="disponible");sel.forEach(x=>{if(!av.some(i=>String(i.id)===x))sel.delete(x)});
+ const m=new Map();av.forEach(i=>{const k=gkey(i);if(!m.has(k))m.set(k,[]);m.get(k).push(i)});
+ const l=[...m.entries()].filter(([k,u])=>!q||nq(u[0].nombre+" "+(u[0].categoria||"")+" "+(u[0].accesorios||"")).includes(q));
+ set("pl",l.map(([k,u])=>{const c=u.filter(i=>sel.has(String(i.id))).length,e=encodeURIComponent(k);return`<div class="zone pgrp" data-pg="${e}" role="button" tabindex="0" aria-pressed="${c>0}"><span class="pgi"><b>${esc(u[0].nombre)}</b><small>${u.length} disponible${u.length===1?"":"s"}${u[0].categoria?" · "+esc(u[0].categoria):""}${u[0].accesorios?" · "+esc(u[0].accesorios):""}</small></span><span class="pqty"><button type="button" data-pm="${e}" aria-label="Quitar uno"${c?"":" disabled"}>−</button><b>${c}</b><button type="button" data-pp="${e}" aria-label="Agregar uno"${c<u.length?"":" disabled"}>+</button></span></div>`}).join("")||'<p class="sub">No hay implementos disponibles.</p>');
+ const n=imp.filter(i=>sel.has(String(i.id))),c=new Map();n.forEach(i=>c.set(i.nombre,(c.get(i.nombre)||0)+1));
+ $("psel").innerHTML=n.length?`<b>${n.length} seleccionado${n.length===1?"":"s"}:</b> ${[...c.entries()].map(([a,b])=>b+"× "+esc(a)).join(", ")}`:"Ningún implemento seleccionado";
  set("pult",pre.slice(0,8).map(p=>`<li><div class="pev-t"><b>${esc(p.numero)}</b><span class="pchip${p.estado==="activo"?" on":""}">${p.estado==="activo"?"Activo":"Cerrado"}</span></div><div class="pev-s">${esc(p.nombre)}</div><time class="pev-d">${f(p.salida)}</time></li>`).join("")||"<li>Sin préstamos todavía.</li>")}
 function rDevolver(force){
  const pend=its.filter(i=>!i.devuelto),venc=pend.filter(late),L=imp.filter(i=>i.estado==="por_limpiar"),D=imp.filter(i=>i.estado==="disponible");
@@ -2219,7 +2242,7 @@ function rDevolver(force){
  const base={todos:imp.map(m=>({c:cI(m),i:m})),disp:D.map(m=>({c:cI(m),i:m})),pend:pend.map(i=>({c:cIt(i),i})),venc:venc.map(i=>({c:cIt(i),i})),lim:L.map(m=>({c:cI(m),i:m}))}[dvf];
  const cats=[...new Set(imp.map(cI))].sort((a,b)=>a.localeCompare(b,"es"));
  if(dvc!=="*"&&!cats.includes(dvc))dvc="*";
- const k=nq(dq.trim()),hit=x=>!k||nq(x.i.nombre+" "+x.i.codigo+" "+(x.c||"")+" "+(x.i.accesorios||"")).includes(k);
+ const k=nq(dq.trim()),hit=x=>!k||nq(x.i.nombre+" "+(x.c||"")+" "+(x.i.accesorios||"")).includes(k);
  const lista=base.filter(x=>(dvc==="*"||x.c===dvc)&&hit(x)),pl=n=>n+" implemento"+(n===1?"":"s");
  set("pdf1",[["todos","Inventario de implementos",imp.length],["disp","Disponibles",D.length],["pend","Por devolver",pend.length],["venc","Vencidos",venc.length],["lim","Por limpiar",L.length]].map(([k,t,n])=>`<button type="button" class="zone" data-pf="${k}" aria-pressed="${dvf===k}">${t}<small${k==="venc"&&n?' class="low"':""}>${pl(n)}</small></button>`).join(""),force);
  set("pdf2",[["*","Todos los tipos",base.length],...cats.map(c=>[c,c,base.filter(x=>x.c===c).length])].map(([k,t,n])=>`<button type="button" class="zone" data-pc="${esc(k)}" aria-pressed="${dvc===k}">${esc(t)}<small>${pl(n)}</small></button>`).join(""),force);
@@ -2228,8 +2251,8 @@ function rDevolver(force){
  let h=`<div class="sechead"><h2>${T}${dvc==="*"?"":" · "+esc(dvc)}</h2><span class="sub">${pl(lista.length)}</span></div>`;
  const nada=k||dvc!=="*";
  if(dvf==="pend"||dvf==="venc")h+=lista.length?'<div class="cgrid pr-cards">'+lista.map(({i})=>{const r=pre.find(x=>x.id===i.prestamo_id)||{},v=late(i);
-  return`<div class="icard rcard${v?" ns":""}" data-row><div class="rtop"><b>${esc(i.nombre)}</b>${v?'<span class="pchip late">Vencido</span>':""}</div><span class="sku">${esc(i.codigo)} · ${esc(r.numero||"")}</span><div class="rwho"><b>${esc(r.nombre||"")}</b>${r.documento?`<span class="sku">${esc(r.documento)}${r.telefono?" · "+esc(r.telefono):""}</span>`:""}</div><div class="rdue${v?" late":""}">Devolver antes de ${f(i.vence)}</div><label class="fld">Estado al recibir<select class="pc" aria-label="Estado al recibir"><option value="bueno">Buen estado</option><option value="danado">Dañado</option><option value="perdido">Perdido</option></select></label><label class="fld">Novedad<input class="pn2" maxlength="120" placeholder="Opcional"></label><label class="pr-check"><input class="pl" type="checkbox" checked><span>Limpio y completo</span></label><button type="button" data-rec="${i.id}">Recibir</button></div>`}).join("")+"</div>":`<p class="sub">${nada?"Ningún implemento coincide con el filtro.":dvf==="venc"?"No hay implementos vencidos.":"No hay implementos por devolver."}</p>`;
- else if(dvf==="lim")h+=lista.length?'<div class="cgrid pr-cards">'+lista.map(({i})=>`<div class="icard rcard"><div class="rtop"><b>${esc(i.nombre)}</b><span class="pchip">Por limpiar</span></div><span class="sku">${esc(i.codigo)}</span><button type="button" data-lim="${i.id}">Marcar limpio</button></div>`).join("")+"</div>":`<p class="sub">${nada?"Ningún implemento coincide con el filtro.":"Nada pendiente de limpieza."}</p>`;
+  return`<div class="icard rcard${v?" ns":""}" data-row><div class="rtop"><b>${esc(i.nombre)}</b>${v?'<span class="pchip late">Vencido</span>':""}</div><span class="sku">${esc(r.numero||"")}</span><div class="rwho"><b>${esc(r.nombre||"")}</b>${r.documento?`<span class="sku">${esc(r.documento)}${r.telefono?" · "+esc(r.telefono):""}</span>`:""}</div><div class="rdue${v?" late":""}">Devolver antes de ${f(i.vence)}</div><label class="fld">Estado al recibir<select class="pc" aria-label="Estado al recibir"><option value="bueno">Buen estado</option><option value="danado">Dañado</option><option value="perdido">Perdido</option></select></label><label class="fld">Novedad<input class="pn2" maxlength="120" placeholder="Opcional"></label><label class="pr-check"><input class="pl" type="checkbox" checked><span>Limpio y completo</span></label><button type="button" data-rec="${i.id}">Recibir</button></div>`}).join("")+"</div>":`<p class="sub">${nada?"Ningún implemento coincide con el filtro.":dvf==="venc"?"No hay implementos vencidos.":"No hay implementos por devolver."}</p>`;
+ else if(dvf==="lim")h+=lista.length?'<div class="cgrid pr-cards">'+lista.map(({i})=>`<div class="icard rcard"><div class="rtop"><b>${esc(i.nombre)}</b><span class="pchip">Por limpiar</span></div><button type="button" data-lim="${i.id}">Marcar limpio</button></div>`).join("")+"</div>":`<p class="sub">${nada?"Ningún implemento coincide con el filtro.":"Nada pendiente de limpieza."}</p>`;
  else h+=rInv(lista);
  set("pdev",h,force);
  $("nwrap").hidden=!esAdmin();
