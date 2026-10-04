@@ -2232,12 +2232,13 @@ function tpRender(){
   B.innerHTML=tpBack+nota+(T?`<form class="aform" id="tpNew" autocomplete="off"><label>Nombre del tipo<input name="nombre" required maxlength="40" placeholder="Ej. Ollas"></label><div><button type="submit">Crear tipo</button></div></form>`
    :`<form class="aform" id="eNew" autocomplete="off"><label>Nombre del estado<input name="nombre" required maxlength="40" placeholder="Ej. En préstamo externo"></label><div><button type="submit">Crear estado</button></div></form><p class="small-note">Un implemento en un estado creado aquí no se puede prestar hasta que lo pases a «Disponible» (botón Pasar, en Toda la cocina).</p>`);
  }else if(a==="del"&&!T){
-  const SL=stateList(),last=SL.length<=1;
+  const SL=stateList(),last=SL.length<=1,off=BASEL.filter(x=>offB.has(x[0]));
   const val=x=>x.base?(x.k==="disp"?"disponible":x.k==="lim"?"por_limpiar":null):x.clave;
   const dests=[["disponible","Disponible"],["por_limpiar","Por limpiar"],...estX.map(y=>[y.clave,y.nombre])];
   B.innerHTML=tpBack+nota+SL.map(x=>{const v=val(x),q=v?cntEst(v):cntSt(x),n=x.base?x.k:estX.findIndex(y=>y.clave===x.clave),at=x.base?"bdel":"edel",sd=x.base?"bdst":"edst";
    return`<div class="arow"><span class="dtx"><b>${esc(x.label)}</b><small>${unid(q)}</small></span>${v&&q?`<select data-${sd}="${n}" aria-label="Pasar los implementos a">${dests.filter(d=>d[0]!==v).map(d=>`<option value="${esc(d[0])}">Pasar a: ${esc(d[1])}</option>`).join("")}</select>`:""}<button type="button" class="ghost danger" data-${at}="${n}"${last?" disabled":""}>Eliminar</button></div>`}).join("")
-   +'<p class="small-note">Los implementos del estado eliminado pasan al estado que elijas. Los estados base (Toda la cocina, Por devolver, Vencidos) solo se quitan de la lista. Debe quedar al menos un estado.</p>';
+   +(off.length?`<h3 class="ztit">Estados eliminados</h3>`+off.map(x=>`<div class="arow"><span class="dtx"><b>${esc(x[1])}</b><small>Oculto en la lista de estados</small></span><button type="button" data-brest="${x[0]}">Restaurar</button></div>`).join(""):"")
+   +'<p class="small-note">Los implementos del estado eliminado pasan al estado que elijas. Los estados base (Toda la cocina, Por devolver, Vencidos) solo se quitan de la lista y se pueden restaurar. Debe quedar al menos un estado.</p>';
  }else if(a==="del"){
   B.innerHTML=tpBack+nota+(L.length?L.map((x,n)=>{const q=cnt(x);return`<div class="arow"><span class="dtx"><b>${esc(nom(x))}</b><small>${unid(q)}</small></span>${q?`<select data-${T?"t":"e"}dst="${n}" aria-label="Pasar los implementos a">${T?'<option value="">Pasar a: Sin tipo</option>'+L.filter(y=>y!==x).map(y=>`<option value="${esc(y)}">Pasar a: ${esc(y)}</option>`).join(""):'<option value="disponible">Pasar a: Disponible</option>'+L.filter(y=>y!==x).map(y=>`<option value="${esc(y.clave)}">Pasar a: ${esc(y.nombre)}</option>`).join("")}</select>`:""}<button type="button" class="ghost danger" data-${T?"t":"e"}del="${n}">Eliminar</button></div>`}).join("")+`<p class="small-note">Los implementos del ${T?"tipo":"estado"} eliminado pasan al ${T?"tipo":"estado"} que elijas${T?" (o quedan «Sin tipo»)":" (por defecto, Disponible)"}.</p>`:`<p class="sub">No hay ${T?"tipos":"estados"} para eliminar.</p>`);
  }else if(a==="ord"){
@@ -2278,7 +2279,7 @@ function tpOpen(){
    const clave=slug(nom);
    if(FIJOS.includes(nq(nom))||estX.some(x=>nq(x.nombre)===nq(nom)||x.clave===clave)||E[clave]){tpMsg("Ya existe un estado con ese nombre.",1);return}
    try{const r=await SB.from("estados_implemento").insert({clave,nombre:nom,orden:stateList().length+1});if(r.error)throw r.error;await regEd("Estado creado: "+nom+".");await tpRecargar();tpListo("Estado «"+nom+"» creado.")}catch(x){tpErr(x,0)}});
-  m.addEventListener("click",async e=>{const b=e.target.closest("[data-tpv],[data-tdel],[data-edel],[data-bdel]");if(!b||!esAdmin())return;
+  m.addEventListener("click",async e=>{const b=e.target.closest("[data-tpv],[data-tdel],[data-edel],[data-bdel],[data-brest]");if(!b||!esAdmin())return;
    if(b.dataset.tpv){tpV=b.dataset.tpv;tpMsg("");tpRender();return}
    tpMsg("");const row=b.closest(".arow");
    try{
@@ -2289,6 +2290,9 @@ function tpOpen(){
      if(q){const m=await SB.rpc("eliminar_estado_implemento",{p_clave:v,p_destino:dest});if(m.error)throw m.error}
      const u=await SB.from("estados_implemento").upsert({clave:"off:"+k,nombre:e0[1],orden:0});if(u.error)throw u.error;
      await regEd("Estado eliminado: "+e0[1]+(q?". "+unid(q)+" pasaron a "+lbl(dest):"")+".");await tpRecargar();tpListo("Estado «"+e0[1]+"» eliminado."+(q?" "+unid(q)+" pasaron a "+lbl(dest)+".":""));return}
+    if(b.dataset.brest){const k=b.dataset.brest,e0=BASEL.find(a=>a[0]===k);if(!e0)return;
+     const d=await SB.from("estados_implemento").delete().eq("clave","off:"+k);if(d.error)throw d.error;
+     await regEd("Estado restaurado: "+e0[1]+".");await tpRecargar();tpListo("Estado «"+e0[1]+"» restaurado.");return}
     if(b.dataset.tdel!==undefined){
      const viejo=tpTipos()[+b.dataset.tdel];if(viejo===undefined)return;
      const sel=row.querySelector("[data-tdst]"),dest=sel?sel.value:"",q=cntTipo(viejo);
