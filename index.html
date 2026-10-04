@@ -1074,6 +1074,12 @@ nav.views .vgr{grid-column:3;grid-row:1;justify-self:end}
 .tprow [data-ren]{flex:1 1 150px;min-width:0;max-width:240px}
 .tprow select{max-width:220px}
 #tpMsg.okm{color:var(--ink)}
+
+/* Control para pasar unidades a otro estado */
+.gst{display:flex;gap:6px;align-items:center;margin-top:8px;flex-wrap:wrap}
+.gst input{width:64px!important;flex:none;text-align:right}
+.gst select{flex:1 1 110px;min-width:0}
+.gst button{flex:none;min-height:36px}
 </style>
 </head>
 <body>
@@ -2129,7 +2135,7 @@ pintarPush();
 window.PRM=(()=>{
 const KM="kokoa-modo",E={disponible:"Disponible",prestado:"Prestado",por_limpiar:"Por limpiar",en_reparacion:"En reparación",perdido:"Perdido",retirado:"Retirado"};
 const LB={0:["Prestar: Quitar","Prestar"],1:["Devolver: Agregar","Devolver"],3:["Préstamos en curso","En curso"],4:["Gráficos","Gráficos"],5:["Movimientos","Movimientos"]};
-let on=false,ok=true,tipX=[],imp=[],pre=[],its=[],evs=[],sel=new Set(),built=false,dvf="todos",dvc="*",dq="",dord="",fo=false,fsub="",pqTxt="",pqTipo="*",pqOrd="",pqFO=false,pqSub="",pFind="",pgm="i",pgp="d",pgi="*",pct="bars";const dsel=new Map();
+let on=false,ok=true,tipX=[],estX=[],estTbl=false,imp=[],pre=[],its=[],evs=[],sel=new Set(),built=false,dvf="todos",dvc="*",dq="",dord="",fo=false,fsub="",pqTxt="",pqTipo="*",pqOrd="",pqFO=false,pqSub="",pFind="",pgm="i",pgp="d",pgi="*",pct="bars";const dsel=new Map();
 try{on=localStorage.getItem(KM)==="1"}catch(_){}
 const nq=x=>String(x||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase();
 const f=d=>d?new Date(d).toLocaleString("es-CO",{dateStyle:"short",timeStyle:"short"}):"-";
@@ -2143,6 +2149,8 @@ async function load(){
  const r=await Promise.all([q("implementos","codigo",1000),q("prestamos","id",500),q("prestamo_items","id",3000),q("prestamo_eventos","id",1000)]);
  ok=!r.some(x=>x.error);
  try{const t=await SB.from("tipos_implemento").select("nombre").order("nombre");tipX=t.error?[]:t.data.map(x=>x.nombre)}catch(_){tipX=[]}
+ try{const t=await SB.from("estados_implemento").select("*").order("orden");if(t.error){estX=EDEF.map(x=>({...x}));estTbl=false}else{estX=t.data;estTbl=true}}catch(_){estX=EDEF.map(x=>({...x}));estTbl=false}
+ estSync();
  if(ok){imp=r[0].data.sort((a,b)=>String(a.nombre).localeCompare(String(b.nombre),"es")||a.id-b.id);pre=r[1].data;its=r[2].data;evs=r[3].data}
 }
 function lab(p){document.querySelectorAll("#views .tab").forEach(b=>{const k=+b.dataset.s,v=VISTAS.find(x=>x[0]===k),t=p?LB[k]:v.slice(1);b.querySelector(".l-lg").textContent=t[0];b.querySelector(".l-sm").textContent=t[1]})}
@@ -2186,52 +2194,95 @@ function ticketDlg(p,rows){
 const pdf=ticketDlg;
 const SVGF='<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 5h18l-7 8v6l-4 2v-8z"/></svg>';
 const ESTL={todos:"Toda la cocina",disp:"Disponibles",pend:"Por devolver",venc:"Vencidos",lim:"Por limpiar"};
+const EDEF=[{clave:"en_reparacion",nombre:"En reparación"},{clave:"perdido",nombre:"Perdido"},{clave:"retirado",nombre:"Retirado"}];
+const lbl=k=>E[k]||(estX.find(x=>x.clave===k)||{}).nombre||k;
+function estSync(){Object.keys(ESTL).forEach(k=>{if(k.startsWith("e:"))delete ESTL[k]});estX.forEach(x=>{ESTL["e:"+x.clave]=x.nombre});if(dvf!=="todos"&&!(dvf in ESTL))dvf="todos"}
 const tipoDe=m=>(m&&m.categoria)||"Sin tipo";
 const tipos=()=>[...new Set([...imp.map(tipoDe),...tipX])].sort((a,b)=>a.localeCompare(b,"es"));
 
-/* ---- Editar tipos de implementos (botón Editar en modo préstamos) ---- */
+/* ---- Editar (modo préstamos): tipos de implementos y estados ---- */
+let tpV="menu";
 const tpMsg=(t,bad)=>{const m=$("tpMsg");if(m){m.textContent=t||"";m.className="admin-msg"+(bad&&t?"":" okm")}};
-const tpFalta=x=>/tipos_implemento|42P01|schema cache|does not exist/i.test((x&&(x.code+" "+x.message))||"");
+const tpFalta=x=>/tipos_implemento|estados_implemento|42P01|schema cache|does not exist/i.test((x&&(x.code+" "+x.message))||"");
+const tpBack='<button type="button" class="ghost aback" data-tpv="menu">← Volver</button>';
+const FIJOS=["disponible","disponibles","prestado","por limpiar","por devolver","vencidos","toda la cocina","sin tipo"];
+const slug=n=>nq(n).replace(/[^a-z0-9]+/g,"_").replace(/^_+|_+$/g,"")||"estado";
+const cntEst=k=>imp.filter(m=>m.estado===k).length,cntTipo=t=>imp.filter(m=>tipoDe(m)===t).length;
+const unid=q=>q+" unidad"+(q===1?"":"es");
 function tpRender(){
  const B=$("tpBody");if(!B)return;
- const L=tipos().filter(t=>t!=="Sin tipo"),cnt=t=>imp.filter(m=>tipoDe(m)===t).length;
- B.innerHTML=`<form class="aform" id="tpNew" autocomplete="off"><div class="two"><label>Nombre del nuevo tipo<input name="nombre" required maxlength="40" placeholder="Ej. Ollas"></label><div style="align-self:end"><button type="submit">Crear tipo</button></div></div></form>`
- +(L.length?L.map((t,n)=>{const q=cnt(t);return`<div class="arow tprow" data-tp="${esc(t)}"><span class="dtx"><b>${esc(t)}</b><small>${q} unidad${q===1?"":"es"}</small></span><input data-ren maxlength="40" value="${esc(t)}" aria-label="Nuevo nombre de ${esc(t)}"><button type="button" class="ghost" data-tren="${n}">Renombrar</button>${q?`<select data-tdst="${n}" aria-label="Pasar los implementos a"><option value="">Pasar a: Sin tipo</option>${L.filter(x=>x!==t).map(x=>`<option value="${esc(x)}">Pasar a: ${esc(x)}</option>`).join("")}</select>`:""}<button type="button" class="ghost danger" data-tdel="${n}">Eliminar</button></div>`}).join("")+'<p class="small-note">Al eliminar un tipo, sus implementos pasan al tipo que elijas (o quedan «Sin tipo»). Al renombrar, el cambio se aplica a todos sus implementos.</p>':'<p class="sub">Aún no hay tipos de implementos. Crea el primero arriba.</p>')}
+ $("tpT").textContent={menu:"Editar",t:"Tipos de implementos","e-new":"Estados: crear","e-del":"Estados: eliminar","e-ord":"Estados: orden"}[tpV]||"Editar";
+ const nota=estTbl?"":'<p class="small-note">Para editar los estados falta ejecutar <b>estados_implemento.sql</b> en Supabase. Mientras tanto se muestran los estados por defecto.</p>';
+ if(tpV==="menu"){
+  B.innerHTML='<p class="small-note">¿Qué quieres editar?</p><div class="pick-grid"><div class="editor-card"><h3>Tipos de implementos</h3><p class="small-note" style="margin:0">Crear, renombrar o eliminar tipos.</p><div class="pick"><button type="button" data-tpv="t">Editar tipos</button></div></div><div class="editor-card"><h3>Estados</h3><p class="small-note" style="margin:0">Como en reparación, perdido, retirado…</p><div class="pick"><button type="button" data-tpv="e-new">Crear</button><button type="button" class="ghost danger" data-tpv="e-del">Eliminar</button><button type="button" class="ghost" data-tpv="e-ord">Editar orden</button></div></div></div>';return}
+ if(tpV==="t"){
+  const L=tipos().filter(t=>t!=="Sin tipo");
+  B.innerHTML=tpBack+`<form class="aform" id="tpNew" autocomplete="off"><div class="two"><label>Nombre del nuevo tipo<input name="nombre" required maxlength="40" placeholder="Ej. Ollas"></label><div style="align-self:end"><button type="submit">Crear tipo</button></div></div></form>`
+  +(L.length?L.map((t,n)=>{const q=cntTipo(t);return`<div class="arow tprow" data-tp="${esc(t)}"><span class="dtx"><b>${esc(t)}</b><small>${unid(q)}</small></span><input data-ren maxlength="40" value="${esc(t)}" aria-label="Nuevo nombre de ${esc(t)}"><button type="button" class="ghost" data-tren="${n}">Renombrar</button>${q?`<select data-tdst="${n}" aria-label="Pasar los implementos a"><option value="">Pasar a: Sin tipo</option>${L.filter(x=>x!==t).map(x=>`<option value="${esc(x)}">Pasar a: ${esc(x)}</option>`).join("")}</select>`:""}<button type="button" class="ghost danger" data-tdel="${n}">Eliminar</button></div>`}).join("")+'<p class="small-note">Al eliminar un tipo, sus implementos pasan al tipo que elijas (o quedan «Sin tipo»). Al renombrar, el cambio se aplica a todos sus implementos.</p>':'<p class="sub">Aún no hay tipos de implementos. Crea el primero arriba.</p>');return}
+ if(tpV==="e-new"){
+  B.innerHTML=tpBack+nota+`<form class="aform" id="eNew" autocomplete="off"><label>Nombre del estado<input name="nombre" required maxlength="40" placeholder="Ej. En préstamo externo"></label><div><button type="submit">Crear estado</button></div></form><p class="small-note">Un implemento en un estado creado aquí no se puede prestar hasta que lo pases a «Disponible» (botón Pasar, en Toda la cocina).</p>`;return}
+ if(tpV==="e-del"){
+  B.innerHTML=tpBack+nota+(estX.length?estX.map((x,n)=>{const q=cntEst(x.clave);return`<div class="arow" data-ek="${esc(x.clave)}"><span class="dtx"><b>${esc(x.nombre)}</b><small>${unid(q)}</small></span>${q?`<select data-edst aria-label="Pasar los implementos a"><option value="disponible">Pasar a: Disponible</option>${estX.filter(y=>y.clave!==x.clave).map(y=>`<option value="${esc(y.clave)}">Pasar a: ${esc(y.nombre)}</option>`).join("")}</select>`:""}<button type="button" class="ghost danger" data-edel="${n}">Eliminar</button></div>`}).join("")+'<p class="small-note">Los implementos del estado eliminado pasan al estado que elijas (por defecto, Disponible).</p>':'<p class="sub">No hay estados para eliminar.</p>');return}
+ if(tpV==="e-ord"){
+  B.innerHTML=tpBack+nota+'<p class="small-note">Usa las flechas para cambiar el orden. Se aplica en la barra de Estado y en todos los filtros.</p>'+(estX.length?estX.map((x,n)=>`<div class="arow" data-ek="${esc(x.clave)}"><span class="dtx"><b>${esc(x.nombre)}</b><small>${unid(cntEst(x.clave))}</small></span><button type="button" class="ghost" data-eup="${n}" aria-label="Subir ${esc(x.nombre)}"${n?"":" disabled"}>↑</button><button type="button" class="ghost" data-edn="${n}" aria-label="Bajar ${esc(x.nombre)}"${n<estX.length-1?"":" disabled"}>↓</button></div>`).join(""):'<p class="sub">No hay estados.</p>')}
+}
 async function tpLoad(){await load();rAll();tpRender()}
 async function tpMover(de,a){
  const ids=imp.filter(m=>tipoDe(m)===de).map(m=>m.id);
  if(ids.length){const q=await SB.from("implementos").update({categoria:a}).in("id",ids).select("id");if(q.error)throw q.error;if(!q.data||q.data.length<ids.length)throw new Error("No se pudo guardar: sin permiso sobre implementos.")}
  if(dvc===de)dvc="*";if(pqTipo===de)pqTipo="*"}
 async function tpTabla(fn){try{const r=await fn();if(r&&r.error&&!tpFalta(r.error))throw r.error}catch(x){if(!tpFalta(x))throw x}}
+const eErr=x=>tpMsg(tpFalta(x)?"Falta crear la tabla estados_implemento en Supabase (ejecuta estados_implemento.sql).":(x.message||String(x)),1);
+async function eGuardarOrden(L){const r=await SB.from("estados_implemento").upsert(L.map((x,n)=>({clave:x.clave,nombre:x.nombre,orden:n+1})));if(r.error)throw r.error}
 function tpOpen(){
  let m=$("tpModal");
  if(!m){m=document.createElement("div");m.id="tpModal";m.className="modal-backdrop";m.hidden=true;
-  m.innerHTML='<section class="modal" role="dialog" aria-modal="true" aria-labelledby="tpT" style="width:min(760px,100%)"><div class="modal-head"><h2 id="tpT">Editar: tipos de implementos</h2><button type="button" class="ghost" id="tpClose">Cerrar</button></div><div id="tpBody"></div><p id="tpMsg" class="admin-msg" role="alert"></p></section>';
+  m.innerHTML='<section class="modal" role="dialog" aria-modal="true" aria-labelledby="tpT" style="width:min(760px,100%)"><div class="modal-head"><h2 id="tpT">Editar</h2><button type="button" class="ghost" id="tpClose">Cerrar</button></div><div id="tpBody"></div><p id="tpMsg" class="admin-msg" role="alert"></p></section>';
   document.body.appendChild(m);
   const cerrar=()=>{m.hidden=true};
   $("tpClose").onclick=cerrar;m.addEventListener("click",e=>{if(e.target===m)cerrar()});
   addEventListener("keydown",e=>{if(e.key==="Escape"&&!m.hidden)cerrar()});
-  m.addEventListener("submit",async e=>{if(e.target.id!=="tpNew")return;e.preventDefault();
+  m.addEventListener("submit",async e=>{const id=e.target.id;if(id!=="tpNew"&&id!=="eNew")return;e.preventDefault();
    const nom=e.target.elements.nombre.value.trim();if(!nom)return;
-   if(tipos().some(t=>nq(t)===nq(nom))||nq(nom)==="sin tipo"){tpMsg("Ya existe un tipo con ese nombre.",1);return}
-   try{const r=await SB.from("tipos_implemento").insert({nombre:nom});if(r.error)throw r.error;tipX.push(nom);tpRender();tpMsg("Tipo «"+nom+"» creado.");aviso("Tipo «"+nom+"» creado.")}
-   catch(x){tpMsg(tpFalta(x)?"Falta crear la tabla tipos_implemento en Supabase (ejecuta tipos_implemento.sql).":(x.message||String(x)),1)}});
-  m.addEventListener("click",async e=>{const b=e.target.closest("[data-tren],[data-tdel]");if(!b||!esAdmin())return;
-   const row=b.closest("[data-tp]"),viejo=row.dataset.tp;tpMsg("");
+   if(id==="tpNew"){
+    if(tipos().some(t=>nq(t)===nq(nom))||nq(nom)==="sin tipo"){tpMsg("Ya existe un tipo con ese nombre.",1);return}
+    try{const r=await SB.from("tipos_implemento").insert({nombre:nom});if(r.error)throw r.error;tipX.push(nom);tpRender();tpMsg("Tipo «"+nom+"» creado.");aviso("Tipo «"+nom+"» creado.")}
+    catch(x){tpMsg(tpFalta(x)?"Falta crear la tabla tipos_implemento en Supabase (ejecuta tipos_implemento.sql).":(x.message||String(x)),1)}return}
+   const clave=slug(nom);
+   if(FIJOS.includes(nq(nom))||estX.some(x=>nq(x.nombre)===nq(nom)||x.clave===clave)||E[clave]){tpMsg("Ya existe un estado con ese nombre.",1);return}
+   try{const r=await SB.from("estados_implemento").insert({clave,nombre:nom,orden:estX.length+1});if(r.error)throw r.error;await load();rAll();tpV="e-new";tpRender();tpMsg("Estado «"+nom+"» creado.");aviso("Estado «"+nom+"» creado.")}catch(x){eErr(x)}});
+  m.addEventListener("click",async e=>{const b=e.target.closest("[data-tpv],[data-tren],[data-tdel],[data-edel],[data-eup],[data-edn]");if(!b||!esAdmin())return;
+   if(b.dataset.tpv){tpV=b.dataset.tpv;tpMsg("");tpRender();const f=m.querySelector("#tpBody input");if(f)f.focus();return}
+   tpMsg("");
    try{
-    if(b.dataset.tren!==undefined){const nuevo=row.querySelector("[data-ren]").value.trim();if(!nuevo||nuevo===viejo)return;
-     if(nq(nuevo)==="sin tipo"||tipos().some(t=>nq(t)===nq(nuevo)&&t!==viejo)){tpMsg("Ya existe un tipo con ese nombre.",1);return}
-     await tpMover(viejo,nuevo);
-     await tpTabla(()=>SB.from("tipos_implemento").delete().eq("nombre",viejo));
-     if(!imp.some(m=>tipoDe(m)===viejo)||true)await tpTabla(()=>SB.from("tipos_implemento").upsert({nombre:nuevo}));
-     await tpLoad();tpMsg("Tipo renombrado a «"+nuevo+"».");aviso("Tipo renombrado a «"+nuevo+"».")}
-    else{const sel=row.querySelector("[data-tdst]"),dest=sel?sel.value:"",q=imp.filter(m=>tipoDe(m)===viejo).length;
-     if(!confirm(`¿Eliminar el tipo «${viejo}»?`+(q?`\n${q} unidad${q===1?"":"es"} pasar${q===1?"á":"án"} a ${dest||"«Sin tipo»"}.`:"")))return;
-     await tpMover(viejo,dest);
-     await tpTabla(()=>SB.from("tipos_implemento").delete().eq("nombre",viejo));
-     await tpLoad();tpMsg("Tipo «"+viejo+"» eliminado.");aviso("Tipo «"+viejo+"» eliminado.")}
-   }catch(x){tpMsg(x.message||String(x),1)}})}
- tpMsg("");tpRender();m.hidden=false;const f=m.querySelector("input");if(f)f.focus()}
+    if(b.dataset.tren!==undefined||b.dataset.tdel!==undefined){
+     const row=b.closest("[data-tp]"),viejo=row.dataset.tp;
+     if(b.dataset.tren!==undefined){const nuevo=row.querySelector("[data-ren]").value.trim();if(!nuevo||nuevo===viejo)return;
+      if(nq(nuevo)==="sin tipo"||tipos().some(t=>nq(t)===nq(nuevo)&&t!==viejo)){tpMsg("Ya existe un tipo con ese nombre.",1);return}
+      await tpMover(viejo,nuevo);
+      await tpTabla(()=>SB.from("tipos_implemento").delete().eq("nombre",viejo));
+      await tpTabla(()=>SB.from("tipos_implemento").upsert({nombre:nuevo}));
+      await tpLoad();tpMsg("Tipo renombrado a «"+nuevo+"».");aviso("Tipo renombrado a «"+nuevo+"».")}
+     else{const sel=row.querySelector("[data-tdst]"),dest=sel?sel.value:"",q=cntTipo(viejo);
+      if(!confirm(`¿Eliminar el tipo «${viejo}»?`+(q?`\n${unid(q)} pasar${q===1?"á":"án"} a ${dest||"«Sin tipo»"}.`:"")))return;
+      await tpMover(viejo,dest);
+      await tpTabla(()=>SB.from("tipos_implemento").delete().eq("nombre",viejo));
+      await tpLoad();tpMsg("Tipo «"+viejo+"» eliminado.");aviso("Tipo «"+viejo+"» eliminado.")}
+     return}
+    if(b.dataset.edel!==undefined){
+     const row=b.closest("[data-ek]"),k=row.dataset.ek,x=estX.find(y=>y.clave===k);if(!x)return;
+     const sel=row.querySelector("[data-edst]"),dest=sel?sel.value:"disponible",q=cntEst(k);
+     if(!confirm(`¿Eliminar el estado «${x.nombre}»?`+(q?`\n${unid(q)} pasar${q===1?"á":"án"} a ${lbl(dest)}.`:"")))return;
+     const ids=imp.filter(m=>m.estado===k).map(m=>m.id);
+     if(ids.length){const u=await SB.from("implementos").update({estado:dest}).in("id",ids).select("id");if(u.error)throw u.error;if(!u.data||u.data.length<ids.length)throw new Error("No se pudo guardar: sin permiso sobre implementos.")}
+     const d=await SB.from("estados_implemento").delete().eq("clave",k);if(d.error)throw d.error;
+     if(dvf==="e:"+k)dvf="todos";
+     await tpLoad();tpMsg("Estado «"+x.nombre+"» eliminado.");aviso("Estado «"+x.nombre+"» eliminado.");return}
+    if(b.dataset.eup!==undefined||b.dataset.edn!==undefined){
+     const n=+(b.dataset.eup!==undefined?b.dataset.eup:b.dataset.edn),t=b.dataset.eup!==undefined?n-1:n+1;if(t<0||t>=estX.length)return;
+     const L=estX.slice();[L[n],L[t]]=[L[t],L[n]];await eGuardarOrden(L);await tpLoad()}
+   }catch(x){if(tpV.startsWith("e-"))eErr(x);else tpMsg(x.message||String(x),1)}})}
+ tpV="menu";tpMsg("");tpRender();m.hidden=false}
 document.addEventListener("click",e=>{if(!on||!e.target.closest("#adminBtn"))return;e.stopImmediatePropagation();e.preventDefault();if(esAdmin())tpOpen()},true);
 const codeNew=q=>{const ns=imp.map(x=>/^IMP-(\d+)$/i.exec(x.codigo)).filter(Boolean).map(x=>+x[1]),n=(ns.length?Math.max(...ns):0)+1;return Array.from({length:q},(_,k)=>"IMP-"+String(n+k).padStart(4,"0"))};
 const gkey=m=>nq(String(m.nombre).trim());
@@ -2258,23 +2309,24 @@ function renderPF(){const n=(dvf!=="todos")+(dvc!=="*")+(dord?1:0);
   +(n?`<button type="button" class="fo clr" data-pfo="clr">Quitar filtros</button>`:"")}
 const estSel=i=>{const ed=["disponible","en_reparacion","perdido","retirado"];return ed.includes(i.estado)?`<select data-est aria-label="Estado">${ed.map(x=>`<option value="${x}"${x===i.estado?" selected":""}>${E[x]}</option>`).join("")}</select>`:`<span class="pchip${i.estado==="prestado"?" on":""}">${E[i.estado]||esc(i.estado)}</span>`};
 const quienTiene=i=>{if(i.estado!=="prestado")return"";const it=its.find(x=>x.implemento_id===i.id&&!x.devuelto);if(!it)return"";const p=pre.find(x=>x.id===it.prestamo_id)||{};return`Con ${esc(p.nombre||"—")} · vence ${f(it.vence)}`};
+const gstH=(g,kk)=>`<div class="gst"><input type="number" min="1" step="1" value="1" data-gstq aria-label="Unidades"><select data-gstt aria-label="Pasar a estado">${["disponible",...estX.map(x=>x.clave)].map(k=>`<option value="${esc(k)}">${esc(lbl(k))}</option>`).join("")}</select><button type="button" class="ghost" data-gst="${kk}">Pasar</button></div>`;
 function rInv(lista){
  const ed=esAdmin(),map=new Map();
  lista.forEach(({i})=>{const k=gkey(i);if(!map.has(k))map.set(k,[]);map.get(k).push(i)});
  const G=[...map.entries()].map(([k,u])=>{const all=imp.filter(x=>gkey(x)===k),c=e=>all.filter(x=>x.estado===e).length,m=all[0]||u[0],
   ven=all.filter(x=>x.estado==="prestado"&&its.some(t=>t.implemento_id===x.id&&late(t))).length;
-  return{k,n:m.nombre,t:tipoDe(m),acc:m.accesorios||"",val:m.valor||0,sh:u.length,tot:all.length,disp:c("disponible"),pres:c("prestado"),lim:c("por_limpiar"),rep:c("en_reparacion"),per:c("perdido"),ret:c("retirado"),ven}});
+  return{k,n:m.nombre,t:tipoDe(m),acc:m.accesorios||"",val:m.valor||0,sh:u.length,tot:all.length,disp:c("disponible"),pres:c("prestado"),lim:c("por_limpiar"),rep:c("en_reparacion"),per:c("perdido"),ret:c("retirado"),oth:all.filter(x=>estX.some(s=>s.clave===x.estado)).length,ex:estX.filter(s=>!["en_reparacion","perdido","retirado"].includes(s.clave)).map(s=>[s.nombre,c(s.clave)]).filter(a=>a[1]),ven}});
  const alfa=(a,b)=>a.n.localeCompare(b.n,"es",{sensitivity:"base"}),ordQ=(a,b)=>(dord==="may"?b.tot-a.tot:a.tot-b.tot)||alfa(a,b);
  if(!G.length)return`<p class="sub">${dq.trim()||dvc!=="*"?"Ningún implemento coincide con el filtro.":"Aún no hay implementos."+(ed?"":" Un admin puede crearlos.")}</p>`;
  const kk=g=>encodeURIComponent(g.k),
-  res=g=>[g.disp?g.disp+" disponible"+(g.disp>1?"s":""):"",g.pres?g.pres+" prestado"+(g.pres>1?"s":""):"",g.lim?g.lim+" por limpiar":"",g.rep?g.rep+" en reparación":"",g.per?g.per+" perdido"+(g.per>1?"s":""):"",g.ret?g.ret+" retirado"+(g.ret>1?"s":""):""].filter(Boolean).join(" · ")||"Sin unidades",
+  res=g=>[g.disp?g.disp+" disponible"+(g.disp>1?"s":""):"",g.pres?g.pres+" prestado"+(g.pres>1?"s":""):"",g.lim?g.lim+" por limpiar":"",g.rep?g.rep+" en reparación":"",g.per?g.per+" perdido"+(g.per>1?"s":""):"",g.ret?g.ret+" retirado"+(g.ret>1?"s":""):"",...g.ex.map(a=>a[1]+" "+a[0].toLowerCase())].filter(Boolean).join(" · ")||"Sin unidades",
   al=g=>[g.ven?g.ven+" vencido"+(g.ven>1?"s":""):"",g.per?"Perdidos":""].filter(Boolean).join(" · "),
-  rb=g=>ed&&(g.rep+g.per+g.ret)?`<button type="button" class="ghost" data-gdisp="${kk(g)}">Pasar ${g.rep+g.per+g.ret} a disponible${g.rep+g.per+g.ret>1?"s":""}</button>`:"";
+  rb=g=>ed&&(g.oth)?`<button type="button" class="ghost" data-gdisp="${kk(g)}">Pasar ${g.oth} a disponible${g.oth>1?"s":""}</button>`:"";
  if(invLayout==="list")
   return`<div class="tbl"><table class="impt"><thead><tr><th>Implemento</th><th>Tipo de implemento</th><th>Existencias</th><th>Accesorios</th><th>Valor</th><th>Cantidad</th><th></th></tr></thead><tbody>`+
   G.sort(dord?ordQ:alfa).map(g=>`<tr data-g="${kk(g)}" class="${g.ven||g.per?"u":""}"><td class="nm"><b>${esc(g.n)}</b>${al(g)?`<div class="low">${al(g)}</div>`:""}</td>
    <td data-label="Tipo de implemento">${ed?`<input data-tipo list="ngl" maxlength="40" value="${g.t==="Sin tipo"?"":esc(g.t)}" aria-label="Tipo de implemento" placeholder="Sin tipo">`:esc(g.t)}</td>
-   <td data-label="Existencias"><div class="sku">${res(g)}</div>${rb(g)}</td>
+   <td data-label="Existencias"><div class="sku">${res(g)}</div>${rb(g)}${ed&&estX.length?gstH(g,kk(g)):""}</td>
    <td data-label="Accesorios">${ed?`<input data-acc maxlength="80" value="${esc(g.acc)}" aria-label="Accesorios">`:esc(g.acc||"—")}</td>
    <td class="ed" data-label="Valor">${ed?`<input type="number" min="0" step="any" data-val value="${g.val}" aria-label="Valor de reposición">`:money(g.val)}</td>
    <td class="ed" data-label="Cantidad">${ed?`<input type="number" min="${g.tot}" step="1" data-cant value="${g.tot}" aria-label="Cantidad de ${esc(g.n)}">`:g.tot}</td>
@@ -2285,7 +2337,7 @@ function rInv(lista){
    `<div class="icard${g.per?" ns":""}" data-g="${kk(g)}"><div class="ihw"><div class="ihead"><div class="in"><b>${esc(g.n)}</b><div class="sku">${g.tot} unidad${g.tot===1?"":"es"}${al(g)?" · "+al(g):""}</div></div></div><div class="sku">${res(g)}</div></div>
    ${ed?`<label class="fld">Tipo de implemento<input data-tipo list="ngl" maxlength="40" value="${g.t==="Sin tipo"?"":esc(g.t)}" placeholder="Sin tipo"></label>
    <div class="frow"><label class="fld">Cantidad<input type="number" min="${g.tot}" step="1" data-cant value="${g.tot}"></label><label class="fld">Valor<input type="number" min="0" step="any" data-val value="${g.val}"></label></div>
-   <label class="fld">Accesorios<input data-acc maxlength="80" value="${esc(g.acc)}"></label>${rb(g)}
+   <label class="fld">Accesorios<input data-acc maxlength="80" value="${esc(g.acc)}"></label>${rb(g)}${estX.length?gstH(g,kk(g)):""}
    <button data-isave="${kk(g)}">Guardar</button>`:`<div class="sku">${money(g.val)}</div>${g.acc?`<div class="sku">${esc(g.acc)}</div>`:""}`}</div>`).join("")+`</div></div>`}).join("")}
 function build(){if(built)return;built=true;
  const mk=(id,h)=>{const s=document.createElement("section");s.id=id;s.hidden=true;s.innerHTML=h;$("v5").after(s)};
@@ -2359,8 +2411,14 @@ function build(){if(built)return;built=true;
   if(e.target.closest("#pfBtn")){fo=!fo;fsub="";renderPF();return}
   const po=e.target.closest("[data-pfo]");if(po){const k=po.dataset.pfo;if(k==="est"||k==="tipo"){fsub=fsub===k?"":k;renderPF();return}if(k==="may"||k==="men")dord=dord===k?"":k;if(k==="clr"){dvf="todos";dvc="*";dord=""}fo=false;fsub="";rDevolver(true);return}
   const ns=e.target.closest("[data-nsug]");if(ns){$("nm").value=ns.dataset.nsug;nUpd();$("nq2").focus();return}
-  const gd=e.target.closest("[data-gdisp]");if(gd){const k=decodeURIComponent(gd.dataset.gdisp),ids=imp.filter(x=>gkey(x)===k&&["en_reparacion","perdido","retirado"].includes(x.estado)).map(x=>x.id);if(!ids.length)return;
+  const gd=e.target.closest("[data-gdisp]");if(gd){const k=decodeURIComponent(gd.dataset.gdisp),ids=imp.filter(x=>gkey(x)===k&&estX.some(s=>s.clave===x.estado)).map(x=>x.id);if(!ids.length)return;
    try{const q=await SB.from("implementos").update({estado:"disponible"}).in("id",ids).select();if(q.error)throw q.error;if(!q.data||!q.data.length)throw new Error("No se pudo actualizar: sin permiso.");await load();rAll();aviso(ids.length+" unidad"+(ids.length>1?"es":"")+" disponible"+(ids.length>1?"s":"")+".")}catch(x){err(x)}return}
+  const gs=e.target.closest("[data-gst]");if(gs){if(!esAdmin())return;const k=decodeURIComponent(gs.dataset.gst),box=gs.closest(".gst"),n=Math.floor(+box.querySelector("[data-gstq]").value),t=box.querySelector("[data-gstt]").value;
+   if(!(n>=1)){aviso("Indica cuántas unidades.","err");return}
+   const ed=estX.map(x=>x.clave),src=imp.filter(x=>gkey(x)===k&&(t==="disponible"?ed.includes(x.estado):x.estado==="disponible"));
+   if(!src.length){aviso(t==="disponible"?"No hay unidades en otro estado para pasar a disponible.":"No hay unidades disponibles de este implemento.","err");return}
+   const ids=src.slice(0,n).map(x=>x.id);
+   try{const q=await SB.from("implementos").update({estado:t}).in("id",ids).select("id");if(q.error)throw q.error;if(!q.data||q.data.length<ids.length)throw new Error("No se pudo actualizar: sin permiso (o el estado no está permitido en Supabase: ejecuta estados_implemento.sql).");await load();rAll();aviso(ids.length+" unidad"+(ids.length>1?"es":"")+" → "+lbl(t)+".")}catch(x){err(x)}return}
   const sv=e.target.closest("[data-isave]");if(sv){const k=decodeURIComponent(sv.dataset.isave),r=sv.closest("[data-g]"),all=imp.filter(x=>gkey(x)===k);if(!all.length)return;
    const val=+r.querySelector("[data-val]").value,cant=Math.floor(+r.querySelector("[data-cant]").value);
    if(!(val>=0)){aviso("El valor debe ser 0 o más.","err");return}
@@ -2440,12 +2498,12 @@ function rPrestar(force){$("pwarn").hidden=ok;
 function rDevolver(force){
  const pend=its.filter(i=>!i.devuelto),venc=pend.filter(late),L=imp.filter(i=>i.estado==="por_limpiar"),D=imp.filter(i=>i.estado==="disponible");
  const cI=m=>(m&&m.categoria)||"Sin tipo",cIt=i=>cI(imp.find(x=>x.id===i.implemento_id));
- const base={todos:imp.map(m=>({c:cI(m),i:m})),disp:D.map(m=>({c:cI(m),i:m})),pend:pend.map(i=>({c:cIt(i),i})),venc:venc.map(i=>({c:cIt(i),i})),lim:L.map(m=>({c:cI(m),i:m}))}[dvf];
+ const base={todos:imp.map(m=>({c:cI(m),i:m})),disp:D.map(m=>({c:cI(m),i:m})),pend:pend.map(i=>({c:cIt(i),i})),venc:venc.map(i=>({c:cIt(i),i})),lim:L.map(m=>({c:cI(m),i:m})),...Object.fromEntries(estX.map(x=>["e:"+x.clave,imp.filter(m=>m.estado===x.clave).map(m=>({c:cI(m),i:m}))]))}[dvf]||[];
  const cats=[...new Set(imp.map(cI))].sort((a,b)=>a.localeCompare(b,"es"));
  if(dvc!=="*"&&!cats.includes(dvc))dvc="*";
  const k=nq(dq.trim()),hit=x=>!k||nq(x.i.nombre+" "+(x.c||"")+" "+(x.i.accesorios||"")).includes(k);
  const lista=base.filter(x=>(dvc==="*"||x.c===dvc)&&hit(x)),pl=n=>n+" implemento"+(n===1?"":"s");
- set("pdf1",[["todos","Toda la cocina",imp.length],["disp","Disponibles",D.length],["pend","Por devolver",pend.length],["venc","Vencidos",venc.length],["lim","Por limpiar",L.length]].map(([k,t,n])=>`<button type="button" class="zone" data-pf="${k}" aria-pressed="${dvf===k}">${t}<small${k==="venc"&&n?' class="low"':""}>${pl(n)}</small></button>`).join(""),force);
+ set("pdf1",[["todos","Toda la cocina",imp.length],["disp","Disponibles",D.length],["pend","Por devolver",pend.length],["venc","Vencidos",venc.length],["lim","Por limpiar",L.length],...estX.map(x=>["e:"+x.clave,x.nombre,imp.filter(m=>m.estado===x.clave).length])].map(([k,t,n])=>`<button type="button" class="zone" data-pf="${k}" aria-pressed="${dvf===k}">${t}<small${k==="venc"&&n?' class="low"':""}>${pl(n)}</small></button>`).join(""),force);
  set("pdf2",[["*","Todos los tipos",base.length],...cats.map(c=>[c,c,base.filter(x=>x.c===c).length])].map(([k,t,n])=>`<button type="button" class="zone" data-pc="${esc(k)}" aria-pressed="${dvc===k}">${esc(t)}<small>${pl(n)}</small></button>`).join(""),force);
  set("pdf3",evs.filter(e=>e.tipo==="devolucion").slice(0,5).map(e=>mvLi({t:"Devolución",c:"up",chip:esc(e.numero||""),s:esc(e.detalle),d:f(e.t),h:tkb(e)+hb(e.id)})).join("")||"<li>Aún no hay devoluciones.</li>",force);
  const T=ESTL[dvf];
