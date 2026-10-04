@@ -1188,6 +1188,31 @@ nav.views .vgr{grid-column:3;grid-row:1;justify-self:end}
 #nf .abtns button,#addForm .abtns button{padding:0 14px}
 #nf input,#nf select,#addForm input,#addForm select{padding:6px 8px}
 }
+
+/* ===== Ajustes v3 ===== */
+/* A. Pasar a…: número + selector en una grilla que nunca se sale de su celda */
+.gst{display:grid!important;grid-template-columns:52px minmax(0,1fr);gap:6px;width:100%;max-width:100%;min-width:0;align-items:stretch}
+.gst input,.gst select,.impt td .gst input,.impt td .gst select,#v1 .gst input:not([type=hidden]){width:100%!important;min-width:0!important;max-width:100%!important;box-sizing:border-box;height:44px;min-height:44px;padding:6px 8px;margin:0}
+.gst select{overflow:hidden;text-overflow:ellipsis}
+.impt td,.impt td.ed{min-width:0}
+.impt td[data-label="Estado"],.impt td[data-label="Condición"]{min-width:150px;overflow:hidden}
+@media (min-width:761px){
+.impt td[data-label="Estado"],.impt td[data-label="Condición"]{width:20%}
+.impt td,.impt td.ed{vertical-align:bottom}
+}
+
+/* B. Prestar: Implementos | Implementos a prestar | Datos de quien recibe, siempre en una fila (con desplazamiento lateral si no caben) */
+@media (max-width:900px){
+.qgrid.pqg{display:flex!important;flex-wrap:nowrap;gap:10px;align-items:flex-start;overflow-x:auto;padding-bottom:6px;-webkit-overflow-scrolling:touch}
+.qgrid.pqg>.qleft{flex:0 0 190px;min-width:0}
+.pqg .qside{display:block!important;overflow:visible;padding:12px;border-radius:20px}
+.pqg .qside h3{display:block!important;font-size:17px}
+.pqg .qrow{flex:none;min-width:0;margin:0 0 6px}
+.pqg .qrow .qsel{width:100%}
+.qgrid.pqg>.pqmain{flex:1 0 auto;display:flex!important;flex-wrap:nowrap;gap:10px;align-items:flex-start;min-width:0}
+.pqmain>#pMain{flex:1 0 250px;min-width:250px}
+.pqmain>#pf{flex:1 0 280px;min-width:280px}
+}
 </style>
 </head>
 <body>
