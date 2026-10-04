@@ -430,6 +430,7 @@ header .sub{font-size:13px}
 .pq button{width:38px;padding:0;font-size:20px;line-height:1}
 .pq input{width:84px;text-align:right}
 .prow select{flex:0 1 170px}
+.pqs{display:flex;gap:14px;flex-wrap:wrap}.pqg{display:flex;flex-direction:column;gap:2px}.pqg>span{font-size:12px;color:var(--soft)}.pqs .pq input{width:60px}
 .qfoot{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;margin-top:12px}
 .qsum{color:var(--soft)}
 .qbtns{display:flex;gap:8px}
@@ -2199,12 +2200,12 @@ function pdfDoc(p,rows){
  d.text("Documento: "+p.documento,10,y);d.text("Teléfono: "+(p.telefono||"-"),58,y);
  d.text(`Plazo: ${plazoDe(p,rows)||"-"} día${plazoDe(p,rows)===1?"":"s"}`,104,y);
  y+=12;
- d.setFont("helvetica","bold");d.text("IMPLEMENTOS",10,y);y+=5;d.text("Implemento",10,y);d.text("Cantidad",56,y);d.text("Condición al salir",88,y,{align:"center"});d.text("Devolver antes de",106,y);d.setFont("helvetica","normal");y+=5;
+ d.setFont("helvetica","bold");const cxr=88+d.getTextWidth("Condición al salir")/2;d.text("IMPLEMENTOS",10,y);y+=5;d.text("Implemento",10,y);d.text("Cantidad",56,y);d.text("Condición al salir",cxr,y,{align:"right"});d.text("Devolver antes de",106,y);d.setFont("helvetica","normal");y+=5;
  const grp=[],gm=new Map();
  rows.forEach(i=>{const k=[String(i.nombre||"").trim().toLowerCase(),i.cond_salida||"",Math.floor((Date.parse(i.vence)||0)/6e4),i.devuelto?"d|"+(i.cond_regreso||"")+"|"+(i.limpio?1:0)+"|"+(i.novedad||""):"p"].join("¦");
   if(!gm.has(k)){const g={i,n:0};gm.set(k,g);grp.push(g)}gm.get(k).n++});
  grp.forEach(({i,n})=>{if(y>175){d.addPage();y=14}const nl=d.splitTextToSize(String(i.nombre||""),42);
-  d.text(nl,10,y);d.text(String(n),56,y);d.text(condPdf(i.cond_salida),88,y,{align:"center"});d.text(f(i.vence),106,y);y+=(nl.length-1)*4.2;
+  d.text(nl,10,y);d.text(String(n),56,y);d.text(condPdf(i.cond_salida),cxr,y,{align:"right"});d.text(f(i.vence),106,y);y+=(nl.length-1)*4.2;
   if(i.devuelto){y+=4;d.setFontSize(8);d.text(`Devuelto ${f(i.devuelto)} · Condición ${condPdf(i.cond_regreso)}${i.limpio?"":" · sin limpiar"}${i.novedad?" · "+i.novedad:""}`,10,y);d.setFontSize(9)}y+=6});
  if(p.notas){if(y>175){d.addPage();y=14}const nl=d.splitTextToSize("Notas: "+p.notas,W-20);d.setFontSize(9);d.text(nl,10,y);y+=nl.length*4.5+2}
  y=Math.max(y+6,150);if(y>190){d.addPage();y=20}
@@ -2380,21 +2381,23 @@ function renderPF(){const n=(dvf!=="todos")+(dvc!=="*")+(dord?1:0);
   +(n?`<button type="button" class="fo clr" data-pfo="clr">Quitar filtros</button>`:"")}
 const estSel=i=>{const ed=["disponible","en_reparacion","perdido","retirado"];return ed.includes(i.estado)?`<select data-est aria-label="Estado">${ed.map(x=>`<option value="${x}"${x===i.estado?" selected":""}>${E[x]}</option>`).join("")}</select>`:`<span class="pchip${i.estado==="prestado"?" on":""}">${E[i.estado]||esc(i.estado)}</span>`};
 const quienTiene=i=>{if(i.estado!=="prestado")return"";const it=its.find(x=>x.implemento_id===i.id&&!x.devuelto);if(!it)return"";const p=pre.find(x=>x.id===it.prestamo_id)||{};return`Con ${esc(p.nombre||"—")} · vence ${f(it.vence)}`};
-const gstH=(g,kk)=>`<div class="gst"><select data-gstt="${kk}" aria-label="Pasar una unidad a otro estado"><option value="">Pasar 1 unidad a…</option>${stateList().filter(e=>e.k==="disp"||e.k==="lim"||!e.base).map(e=>e.k==="disp"?"disponible":e.k==="lim"?"por_limpiar":e.clave).map(k=>`<option value="${esc(k)}">${esc(lbl(k))}</option>`).join("")}</select></div>`;
-const gcH=(g,kk)=>`<div class="gst"><select data-gcnd="${kk}" aria-label="Cambiar la condición de una unidad"><option value="">Pasar 1 unidad a…</option><option value="bueno">Buena condición</option><option value="danado">Mala condición</option></select></div>`,
+const gnH=g=>`<input type="number" min="1" max="${Math.max(1,g.libres)}" step="1" value="1" inputmode="numeric" data-gn aria-label="Cantidad de unidades a pasar"${g.libres<1?" disabled":""}>`,
+ gstH=(g,kk)=>`<div class="gst">${gnH(g)}<select data-gstt="${kk}" aria-label="Pasar unidades a otro estado"><option value="">Pasar a…</option>${stateList().filter(e=>e.k==="disp"||e.k==="lim"||!e.base).map(e=>e.k==="disp"?"disponible":e.k==="lim"?"por_limpiar":e.clave).map(k=>`<option value="${esc(k)}">${esc(lbl(k))}</option>`).join("")}</select></div>`;
+const gcH=(g,kk)=>`<div class="gst">${gnH(g)}<select data-gcnd="${kk}" aria-label="Cambiar la condición de unidades"><option value="">Pasar a…</option><option value="bueno">Buena condición</option><option value="danado">Mala condición</option></select></div>`,
  cndRes=g=>`<div class="sku">Buena: ${g.bue} · <span${g.mal?' class="low"':""}>Mala: ${g.mal}</span></div>`;
-async function gcndPasar(k,t){
+async function gcndPasar(k,t,n){
  if(!esAdmin()||!t)return;
  const pri={en_reparacion:0,por_limpiar:1,disponible:2},src=imp.filter(x=>gkey(x)===k&&x.estado!=="prestado"&&((t==="bueno")?x.condicion!=="bueno":(x.condicion||"bueno")==="bueno")).sort((a,b)=>(pri[a.estado]??3)-(pri[b.estado]??3)||a.id-b.id);
  if(!src.length){aviso(t==="bueno"?"No hay unidades en mala condición que pasar a buena (las prestadas no se pueden cambiar).":"No hay unidades en buena condición que pasar a mala (las prestadas no se pueden cambiar).","err");rAll();return}
- try{const q=await SB.from("implementos").update({condicion:t}).in("id",[src[0].id]).select("id");if(q.error)throw q.error;if(!q.data||!q.data.length)throw new Error("No se pudo actualizar: sin permiso.");await load();rAll();aviso("1 unidad → "+(t==="bueno"?"buena":"mala")+" condición.")}catch(x){err(x);rAll()}
+ const ids=src.slice(0,Math.max(1,Math.floor(n)||1)).map(x=>x.id);
+ try{const q=await SB.from("implementos").update({condicion:t}).in("id",ids).select("id");if(q.error)throw q.error;if(!q.data||!q.data.length)throw new Error("No se pudo actualizar: sin permiso.");await load();rAll();aviso(ids.length+" unidad"+(ids.length>1?"es":"")+" → "+(t==="bueno"?"buena":"mala")+" condición"+(n>ids.length?" (solo había "+ids.length+" para pasar)":"")+".")}catch(x){err(x);rAll()}
 }
-async function gstPasar(k,t){
+async function gstPasar(k,t,n){
  if(!esAdmin()||!t)return;
  const src=imp.filter(x=>gkey(x)===k&&x.estado!==t&&x.estado!=="prestado").sort((a,b)=>(a.estado==="disponible"?0:1)-(b.estado==="disponible"?0:1));
  if(!src.length){aviso("No hay unidades que pasar a ese estado (las prestadas no se pueden cambiar).","err");rAll();return}
- const ids=[src[0].id];
- try{const q=await SB.from("implementos").update({estado:t}).in("id",ids).select("id");if(q.error)throw q.error;if(!q.data||q.data.length<ids.length)throw new Error("No se pudo actualizar: sin permiso.");await load();rAll();aviso("1 unidad → "+lbl(t)+".")}catch(x){err(x);rAll()}
+ const ids=src.slice(0,Math.max(1,Math.floor(n)||1)).map(x=>x.id);
+ try{const q=await SB.from("implementos").update({estado:t}).in("id",ids).select("id");if(q.error)throw q.error;if(!q.data||q.data.length<ids.length)throw new Error("No se pudo actualizar: sin permiso.");await load();rAll();aviso(ids.length+" unidad"+(ids.length>1?"es":"")+" → "+lbl(t)+(n>ids.length?" (solo había "+ids.length+" para pasar)":"")+".")}catch(x){err(x);rAll()}
 }
 const tipoSel=v=>`<select data-tipo aria-label="Tipo de implemento">${v?"":'<option value="" disabled selected>Elige un tipo</option>'}${tpTipos().map(t=>`<option${t===v?" selected":""}>${esc(t)}</option>`).join("")}</select>`;
 function rInv(lista){
@@ -2402,8 +2405,8 @@ function rInv(lista){
  lista.forEach(({i})=>{const k=gkey(i);if(!map.has(k))map.set(k,[]);map.get(k).push(i)});
  const G=[...map.entries()].map(([k,u])=>{const all=imp.filter(x=>gkey(x)===k),c=e=>all.filter(x=>x.estado===e).length,m=all[0]||u[0],
   ven=all.filter(x=>x.estado==="prestado"&&its.some(t=>t.implemento_id===x.id&&late(t))).length,
-  bue=all.filter(x=>(x.condicion||"bueno")==="bueno").length,mal=all.filter(x=>x.condicion==="danado").length;
-  return{k,bue,mal,n:m.nombre,t:tipoDe(m),acc:m.accesorios||"",val:m.valor||0,sh:u.length,tot:all.length,disp:c("disponible"),pres:c("prestado"),lim:c("por_limpiar"),rep:c("en_reparacion"),per:c("perdido"),ret:c("retirado"),oth:all.filter(x=>estX.some(s=>s.clave===x.estado)).length,ex:estX.filter(s=>!["en_reparacion","perdido","retirado"].includes(s.clave)).map(s=>[s.nombre,c(s.clave)]).filter(a=>a[1]),ven}});
+  bue=all.filter(x=>(x.condicion||"bueno")==="bueno").length,mal=all.filter(x=>x.condicion==="danado").length,libres=all.filter(x=>x.estado!=="prestado").length;
+  return{k,bue,mal,libres,n:m.nombre,t:tipoDe(m),acc:m.accesorios||"",val:m.valor||0,sh:u.length,tot:all.length,disp:c("disponible"),pres:c("prestado"),lim:c("por_limpiar"),rep:c("en_reparacion"),per:c("perdido"),ret:c("retirado"),oth:all.filter(x=>estX.some(s=>s.clave===x.estado)).length,ex:estX.filter(s=>!["en_reparacion","perdido","retirado"].includes(s.clave)).map(s=>[s.nombre,c(s.clave)]).filter(a=>a[1]),ven}});
  const alfa=(a,b)=>a.n.localeCompare(b.n,"es",{sensitivity:"base"}),ordQ=(a,b)=>(dord==="may"?b.tot-a.tot:a.tot-b.tot)||alfa(a,b);
  if(!G.length)return`<p class="sub">${dq.trim()||dvc!=="*"?"Ningún implemento coincide con el filtro.":"Aún no hay implementos."+(ed?"":" Un admin puede crearlos.")}</p>`;
  const kk=g=>encodeURIComponent(g.k),
@@ -2448,17 +2451,21 @@ function build(){if(built)return;built=true;
  const gpm=(e,d)=>{const k=dec(e),u=imp.filter(i=>i.estado==="disponible"&&gkey(i)===k);
   if(d>0){const x=u.find(i=>!sel.has(String(i.id)));if(x)sel.add(String(x.id))}else{const x=[...u].reverse().find(i=>sel.has(String(i.id)));if(x)sel.delete(String(x.id))}rPrestar(true)};
  const setQty=(e,n)=>{const u=imp.filter(i=>i.estado==="disponible"&&gkey(i)===dec(e));u.forEach(i=>sel.delete(String(i.id)));u.slice(0,Math.max(0,Math.min(u.length,n))).forEach(i=>sel.add(String(i.id)));rPrestar(true)};
+const unitsC=(k,c)=>imp.filter(i=>i.estado==="disponible"&&gkey(i)===k&&((i.condicion==="danado")===(c==="danado")));
+ const setQtyC=(e,c,n)=>{const u=unitsC(dec(e),c);u.forEach(i=>sel.delete(String(i.id)));u.slice(0,Math.max(0,Math.min(u.length,n))).forEach(i=>sel.add(String(i.id)));rPrestar(true)};
+ const gpmC=(e,c,d)=>{const u=unitsC(dec(e),c);if(d>0){const x=u.find(i=>!sel.has(String(i.id)));if(x)sel.add(String(x.id))}else{const x=[...u].reverse().find(i=>sel.has(String(i.id)));if(x)sel.delete(String(x.id))}rPrestar(true)};
  $("pv0").addEventListener("click",e=>{
   if(e.target.closest("#pqfBtn")){pqFO=!pqFO;pqSub="";renderPQF();return}
   const fo2=e.target.closest("[data-pqfo]");if(fo2){const k=fo2.dataset.pqfo;if(k==="tipo"){pqSub=pqSub===k?"":k;renderPQF();return}if(k==="may"||k==="men")pqOrd=pqOrd===k?"":k;if(k==="clr"){pqTipo="*";pqOrd=""}pqFO=false;pqSub="";rPrestar(true);return}
   const m=e.target.closest("[data-pm]");if(m){gpm(m.dataset.pm,-1);return}
+  const cm2=e.target.closest("[data-cm]");if(cm2){gpmC(cm2.dataset.cm,cm2.dataset.c,-1);return}const cp2=e.target.closest("[data-cp]");if(cp2){gpmC(cp2.dataset.cp,cp2.dataset.c,1);return}
   const pp=e.target.closest("[data-pp]");if(pp){gpm(pp.dataset.pp,1);return}
   const px=e.target.closest("[data-px]");if(px){setQty(px.dataset.px,0);return}
   if(e.target.closest("[data-pvac]")){sel.clear();rPrestar(true);return}
   const fs=e.target.closest("[data-pfs]");if(fs){pFind="";gpm(fs.dataset.pfs,1);const f2=$("pFind");if(f2)f2.focus();return}
   const g=e.target.closest("[data-pg]");if(g)gpm(g.dataset.pg,1)});
  $("pv0").addEventListener("change",e=>{const x=e.target.closest("[data-pqfsel]");if(x){pqTipo=x.value;pqFO=false;pqSub="";rPrestar(true);return}
-  const q=e.target.closest("[data-pqi]");if(q)setQty(q.dataset.pqi,Math.floor(+q.value)||0)});
+  const cq=e.target.closest("[data-cqi]");if(cq){setQtyC(cq.dataset.cqi,cq.dataset.c,Math.floor(+cq.value)||0);return}const q=e.target.closest("[data-pqi]");if(q)setQty(q.dataset.pqi,Math.floor(+q.value)||0)});
  $("pv0").addEventListener("input",e=>{if(e.target.id==="pFind"){pFind=e.target.value;pFindUpd()}});
  $("pv0").addEventListener("keydown",e=>{
   if(e.target.id==="pFind"&&e.key==="Enter"){e.preventDefault();const l=pmatch(pFind).filter(g=>g.rem>0);if(l.length){pFind="";gpm(enc(l[0].k),1);const f2=$("pFind");if(f2)f2.focus()}else if(pFind.trim())aviso("No hay implementos disponibles que coincidan con «"+pFind.trim()+"».","err");return}
@@ -2527,7 +2534,7 @@ function build(){if(built)return;built=true;
   else{if(sug.length&&!confirm(`«${n}» no existe. Hay implementos parecidos: ${sug.join(", ")}.\n¿Crear «${n}» como implemento nuevo?`))return;
    rows=codeNew(q).map(c=>({codigo:c,nombre:n,categoria:tp,accesorios:$("na").value.trim(),valor:0,dias_plazo:1,condicion:$("nc").value||"bueno"}))}
   try{const r=await SB.from("implementos").insert(rows);if(r.error)throw r.error;$("nf").reset();await load();rAll();nUpd();aviso(rows.length>1?rows.length+" unidades agregadas.":"Implemento "+(exact?"agregado":"creado")+": "+n+".")}catch(x){err(x)}});
- $("pv1").addEventListener("change",e=>{if(e.target.id==="ng"&&e.target._b)e.target._b.classList.remove("falta");const gc=e.target.closest("[data-gcnd]");if(gc){if(gc.value){const t=gc.value;if(document.activeElement&&document.activeElement.blur)document.activeElement.blur();gcndPasar(decodeURIComponent(gc.dataset.gcnd),t)}return}const g=e.target.closest("[data-gstt]");if(g){if(g.value){const t=g.value;if(document.activeElement&&document.activeElement.blur)document.activeElement.blur();gstPasar(decodeURIComponent(g.dataset.gstt),t)}return}const x=e.target.closest("[data-pfsel]");if(!x)return;if(x.dataset.pfsel==="est")dvf=x.value;else dvc=x.value;fo=false;fsub="";rDevolver(true)});
+ $("pv1").addEventListener("change",e=>{if(e.target.id==="ng"&&e.target._b)e.target._b.classList.remove("falta");const gc=e.target.closest("[data-gcnd]");if(gc){if(gc.value){const t=gc.value;if(document.activeElement&&document.activeElement.blur)document.activeElement.blur();gcndPasar(decodeURIComponent(gc.dataset.gcnd),t,+((gc.closest(".gst").querySelector("[data-gn]")||{}).value)||1)}return}const g=e.target.closest("[data-gstt]");if(g){if(g.value){const t=g.value;if(document.activeElement&&document.activeElement.blur)document.activeElement.blur();gstPasar(decodeURIComponent(g.dataset.gstt),t,+((g.closest(".gst").querySelector("[data-gn]")||{}).value)||1)}return}const x=e.target.closest("[data-pfsel]");if(!x)return;if(x.dataset.pfsel==="est")dvf=x.value;else dvc=x.value;fo=false;fsub="";rDevolver(true)});
  $("pv1").addEventListener("input",e=>{if(e.target.closest("#nf"))nUpd()});
  $("pv1").addEventListener("reset",e=>{if(e.target.id==="nf")setTimeout(nUpd)});
  const dm=document.createElement("div");dm.id="pdelModal";dm.className="modal-backdrop";dm.hidden=true;
@@ -2571,7 +2578,7 @@ function build(){if(built)return;built=true;
 const tkb=e=>e&&e.numero&&pre.some(x=>x.numero===e.numero)?`<button type="button" class="ghost tkbtn" data-tkn="${esc(e.numero)}" title="Ver, imprimir o compartir el ticket">Ticket</button>`:"";
 const hb=id=>esAdmin()&&id?`<button type="button" class="hdel" data-pdel="${id}" aria-label="Borrar este registro del historial" title="Borrar este registro">${ICON_TRASH}</button>`:"";
 function pgroups(){const m=new Map();imp.filter(i=>i.estado==="disponible").forEach(i=>{const k=gkey(i);if(!m.has(k))m.set(k,[]);m.get(k).push(i)});
- return[...m.entries()].map(([k,u])=>{const c=u.filter(i=>sel.has(String(i.id))).length;return{k,u,c,n:u[0].nombre,t:tipoDe(u[0]),acc:u[0].accesorios||"",rem:u.length-c,mal:u.filter(i=>i.condicion==="danado").length}})}
+ return[...m.entries()].map(([k,u])=>{const c=u.filter(i=>sel.has(String(i.id))).length,um=u.filter(i=>i.condicion==="danado"),ub=u.length-um.length,cm=um.filter(i=>sel.has(String(i.id))).length;return{k,u,c,ub,um:um.length,cb:c-cm,cm,n:u[0].nombre,t:tipoDe(u[0]),acc:u[0].accesorios||"",rem:u.length-c,mal:u.filter(i=>i.condicion==="danado").length}})}
 function pmatch(txt){const k=nq(txt.trim());if(!k)return[];const rank=g=>{const n=nq(g.n);return n===k?0:n.startsWith(k)?1:n.includes(k)?2:3};
  return pgroups().filter(g=>{const n=nq(g.n);return n.includes(k)||k.includes(n)}).sort((a,b)=>rank(a)-rank(b)||a.n.localeCompare(b.n,"es")).slice(0,6)}
 function pFindUpd(){const b=$("pFindSug");if(!b)return;const q=nq(pFind.trim());b.hidden=!q;if(!q){b.innerHTML="";return}
@@ -2584,6 +2591,7 @@ function renderPQF(){const n=(pqTipo!=="*")+(pqOrd?1:0),b=$("pqFilt");if(!b)retu
   +(pqSub==="tipo"?`<select data-pqfsel="tipo" aria-label="Elegir tipo de implemento"><option value="*">Todos los tipos</option>${tipos().map(c=>`<option value="${esc(c)}"${c===pqTipo?" selected":""}>${esc(c)}</option>`).join("")}</select>`:"")
   +so("may","Mayor cantidad",pqOrd==="may")+so("men","Menor cantidad",pqOrd==="men")
   +(n?`<button type="button" class="fo clr" data-pqfo="clr">Quitar filtros</button>`:"")+`</div>`:"")+`</div>`}
+const pqc=(e,g,c,l,mx,v)=>`<div class="pqg"><span>${l}</span><div class="pq"><button type="button" data-cm="${e}" data-c="${c}" aria-label="Menos ${l.toLowerCase()} de ${esc(g.n)}"${v<=0?" disabled":""}>−</button><input type="number" min="0" max="${mx}" step="1" inputmode="numeric" data-cqi="${e}" data-c="${c}" value="${v}" aria-label="Cantidad ${l.toLowerCase()} de ${esc(g.n)}"${mx<=0?" disabled":""}><button type="button" data-cp="${e}" data-c="${c}" aria-label="Más ${l.toLowerCase()} de ${esc(g.n)}"${v>=mx?" disabled":""}>+</button></div></div>`;
 function rPrestar(force){$("pwarn").hidden=ok;
  const av=imp.filter(i=>i.estado==="disponible");sel.forEach(x=>{if(!av.some(i=>String(i.id)===x))sel.delete(x)});
  const all=pgroups(),q=nq(pqTxt.trim()),ab=(a,b)=>a.n.localeCompare(b.n,"es",{sensitivity:"base"});
@@ -2593,10 +2601,10 @@ function rPrestar(force){$("pwarn").hidden=ok;
  set("pl",'<h3>Implementos</h3><div class="qscroll">'+(G.length?G.map(g=>{const e=encodeURIComponent(g.k);return`<div class="qrow" data-pqd="${e}"><span class="dgrip" title="Arrastra al préstamo" aria-hidden="true">${ICON_MOVE}</span><button type="button" class="zone qsel" data-pg="${e}"${g.rem<=0?" disabled":""}><b>${esc(g.n)}</b><small>${g.rem} disponible${g.rem===1?"":"s"}${g.mal?" · "+g.mal+" en mala condición":""}${g.t?" · "+esc(g.t):""}</small></button></div>`}).join(""):`<p class="sub">${q||pqTipo!=="*"?"Ningún implemento coincide con los filtros.":"No hay implementos disponibles."}</p>`)+"</div>",true);
  const P=all.filter(g=>g.c>0).sort(ab),tot=P.reduce((a,g)=>a+g.c,0);
  let h=`<div class="plate" id="pPlate"><div class="plate-h"><h3>Implementos a prestar</h3><div class="plate-find"><input id="pFind" maxlength="40" autocomplete="off" placeholder="Buscar implemento para agregar" aria-label="Buscar implemento para agregar" value="${esc(pFind)}"></div></div><div class="asug" id="pFindSug" aria-live="polite" hidden></div>`;
- h+=P.length?P.map(g=>{const e=encodeURIComponent(g.k);return`<div class="prow"><div class="pn"><b>${esc(g.n)}</b><small>Quedan ${g.rem} disponible${g.rem===1?"":"s"}</small></div><div class="pq"><button type="button" data-pm="${e}" aria-label="Menos ${esc(g.n)}">−</button><input type="number" min="0" max="${g.u.length}" step="1" inputmode="numeric" data-pqi="${e}" value="${g.c}" aria-label="Cantidad de ${esc(g.n)}"><span>unid.</span><button type="button" data-pp="${e}" aria-label="Más ${esc(g.n)}"${g.rem<=0?" disabled":""}>+</button></div><button type="button" class="ghost" data-px="${e}" aria-label="Sacar ${esc(g.n)} del préstamo">✕</button></div>`}).join(""):`<div class="pempty"><p><b>Suelta aquí los implementos del préstamo</b></p><p class="sub">Arrástralo desde la lista con el ícono de mover, o tócalo para agregarlo.</p></div>`;
+ h+=P.length?P.map(g=>{const e=encodeURIComponent(g.k);return`<div class="prow"><div class="pn"><b>${esc(g.n)}</b><small>Quedan ${g.rem} disponible${g.rem===1?"":"s"}</small></div><div class="pqs">${pqc(e,g,"bueno","Buenas",g.ub,g.cb)}${pqc(e,g,"danado","Malas",g.um,g.cm)}</div><button type="button" class="ghost" data-px="${e}" aria-label="Sacar ${esc(g.n)} del préstamo">✕</button></div>`}).join(""):`<div class="pempty"><p><b>Suelta aquí los implementos del préstamo</b></p><p class="sub">Arrástralo desde la lista con el ícono de mover, o tócalo para agregarlo.</p></div>`;
  h+=`</div><div class="qfoot"><div class="qsum">${tot?`${tot} implemento${tot>1?"s":""} para prestar`:"Aún no hay implementos en el préstamo."}</div><div class="qbtns"><button type="button" class="ghost" data-pvac="1"${tot?"":" disabled"}>Vaciar</button></div></div>`;
  set("pMain",h,force);pFindUpd();
- $("psel").innerHTML=tot?`<b>${tot} seleccionado${tot===1?"":"s"}:</b> ${P.map(g=>g.c+"× "+esc(g.n)).join(", ")}`:"Ningún implemento seleccionado";
+ $("psel").innerHTML=tot?`<b>${tot} seleccionado${tot===1?"":"s"}:</b> ${P.map(g=>g.c+"× "+esc(g.n)+(g.cm?` (${g.cb} buena${g.cb===1?"":"s"}, ${g.cm} mala${g.cm===1?"":"s"})`:"")).join(", ")}`:"Ningún implemento seleccionado";
  const L=evs.filter(e=>e.tipo==="prestamo").slice(0,8);
  set("pult",L.map(e=>mvLi({t:"Préstamo",c:"dn",chip:esc(e.numero||""),s:esc(e.detalle),d:f(e.t)+(e.apodo?" · "+esc(e.apodo):""),h:tkb(e)+hb(e.id)})).join("")||"<li>Sin préstamos todavía.</li>");
 }
