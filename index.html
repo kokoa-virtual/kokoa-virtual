@@ -1926,7 +1926,7 @@ async function guardarArchivo(nombre,blob){
  const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=nombre;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),4000);return"ok"}
 let exportando=false;
 async function exportExcel(completo){if(!currentUser||exportando)return;
- let X;try{X=window.PRM&&PRM.on()?PRM.datosExport():completo===true?await histExport():datosExport()}catch(_){msg.textContent="No se pudo leer el historial completo. Intenta de nuevo.";return}
+ let X;try{X=completo===true?await histExport():window.PRM&&PRM.on()?PRM.datosExport():datosExport()}catch(_){msg.textContent="No se pudo leer el historial completo. Intenta de nuevo.";return}
  const hojas=X.hojas.filter(h=>h.r.length);
  if(!hojas.length){msg.textContent="No hay datos para exportar en esta pantalla.";return}
  exportando=true;$("exp").disabled=true;
@@ -1938,12 +1938,15 @@ $("exp").addEventListener("click",()=>exportExcel());
 /* ---- Historial: borrar (solo admins), exportar completo y aviso anual ---- */
 async function traerTodo(n,o){let a=[],d=0;for(;;){const r=ck(await SB.from(n).select("*").order(o,{ascending:false}).range(d,d+999));a=a.concat(r.data);if(r.data.length<1000)break;d+=1000}return a}
 async function histExport(){
- const [m,c,b]=await Promise.all([traerTodo("movimientos","t"),traerTodo("comidas","t"),traerTodo("bitacora","t")]);
+ const [m,c,b,pr,pi,pe]=await Promise.all([traerTodo("movimientos","t"),traerTodo("comidas","t"),traerTodo("bitacora","t"),traerTodo("prestamos","id"),traerTodo("prestamo_items","id"),traerTodo("prestamo_eventos","t")]),pn=new Map(pr.map(x=>[x.id,x.numero]));
  const H=(name,h,r)=>({name,h,r});
  return{slug:"historial-completo",hojas:[
   H("Movimientos",["Fecha y hora","Tipo","Detalle","Por"],b.map(e=>[fechaHora(Date.parse(e.t)),{cnt:"Entrada o cambio",adj:"Salida o ajuste"}[e.clase]||e.clase,e.texto,e.apodo||""])),
   H("Entradas y salidas",["Fecha y hora","Código","Alimento","Tipo","Cantidad","Unidad","Motivo","Por"],m.map(e=>[fechaHora(Date.parse(e.t)),e.sku,e.nombre,e.tipo,+e.delta,e.unidad,e.motivo||"",e.apodo||""])),
-  H("Comidas",["Fecha y hora","Destino","Nombre","Alimentos","Por"],c.map(e=>[fechaHora(Date.parse(e.t)),e.tipo,e.nombre||"",(e.items||[]).map(x=>(x.n||x.sku)+" "+fm(+x.q||0)).join(", "),e.apodo||""]))]}}
+  H("Comidas",["Fecha y hora","Destino","Nombre","Alimentos","Por"],c.map(e=>[fechaHora(Date.parse(e.t)),e.tipo,e.nombre||"",(e.items||[]).map(x=>(x.n||x.sku)+" "+fm(+x.q||0)).join(", "),e.apodo||""])),
+  H("Préstamos",["Número","Salida","Prestatario","Documento","Teléfono","Estado","Entregó","Notas"],pr.map(x=>[x.numero,fechaHora(Date.parse(x.salida)),x.nombre,x.documento,x.telefono||"",x.estado,x.entregado_por||"",x.notas||""])),
+  H("Implementos prestados",["Préstamo","Implemento","Código","Condición al salir","Devolver antes de","Devuelto","Condición al regresar","Limpio","Novedad","Recibió"],pi.map(x=>[pn.get(x.prestamo_id)||"",x.nombre||"",x.codigo||"",x.cond_salida||"",fechaHora(Date.parse(x.vence)),x.devuelto?fechaHora(Date.parse(x.devuelto)):"",x.cond_regreso||"",x.devuelto?(x.limpio?"Sí":"No"):"",x.novedad||"",x.recibido_por||""])),
+  H("Movimientos de préstamos",["Fecha y hora","Tipo","Número","Detalle","Por"],pe.map(x=>[fechaHora(Date.parse(x.t)),x.tipo,x.numero||"",x.detalle||"",x.apodo||""]))]}}
 async function borrarHist(tabla,id){
  if(!esAdmin()||!listo)return;
  if(id){if(!confirm("¿Borrar este registro del historial?\nEl stock del inventario no cambia."))return}
@@ -1958,7 +1961,7 @@ function renderPurga(){const a=$("purgaAviso");if(!a)return;
  const n=new Date(),en=n.getMonth()===3&&n.getDate()>=24;let visto="";try{visto=localStorage.getItem("kokoa-purga-visto")||""}catch(_){}
  if(!en||!currentUser||visto===hoyClave()){a.hidden=true;return}
  const d=31-n.getDate();
- $("purgaTxt").innerHTML=`<b>Aviso:</b> el 1 de mayo se borrará automáticamente todo el historial (movimientos, comidas y bitácora). ${d===1?"Es <b>mañana</b>.":"Faltan <b>"+d+" días</b>."} Exporta los datos antes: pulsa «Exportar ahora».`;
+ $("purgaTxt").innerHTML=`<b>Aviso:</b> el 1 de mayo se borrará automáticamente todo el historial de alimentos (movimientos, comidas y bitácora) y de préstamos (préstamos cerrados, devoluciones y movimientos). El inventario y los préstamos en curso no se tocan. ${d===1?"Es <b>mañana</b>.":"Faltan <b>"+d+" días</b>."} Exporta los datos antes: pulsa «Exportar ahora».`;
  a.hidden=false}
 $("purgaOk").addEventListener("click",()=>{try{localStorage.setItem("kokoa-purga-visto",hoyClave())}catch(_){}renderPurga()});
 $("purgaExp").addEventListener("click",()=>{sec=5;renderAll();exportExcel(true)});
@@ -2038,10 +2041,10 @@ const perfilDe=r=>({id:r.id,apodo:r.apodo,nombre:r.nombre||"",apellido:r.apellid
 const itFp=i=>JSON.stringify([i.n,i.k,i.u,i.z,i.exp||null,i.min,i.c]),zFp=()=>JSON.stringify([cameras,CATS,CZ]);
 const zDe=k=>cameras.some(c=>c.id===CZ[k])?CZ[k]:cameras[0].id;
 const aviso=t=>{msg.textContent=t};
-async function cargar(){
+async function cargar(noP){
   const g0=gen,T=(n,o,l)=>{let q=SB.from(n).select("*").order(o,{ascending:o==="nombre"||o==="orden"});return l?q.limit(l):q};
   const [a,m,c,b,z,t]=(await Promise.all([T("alimentos","nombre"),T("movimientos","t",5000),T("comidas","t",200),T("bitacora","t",300),T("zonas","orden"),T("tipos","orden")])).map(ck);
-  if(g0!==gen)return cargar();
+  if(g0!==gen)return cargar(noP);
   items.splice(0,items.length,...a.data.map(r=>({sku:r.sku,n:r.nombre,k:r.tipo,u:r.unidad,exp:r.vence,z:r.zona,sys:+r.stock,min:+r.minimo,c:r.conteo==null?null:+r.conteo,lots:(r.lotes||[]).map(l=>({q:+l.q,exp:l.exp||null}))})));
   mov.splice(0,mov.length,...m.data.reverse().map(r=>({t:Date.parse(r.t),s:r.sku,n:r.nombre,k:r.tipo,u:r.unidad,d:+r.delta,w:r.motivo||"",p:r.apodo||"",id:r.id,_s:1})));movSku=null;
   comidas.splice(0,comidas.length,...c.data.map(r=>({t:Date.parse(r.t),k:r.tipo,nom:r.nombre||"",it:r.items||[],por:r.apodo||"",n:false,id:r.id,_s:1})));
@@ -2049,10 +2052,10 @@ async function cargar(){
   if(z.data.length)cameras=z.data.map(r=>({id:r.id,name:r.nombre,temp:r.temp||"",max:r.max||"",bad:!!r.mala}));
   if(t.data.length){CATS.splice(0,CATS.length,...t.data.map(r=>r.nombre));Object.keys(CZ).forEach(k=>delete CZ[k]);t.data.forEach(r=>{CZ[r.nombre]=r.zona})}
   normalizar();known=new Set(items.map(i=>i.sku));fp={};items.forEach(i=>fp[i.sku]=itFp(i));fpZ=zFp();
-  if(window.PRM)try{await PRM.load()}catch(_){}
+  if(window.PRM&&!noP)try{await PRM.load()}catch(_){}
   datosAl=true;sync=1;try{renderAll()}finally{sync=0}
 }
-async function recargar(){if(!currentUser||!listo)return;try{await cola;await cargar()}catch(e){aviso("No se pudo actualizar: "+(e.message||e))}}
+async function recargar(noP){if(!currentUser||!listo)return;try{await cola;await cargar(noP===true)}catch(e){aviso("No se pudo actualizar: "+(e.message||e))}}
 async function empujar(){
   const adm=esAdmin(),zmod=adm&&zFp()!==fpZ,ap=currentUser.apodo,fallos=[];let hizo=false;
   const w=()=>{if(!hizo){hizo=true;syncEstado("Guardando…","")}};
@@ -2085,9 +2088,14 @@ async function empujar(){
 function guardar(){
   if(sync||!listo||!currentUser)return;gen++;
   cola=cola.then(empujar).catch(e=>{syncEstado("No se pudo guardar: "+(e.message||e)+". Se recargó el inventario desde el servidor.","err");return cargar().catch(()=>{})})}
+const pendT=new Set(),TP=["implementos","prestamos","prestamo_items","prestamo_eventos","tipos_implemento","estados_implemento"],TA=["alimentos","movimientos","comidas","bitacora","zonas","tipos"];
+/* Recarga solo lo que cambió: alimentos o préstamos (antes cada cambio recargaba todo) */
+async function recargarSel(t){if(!currentUser||!listo)return;
+  if(t.every(n=>TP.includes(n))){if(!window.PRM)return;try{await cola;await PRM.load();sync=1;try{renderAll()}finally{sync=0}}catch(e){aviso("No se pudo actualizar: "+(e.message||e))}return}
+  await recargar(t.every(n=>TA.includes(n)))}
 function enVivo(){
   if(canal)SB.removeChannel(canal);
-  canal=SB.channel("kokoa").on("postgres_changes",{event:"*",schema:"public"},()=>{clearTimeout(recT);recT=setTimeout(recargar,100)})
+  canal=SB.channel("kokoa").on("postgres_changes",{event:"*",schema:"public"},p=>{pendT.add(p&&p.table||"?");clearTimeout(recT);recT=setTimeout(()=>{const t=[...pendT];pendT.clear();recargarSel(t)},300)})
    .subscribe(s=>{if(s==="CHANNEL_ERROR"||s==="TIMED_OUT")aviso("Sin conexión en vivo. Reintentando…");if(s==="SUBSCRIBED")recargar()})}
 document.addEventListener("visibilitychange",()=>{if(!document.hidden)recargar()});
 addEventListener("online",recargar);
