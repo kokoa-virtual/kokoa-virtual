@@ -963,6 +963,25 @@ html{scrollbar-gutter:stable}
 .pr-main .sechead .sub{white-space:nowrap}
 .pr-new{margin-bottom:4px}
 .pr-main #nf{margin-bottom:6px}
+.qgrid.pqg{grid-template-columns:240px minmax(0,1fr)}
+.pqmain{min-width:0}
+.pqmain .pr-form{margin-top:16px}
+.pr-row3{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1.5fr) minmax(0,.8fr);gap:10px}
+@media(max-width:900px){.qgrid.pqg{grid-template-columns:1fr}}
+@media(max-width:420px){.pr-row3{gap:6px}}
+.vgl,.vgr2{display:contents}
+@media(min-width:761px){
+nav.views{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:center;column-gap:12px}
+nav.views .vgl{display:flex;flex-wrap:wrap;gap:6px;justify-self:start}
+nav.views .vgr{display:flex;flex-wrap:wrap;gap:6px;justify-content:flex-end;align-items:center;justify-self:end}
+nav.views #modo{margin:0;justify-self:center}
+nav.views .tab[data-s="3"]{margin-left:0;order:0}
+nav.views #theme{margin:0 0 0 6px}}
+@media(max-width:760px){
+.vgr{display:contents}
+nav.views{grid-template-columns:repeat(3,minmax(0,1fr)) 46px repeat(2,minmax(0,1fr)) 46px}
+nav.views .tab[data-s="3"]{order:0}
+nav.views #modo{order:1;margin:0}nav.views .tab[data-s="4"],nav.views .tab[data-s="5"]{order:2}nav.views #theme{order:3}}
 .pgrp{display:flex!important;align-items:center;justify-content:space-between;gap:10px;cursor:pointer;text-align:left}
 .pgi{display:flex;flex-direction:column;gap:2px;min-width:0;overflow-wrap:anywhere}
 .pqty{display:inline-flex;align-items:center;gap:8px;flex:none}
@@ -1047,7 +1066,7 @@ html{scrollbar-gutter:stable}
     <button type="button" class="ghost" id="usersBtn" hidden>Usuarios</button>
   </div>
 </header>
-<nav class="views" id="views" aria-label="Secciones"><div class="vtabs" id="vtabs"></div><button type="button" class="mseg" id="modo" role="switch" aria-checked="false" aria-label="Cambiar entre alimentos y préstamos" title="Modo alimentos (clic para préstamos)"><span class="sg sg-a"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 7.5C10.2 6 6.6 6.2 5.2 9c-1.5 3-.3 7.6 2 10 1.1 1.1 2.6 1.1 3.8.3.6-.4 1.4-.4 2 0 1.2.8 2.7.8 3.8-.3 2.3-2.4 3.5-7 2-10-1.4-2.8-5-3-6.8-1.5z"/><path d="M12 7.5c0-2 .9-3.6 2.8-4.5"/></svg><b>Alimentos</b></span><span class="sg sg-p"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h15M15.5 4.5 19 8l-3.5 3.5"/><path d="M20 16H5M8.5 12.5 5 16l3.5 3.5"/></svg><b>Préstamos</b></span></button><button type="button" class="vtog" id="theme" role="switch" aria-checked="false" aria-label="Modo oscuro"><i class="knob"></i><span class="ico il" aria-hidden="true">☀</span><span class="ico ig" aria-hidden="true">🌙</span></button></nav>
+<nav class="views" id="views" aria-label="Secciones"><div class="vgl" id="vtabs"></div><button type="button" class="mseg" id="modo" role="switch" aria-checked="false" aria-label="Cambiar entre alimentos y préstamos" title="Modo alimentos (clic para préstamos)"><span class="sg sg-a"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 7.5C10.2 6 6.6 6.2 5.2 9c-1.5 3-.3 7.6 2 10 1.1 1.1 2.6 1.1 3.8.3.6-.4 1.4-.4 2 0 1.2.8 2.7.8 3.8-.3 2.3-2.4 3.5-7 2-10-1.4-2.8-5-3-6.8-1.5z"/><path d="M12 7.5c0-2 .9-3.6 2.8-4.5"/></svg><b>Alimentos</b></span><span class="sg sg-p"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h15M15.5 4.5 19 8l-3.5 3.5"/><path d="M20 16H5M8.5 12.5 5 16l3.5 3.5"/></svg><b>Préstamos</b></span></button><div class="vgr"><div class="vgr2" id="vtabs2"></div><button type="button" class="vtog" id="theme" role="switch" aria-checked="false" aria-label="Modo oscuro"><i class="knob"></i><span class="ico il" aria-hidden="true">☀</span><span class="ico ig" aria-hidden="true">🌙</span></button></div></nav>
 <div class="wrap" id="wrap">
   <nav class="zones" aria-label="Zonas"><div class="zsel" id="zsel"></div><h2>Zonas</h2><div id="zones"></div><h2 class="ztit">Tipos de alimento</h2><div id="ztipos"></div><div class="zmov"><h2>Últimos movimientos</h2><ol class="mvl pev" id="imv"></ol></div></nav>
   <main>
@@ -1393,15 +1412,17 @@ function renderComidas(){const L=comidas.slice(0,10);
   return mvLi({nw:c.n,t:D.l+(c.nom?" «"+esc(c.nom)+"»":""),c:"dn",chip:"Se quitó "+nn+" alimento"+(nn>1?"s":""),s:c.it.map(x=>esc(x.n)+" "+fm(x.q)+" "+esc(x.u)+(x.m?" ("+esc(x.m.toLowerCase())+")":"")+(x.v?" · vence "+esc(x.v):"")).join(", ")+" · Por "+esc(c.por),d:fechaHora(c.t),h:hBtn("comidas",c.id)})}).join(""):"<li>Aún no hay comidas registradas. Arma una en el plato y presiona «Quitar del stock».</li>";
  comidas.forEach(c=>c.n=false)}
 function renderLog(){$("log").innerHTML=logData.map(e=>`<li class="${e.k} ${e.n?"new":""}"><time>${e.ts?fechaHora(e.ts):e.t}</time>${esc(e.x)}${hBtn("bitacora",e.id)}</li>`).join("");$("histAll").hidden=!esAdmin();logData.forEach(e=>e.n=false)}
+const tabsHtml=ks=>VISTAS.filter(v=>ks.includes(v[0])).map(([k,l,t])=>`<button class="tab" data-s="${k}" aria-pressed="false"><span class="l-lg">${l}</span><span class="l-sm">${t}</span></button>`).join("");
+function montarTabs(){if(!$("vtabs").firstChild){$("vtabs").innerHTML=tabsHtml([0,1,3]);$("vtabs2").innerHTML=tabsHtml([4,5])}}
 const VISTAS=[[0,"Comidas: Quitar","Quitar"],[1,"Inventario: Agregar","Agregar"],[3,"Pedido sugerido","Pedido"],[4,"Gráficos","Gráficos"],[5,"Movimientos","Movimientos"]];
 function limpiarPantalla(){alOpen=false;scOpen=false;plate=[];qFindTxt="";sec=0;
- ["vtabs","zones","zsel","ztipos","imv","imv2","qFilt","qList","qMain","qDest","cml","tabs","fMenu","cats","ped","gmode","gper","gtype","gsum","gc","mvl","log","aL","aM","aSug","scanList"].forEach(id=>{const e=$(id);if(e)e.innerHTML=""});
+ ["vtabs","vtabs2","zones","zsel","ztipos","imv","imv2","qFilt","qList","qMain","qDest","cml","tabs","fMenu","cats","ped","gmode","gper","gtype","gsum","gc","mvl","log","aL","aM","aSug","scanList"].forEach(id=>{const e=$(id);if(e)e.innerHTML=""});
  msg.textContent="";$("bellN").textContent="0";$("addForm").reset();$("scan").value="";pintarAl()}
 function renderAll(){
  if(!currentUser){limpiarPantalla();return}
  if(window.PRM){if(PRM.on()){renderAlertas();renderScanList();PRM.render();return}PRM.hide()}
- const vt=$("vtabs");if(!vt.firstChild)vt.innerHTML=VISTAS.map(([k,l,t])=>`<button class="tab" data-s="${k}" aria-pressed="false"><span class="l-lg">${l}</span><span class="l-sm">${t}</span></button>`).join("");
- vt.querySelectorAll(".tab").forEach(b=>b.setAttribute("aria-pressed",String(+b.dataset.s===sec)));
+ montarTabs();
+ document.querySelectorAll("#views .tab").forEach(b=>b.setAttribute("aria-pressed",String(+b.dataset.s===sec)));
  $("v0").hidden=sec!==0;$("v1").hidden=sec!==1;$("v3").hidden=sec!==3;$("v4").hidden=sec!==4;$("v5").hidden=sec!==5;
  const zv=sec===1;document.querySelector(".zones").hidden=!zv;$("wrap").classList.toggle("solo",!zv);
  renderAlertas();renderPurga();
@@ -2062,7 +2083,7 @@ pintarPush();
 window.PRM=(()=>{
 const KM="kokoa-modo",E={disponible:"Disponible",prestado:"Prestado",por_limpiar:"Por limpiar",en_reparacion:"En reparación",perdido:"Perdido",retirado:"Retirado"};
 const LB={0:["Prestar","Prestar"],1:["Devolver","Devolver"],3:["Préstamos en curso","En curso"],4:["Gráficos","Gráficos"],5:["Movimientos","Movimientos"]};
-let on=false,ok=true,imp=[],pre=[],its=[],evs=[],sel=new Set(),built=false,dvf="todos",dvc="*",dq="",dord="",fo=false,fsub="";const dsel=new Map();
+let on=false,ok=true,imp=[],pre=[],its=[],evs=[],sel=new Set(),built=false,dvf="todos",dvc="*",dq="",dord="",fo=false,fsub="",pqTxt="",pqTipo="*",pqOrd="",pqFO=false,pqSub="",pFind="",pgm="i",pgp="d",pgi="*",pct="bars";const dsel=new Map();
 try{on=localStorage.getItem(KM)==="1"}catch(_){}
 const nq=x=>String(x||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase();
 const f=d=>d?new Date(d).toLocaleString("es-CO",{dateStyle:"short",timeStyle:"short"}):"-";
@@ -2077,7 +2098,7 @@ async function load(){
  ok=!r.some(x=>x.error);
  if(ok){imp=r[0].data.sort((a,b)=>String(a.nombre).localeCompare(String(b.nombre),"es")||a.id-b.id);pre=r[1].data;its=r[2].data;evs=r[3].data}
 }
-function lab(p){document.querySelectorAll("#vtabs .tab").forEach(b=>{const k=+b.dataset.s,v=VISTAS.find(x=>x[0]===k),t=p?LB[k]:v.slice(1);b.querySelector(".l-lg").textContent=t[0];b.querySelector(".l-sm").textContent=t[1]})}
+function lab(p){document.querySelectorAll("#views .tab").forEach(b=>{const k=+b.dataset.s,v=VISTAS.find(x=>x[0]===k),t=p?LB[k]:v.slice(1);b.querySelector(".l-lg").textContent=t[0];b.querySelector(".l-sm").textContent=t[1]})}
 function pintar(){const b=$("modo");b.classList.toggle("grid",on);b.setAttribute("aria-checked",String(on));b.title=on?"Modo préstamos (clic para volver a alimentos)":"Modo alimentos (clic para ir a préstamos)"}
 function pdf(p,rows){
  const d=new window.jspdf.jsPDF({unit:"mm",format:"a5"}),W=148;let y=14;
@@ -2154,22 +2175,62 @@ function rInv(lista){
 function build(){if(built)return;built=true;
  const mk=(id,h)=>{const s=document.createElement("section");s.id=id;s.hidden=true;s.innerHTML=h;$("v5").after(s)};
  mk("pv0",`<h2>Préstamo: Prestar</h2><p class="sub" id="pwarn" hidden>Falta ejecutar supabase/prestamos.sql en Supabase.</p>
- <div class="pr-grid"><div class="pr-col"><h3 class="pr-h">1. Elige los implementos</h3><input id="pq" placeholder="Buscar implemento" aria-label="Buscar implemento" autocomplete="off"><div class="pr-list" id="pl"></div></div>
- <form class="pr-form" id="pf" autocomplete="off"><h3 class="pr-h">2. Datos de quien recibe</h3>
- <div class="pr-fields"><label class="f-full">Nombre completo<input id="pn" required maxlength="80"></label><label>Documento<input id="pd" required maxlength="20"></label><label>Teléfono<input id="pt" type="tel" maxlength="20"></label><label>Plazo (días)<input id="pz" type="number" min="1" max="60" step="1" value="1" required></label><label class="f-full">Notas<input id="po" maxlength="120" placeholder="Opcional"></label></div>
+ <div class="qgrid pqg"><div class="qleft"><div class="qfilt" id="pqFilt"></div><div class="qside" id="pl"></div></div>
+ <div class="pqmain"><div id="pMain"></div>
+ <form class="pr-form" id="pf" autocomplete="off"><h3 class="pr-h">Datos de quien recibe</h3>
+ <div class="pr-fields"><label class="f-full">Nombre completo<input id="pn" required maxlength="80"></label><div class="pr-row3 f-full"><label>Documento<input id="pd" required maxlength="20"></label><label>Teléfono<input id="pt" type="tel" maxlength="20"></label><label>Plazo (días)<input id="pz" type="number" min="1" max="60" step="1" value="1" required></label></div><label class="f-full">Notas<input id="po" maxlength="120" placeholder="Opcional"></label></div>
  <label class="pr-consent"><input id="pa" type="checkbox" required><span>La persona autoriza el tratamiento de sus datos (Ley 1581 de 2012) y acepta las condiciones del ticket.</span></label>
- <div class="pr-foot"><div id="psel" class="sub" aria-live="polite"></div><button type="submit">Prestar y generar ticket</button></div></form></div>
- <h2 class="qh2">Últimos préstamos</h2><ol class="mvl pev" id="pult"></ol>`);
+ <div class="pr-foot"><div id="psel" class="sub" aria-live="polite"></div><button type="submit">Prestar y generar ticket</button></div></form></div></div>
+ <div class="hhead"><h2 class="qh2">Últimos préstamos</h2><button type="button" class="ghost danger" id="pHistAll2" hidden>Borrar todo el historial</button></div><ol class="mvl pev" id="pult"></ol>`);
  mk("pv1",`<h2>Préstamo: Devolver</h2>
  <div class="pr-pg"><aside class="pnl" aria-label="Filtros de devolución"><h2>Estado</h2><div id="pdf1"></div><h2 class="ztit">Tipos de implementos</h2><div id="pdf2"></div><h2 class="ztit">Últimas devoluciones</h2><ol class="mvl pev" id="pdf3"></ol></aside><div class="pr-main"><div id="nwrap" hidden><div class="sechead"><h2>Crear/Agregar implemento</h2><button type="button" class="ghost danger" id="pDelBtn">Eliminar implementos</button></div><form class="add" id="nf" autocomplete="off"><label class="aname">Nombre<input id="nm" required maxlength="60" autocomplete="off"></label><label data-new>Tipo de implemento<input id="ng" maxlength="40" list="ngl" autocomplete="off"></label><datalist id="ngl"></datalist><label data-new>Accesorios<input id="na" maxlength="80" placeholder="tapa, asas…"></label><label data-new>Valor de reposición<input id="nv" type="number" min="0" step="any" inputmode="decimal" value="0"></label><label>Cantidad<input id="nq2" type="number" min="1" max="50" step="1" inputmode="numeric" value="1"></label><div class="abtns"><button type="button" class="ghost" id="nCancel" hidden>Cancelar</button><button type="submit" id="nBtn">Crear implemento</button></div></form><div class="asug" id="nSug" aria-live="polite" hidden></div></div><div class="itool"><span class="sub" id="pcount"></span><div class="irt"><div class="fwrap"><button type="button" class="ghost fbtn" id="pfBtn" aria-haspopup="true" aria-expanded="false">Filtrar por</button><div class="fmenu" id="pfMenu" hidden></div></div><button type="button" class="vtog" id="pvtog" data-lay="1" role="switch" aria-checked="true" aria-label="Alternar vista del inventario entre lista y cuadrícula" title="Lista / Cuadrícula"><i class="knob"></i><svg class="ico il" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M9 6h11M9 12h11M9 18h11"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/></svg><svg class="ico ig" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="1.5"/><rect x="13.5" y="13.5" width="6.5" height="6.5" rx="1.5"/></svg></button></div></div><div id="pdev"></div></div></div>`);
  mk("pv3",`<h2>Préstamos en curso</h2><div id="pcur"></div>`);
- mk("pv4",`<h2>Gráficos de préstamos</h2><div class="gsum" id="pgs"></div><div id="pgr"></div>`);
- mk("pv5",`<h2>Movimientos de préstamos</h2><ol class="mvl pev" id="pev"></ol>`);
- $("pq").oninput=rPrestar;
- const gpm=(e,d)=>{const k=decodeURIComponent(e),u=imp.filter(i=>i.estado==="disponible"&&gkey(i)===k);
-  if(d>0){const x=u.find(i=>!sel.has(String(i.id)));if(x)sel.add(String(x.id))}else{const x=[...u].reverse().find(i=>sel.has(String(i.id)));if(x)sel.delete(String(x.id))}rPrestar()};
- $("pv0").addEventListener("click",e=>{const m=e.target.closest("[data-pm]");if(m){gpm(m.dataset.pm,-1);return}const pp=e.target.closest("[data-pp]");if(pp){gpm(pp.dataset.pp,1);return}const g=e.target.closest("[data-pg]");if(g)gpm(g.dataset.pg,1)});
- $("pv0").addEventListener("keydown",e=>{if(e.key!=="Enter"&&e.key!==" ")return;const g=e.target.closest("[data-pg]");if(!g||e.target!==g)return;e.preventDefault();gpm(g.dataset.pg,1)});
+ mk("pv4",`<h2>Movimientos de préstamos<span class="live" id="plive"></span></h2><div class="gctl"><div class="tabs" id="pgmode"></div><div class="tabs" id="pgper"></div><select id="pgsel" aria-label="Filtrar por implemento"></select></div><div class="chart-alt" id="pgtype"></div><div class="gsum" id="pgs"></div><div class="gbox" id="pgc"></div><h2>Últimos movimientos</h2><ol class="mvl pev" id="pgl"></ol><h2 class="qh2">Más prestados</h2><div class="gbox" id="pgr"></div>`);
+ mk("pv5",`<div class="hhead"><h2>Movimientos de préstamos</h2><button type="button" class="ghost danger" id="pHistAll" hidden>Borrar todo el historial</button></div><ol class="mvl pev" id="pev"></ol>`);
+ const enc=encodeURIComponent,dec=decodeURIComponent;
+ const gpm=(e,d)=>{const k=dec(e),u=imp.filter(i=>i.estado==="disponible"&&gkey(i)===k);
+  if(d>0){const x=u.find(i=>!sel.has(String(i.id)));if(x)sel.add(String(x.id))}else{const x=[...u].reverse().find(i=>sel.has(String(i.id)));if(x)sel.delete(String(x.id))}rPrestar(true)};
+ const setQty=(e,n)=>{const u=imp.filter(i=>i.estado==="disponible"&&gkey(i)===dec(e));u.forEach(i=>sel.delete(String(i.id)));u.slice(0,Math.max(0,Math.min(u.length,n))).forEach(i=>sel.add(String(i.id)));rPrestar(true)};
+ $("pv0").addEventListener("click",e=>{
+  if(e.target.closest("#pqfBtn")){pqFO=!pqFO;pqSub="";renderPQF();return}
+  const fo2=e.target.closest("[data-pqfo]");if(fo2){const k=fo2.dataset.pqfo;if(k==="tipo"){pqSub=pqSub===k?"":k;renderPQF();return}if(k==="may"||k==="men")pqOrd=pqOrd===k?"":k;if(k==="clr"){pqTipo="*";pqOrd=""}pqFO=false;pqSub="";rPrestar(true);return}
+  const m=e.target.closest("[data-pm]");if(m){gpm(m.dataset.pm,-1);return}
+  const pp=e.target.closest("[data-pp]");if(pp){gpm(pp.dataset.pp,1);return}
+  const px=e.target.closest("[data-px]");if(px){setQty(px.dataset.px,0);return}
+  if(e.target.closest("[data-pvac]")){sel.clear();rPrestar(true);return}
+  const fs=e.target.closest("[data-pfs]");if(fs){pFind="";gpm(fs.dataset.pfs,1);const f2=$("pFind");if(f2)f2.focus();return}
+  const g=e.target.closest("[data-pg]");if(g)gpm(g.dataset.pg,1)});
+ $("pv0").addEventListener("change",e=>{const x=e.target.closest("[data-pqfsel]");if(x){pqTipo=x.value;pqFO=false;pqSub="";rPrestar(true);return}
+  const q=e.target.closest("[data-pqi]");if(q)setQty(q.dataset.pqi,Math.floor(+q.value)||0)});
+ $("pv0").addEventListener("input",e=>{if(e.target.id==="pFind"){pFind=e.target.value;pFindUpd()}});
+ $("pv0").addEventListener("keydown",e=>{
+  if(e.target.id==="pFind"&&e.key==="Enter"){e.preventDefault();const l=pmatch(pFind).filter(g=>g.rem>0);if(l.length){pFind="";gpm(enc(l[0].k),1);const f2=$("pFind");if(f2)f2.focus()}else if(pFind.trim())aviso("No hay implementos disponibles que coincidan con «"+pFind.trim()+"».","err");return}
+  if(e.key!=="Enter"&&e.key!==" ")return;const g=e.target.closest("[data-pg]");if(!g||e.target!==g)return;e.preventDefault();gpm(g.dataset.pg,1)});
+ document.addEventListener("click",e=>{if(on&&pqFO&&e.target.isConnected&&!e.target.closest(".qfwrap")){pqFO=false;pqSub="";renderPQF()}});
+ addEventListener("keydown",e=>{if(on&&e.key==="Escape"&&pqFO){pqFO=false;renderPQF();const b=$("pqfBtn");if(b)b.focus()}});
+ let pd=null;
+ document.addEventListener("pointerdown",e=>{if(!on||sec!==0)return;const row=e.target.closest(".qrow[data-pqd]");if(!row||e.button>0)return;
+  if(e.pointerType!=="mouse"&&!e.target.closest(".dgrip"))return;const b=row.querySelector("button");if(!b||b.disabled)return;
+  pd={k:row.dataset.pqd,x:e.clientX,y:e.clientY,on:false,ghost:null,id:e.pointerId}});
+ addEventListener("pointermove",e=>{if(!pd||e.pointerId!==pd.id)return;
+  if(!pd.on){if(Math.hypot(e.clientX-pd.x,e.clientY-pd.y)<6)return;const u=imp.find(i=>gkey(i)===dec(pd.k)),g=document.createElement("div");
+   g.className="dghost";g.innerHTML=ICON_MOVE+"<span>"+esc(u?u.nombre:"")+"</span>";document.body.appendChild(g);pd.ghost=g;pd.on=true;document.body.classList.add("dragging")}
+  pd.ghost.style.transform=`translate(${e.clientX+14}px,${e.clientY+14}px)`;
+  const pl=$("pPlate");if(pl)pl.classList.toggle("over",sobrePlato(e,pl));
+  if(e.clientY<70)scrollBy(0,-14);else if(e.clientY>innerHeight-70)scrollBy(0,14)});
+ const finPd=(e,soltar)=>{if(!pd||e.pointerId!==pd.id)return;const d=pd;pd=null;if(!d.on)return;d.ghost.remove();document.body.classList.remove("dragging");noClick=Date.now()+350;
+  const pl=$("pPlate");if(pl){pl.classList.remove("over");if(soltar&&sobrePlato(e,pl))gpm(d.k,1)}};
+ addEventListener("pointerup",e=>finPd(e,true));addEventListener("pointercancel",e=>finPd(e,false));
+ document.addEventListener("click",async e=>{const b=e.target.closest("[data-pdel],#pHistAll,#pHistAll2");if(!b||!on||!esAdmin())return;
+  try{if(b.dataset.pdel){if(!confirm("¿Borrar este registro del historial?\nNo cambia el estado de los implementos."))return;
+    const r=await SB.from("prestamo_eventos").delete().eq("id",+b.dataset.pdel).select("id");if(r.error)throw r.error;if(!r.data||!r.data.length)throw new Error("No se pudo borrar: sin permiso sobre prestamo_eventos.")}
+   else{if(!evs.length)return;if(!confirm(`¿Borrar TODO el historial de movimientos de préstamos (${evs.length} registros)?\nNo cambia el estado de los implementos ni de los préstamos activos. No se puede deshacer.`))return;
+    const r=await SB.from("prestamo_eventos").delete().gt("id",0).select("id");if(r.error)throw r.error;if(!r.data||!r.data.length)throw new Error("No se pudo borrar: sin permiso sobre prestamo_eventos.")}
+   await load();rAll();aviso("Historial actualizado.")}catch(x){err(x)}});
+ $("pv4").addEventListener("click",e=>{const a=e.target.closest("[data-pgm]"),b=e.target.closest("[data-pgp]"),c=e.target.closest("[data-pgt]");
+  if(a){pgm=a.dataset.pgm;pgi="*";rGraf()}else if(b){pgp=b.dataset.pgp;rGraf()}else if(c){pct=c.dataset.pgt;rGraf()}});
+ $("pgsel").addEventListener("change",()=>{pgi=$("pgsel").value||"*";rGraf()});
+ setInterval(()=>{if(on&&sec===4&&!document.hidden)rGraf()},15000);addEventListener("resize",()=>{if(on&&sec===4)rGraf()});
  $("pf").onsubmit=async e=>{e.preventDefault();const ids=[...sel].map(Number);if(!ids.length){aviso("Elige al menos un implemento.","err");return}
   const dias=Math.floor(+$("pz").value);if(!(dias>=1&&dias<=60)){aviso("El plazo debe ser de 1 a 60 días.","err");$("pz").focus();return}
   const base={p_nombre:$("pn").value,p_documento:$("pd").value,p_telefono:$("pt").value,p_ids:ids,p_notas:$("po").value};
@@ -2228,14 +2289,37 @@ function build(){if(built)return;built=true;
    dsel.clear();cDel();await load();rAll();nUpd();aviso(r.data.length>1?r.data.length+" unidades eliminadas.":"Unidad eliminada.")}catch(x){$("pdelMsg").textContent=(x.message||String(x))+(/foreign|violates|referenc/i.test(x.message||"")?" (tiene préstamos registrados; márcalo como «Retirado» en lugar de eliminarlo)":"")}};
  $("pv3").addEventListener("click",e=>{const b=e.target.closest("[data-tk]");if(!b)return;const p=pre.find(x=>x.id==b.dataset.tk);if(p)pdf(p,its.filter(i=>i.prestamo_id===p.id))});
 }
-function rPrestar(){$("pwarn").hidden=ok;const q=nq($("pq").value.trim());
+const hb=id=>esAdmin()&&id?`<button type="button" class="hdel" data-pdel="${id}" aria-label="Borrar este registro del historial" title="Borrar este registro">${ICON_TRASH}</button>`:"";
+function pgroups(){const m=new Map();imp.filter(i=>i.estado==="disponible").forEach(i=>{const k=gkey(i);if(!m.has(k))m.set(k,[]);m.get(k).push(i)});
+ return[...m.entries()].map(([k,u])=>{const c=u.filter(i=>sel.has(String(i.id))).length;return{k,u,c,n:u[0].nombre,t:tipoDe(u[0]),acc:u[0].accesorios||"",rem:u.length-c}})}
+function pmatch(txt){const k=nq(txt.trim());if(!k)return[];const rank=g=>{const n=nq(g.n);return n===k?0:n.startsWith(k)?1:n.includes(k)?2:3};
+ return pgroups().filter(g=>{const n=nq(g.n);return n.includes(k)||k.includes(n)}).sort((a,b)=>rank(a)-rank(b)||a.n.localeCompare(b.n,"es")).slice(0,6)}
+function pFindUpd(){const b=$("pFindSug");if(!b)return;const q=nq(pFind.trim());b.hidden=!q;if(!q){b.innerHTML="";return}
+ const l=pmatch(pFind);b.innerHTML=l.length?`<span class="chips">Sugerencias:${l.map(g=>`<button type="button" class="sg" data-pfs="${encodeURIComponent(g.k)}"${g.rem<=0?" disabled":""}>${esc(g.n)} <small>${g.rem} disp.</small></button>`).join("")}</span>`:`<span>No hay implementos disponibles que coincidan con «${esc(pFind.trim())}».</span>`}
+function renderPQF(){const n=(pqTipo!=="*")+(pqOrd?1:0),b=$("pqFilt");if(!b)return;
+ const so=(k,l,on2)=>`<button type="button" class="fo${on2?" on":""}" data-pqfo="${k}" aria-pressed="${on2}">${l}</button>`;
+ b.innerHTML=`<div class="qfwrap"><button type="button" class="ghost fbtn" id="pqfBtn" aria-haspopup="true" aria-expanded="${pqFO}">${SVGF}Filtrar por${n?` <span class="fn">${n}</span>`:""}</button>`+
+ (pqFO?`<div class="fmenu">`
+  +so("tipo","Tipo de implemento"+(pqTipo!=="*"?": "+esc(pqTipo):""),pqSub==="tipo"||pqTipo!=="*")
+  +(pqSub==="tipo"?`<select data-pqfsel="tipo" aria-label="Elegir tipo de implemento"><option value="*">Todos los tipos</option>${tipos().map(c=>`<option value="${esc(c)}"${c===pqTipo?" selected":""}>${esc(c)}</option>`).join("")}</select>`:"")
+  +so("may","Mayor cantidad",pqOrd==="may")+so("men","Menor cantidad",pqOrd==="men")
+  +(n?`<button type="button" class="fo clr" data-pqfo="clr">Quitar filtros</button>`:"")+`</div>`:"")+`</div>`}
+function rPrestar(force){$("pwarn").hidden=ok;
  const av=imp.filter(i=>i.estado==="disponible");sel.forEach(x=>{if(!av.some(i=>String(i.id)===x))sel.delete(x)});
- const m=new Map();av.forEach(i=>{const k=gkey(i);if(!m.has(k))m.set(k,[]);m.get(k).push(i)});
- const l=[...m.entries()].filter(([k,u])=>!q||nq(u[0].nombre+" "+(u[0].categoria||"")+" "+(u[0].accesorios||"")).includes(q));
- set("pl",l.map(([k,u])=>{const c=u.filter(i=>sel.has(String(i.id))).length,e=encodeURIComponent(k);return`<div class="zone pgrp" data-pg="${e}" role="button" tabindex="0" aria-pressed="${c>0}"><span class="pgi"><b>${esc(u[0].nombre)}</b><small>${u.length} disponible${u.length===1?"":"s"}${u[0].categoria?" · "+esc(u[0].categoria):""}${u[0].accesorios?" · "+esc(u[0].accesorios):""}</small></span><span class="pqty"><button type="button" data-pm="${e}" aria-label="Quitar uno"${c?"":" disabled"}>−</button><b>${c}</b><button type="button" data-pp="${e}" aria-label="Agregar uno"${c<u.length?"":" disabled"}>+</button></span></div>`}).join("")||'<p class="sub">No hay implementos disponibles.</p>');
- const n=imp.filter(i=>sel.has(String(i.id))),c=new Map();n.forEach(i=>c.set(i.nombre,(c.get(i.nombre)||0)+1));
- $("psel").innerHTML=n.length?`<b>${n.length} seleccionado${n.length===1?"":"s"}:</b> ${[...c.entries()].map(([a,b])=>b+"× "+esc(a)).join(", ")}`:"Ningún implemento seleccionado";
- set("pult",pre.slice(0,8).map(p=>`<li><div class="pev-t"><b>${esc(p.numero)}</b><span class="pchip${p.estado==="activo"?" on":""}">${p.estado==="activo"?"Activo":"Cerrado"}</span></div><div class="pev-s">${esc(p.nombre)}</div><time class="pev-d">${f(p.salida)}</time></li>`).join("")||"<li>Sin préstamos todavía.</li>")}
+ const all=pgroups(),q=nq(pqTxt.trim()),ab=(a,b)=>a.n.localeCompare(b.n,"es",{sensitivity:"base"});
+ if(pqTipo!=="*"&&!all.some(g=>g.t===pqTipo))pqTipo="*";
+ const G=all.filter(g=>(pqTipo==="*"||g.t===pqTipo)&&(!q||nq(g.n+" "+g.t+" "+g.acc).includes(q))).sort(pqOrd?((a,b)=>(pqOrd==="may"?b.u.length-a.u.length:a.u.length-b.u.length)||ab(a,b)):ab);
+ renderPQF();
+ set("pl","<h3>Implementos</h3>"+(G.length?G.map(g=>{const e=encodeURIComponent(g.k);return`<div class="qrow" data-pqd="${e}"><span class="dgrip" title="Arrastra al préstamo" aria-hidden="true">${ICON_MOVE}</span><button type="button" class="zone qsel" data-pg="${e}"${g.rem<=0?" disabled":""}><b>${esc(g.n)}</b><small>${g.rem} disponible${g.rem===1?"":"s"}${g.t!=="Sin tipo"?" · "+esc(g.t):""}</small></button></div>`}).join(""):`<p class="sub">${q||pqTipo!=="*"?"Ningún implemento coincide con los filtros.":"No hay implementos disponibles."}</p>`),true);
+ const P=all.filter(g=>g.c>0).sort(ab),tot=P.reduce((a,g)=>a+g.c,0);
+ let h=`<div class="plate" id="pPlate"><div class="plate-h"><h3>Armando el préstamo</h3><div class="plate-find"><input id="pFind" maxlength="40" autocomplete="off" placeholder="Buscar implemento para agregar" aria-label="Buscar implemento para agregar" value="${esc(pFind)}"></div></div><div class="asug" id="pFindSug" aria-live="polite" hidden></div>`;
+ h+=P.length?P.map(g=>{const e=encodeURIComponent(g.k);return`<div class="prow"><div class="pn"><b>${esc(g.n)}</b><small>Quedan ${g.rem} disponible${g.rem===1?"":"s"}</small></div><div class="pq"><button type="button" data-pm="${e}" aria-label="Menos ${esc(g.n)}">−</button><input type="number" min="0" max="${g.u.length}" step="1" inputmode="numeric" data-pqi="${e}" value="${g.c}" aria-label="Cantidad de ${esc(g.n)}"><span>unid.</span><button type="button" data-pp="${e}" aria-label="Más ${esc(g.n)}"${g.rem<=0?" disabled":""}>+</button></div><button type="button" class="ghost" data-px="${e}" aria-label="Sacar ${esc(g.n)} del préstamo">✕</button></div>`}).join(""):`<div class="pempty"><p><b>Suelta aquí los implementos del préstamo</b></p><p class="sub">Arrástralo desde la lista con el ícono de mover, o tócalo para agregarlo.</p></div>`;
+ h+=`</div><div class="qfoot"><div class="qsum">${tot?`${tot} implemento${tot>1?"s":""} para prestar`:"Aún no hay implementos en el préstamo."}</div><div class="qbtns"><button type="button" class="ghost" data-pvac="1"${tot?"":" disabled"}>Vaciar</button></div></div>`;
+ set("pMain",h,force);pFindUpd();
+ $("psel").innerHTML=tot?`<b>${tot} seleccionado${tot===1?"":"s"}:</b> ${P.map(g=>g.c+"× "+esc(g.n)).join(", ")}`:"Ningún implemento seleccionado";
+ const L=evs.filter(e=>e.tipo==="prestamo").slice(0,8);
+ set("pult",L.map(e=>mvLi({t:"Préstamo",c:"dn",chip:esc(e.numero||""),s:esc(e.detalle),d:f(e.t)+(e.apodo?" · "+esc(e.apodo):""),h:hb(e.id)})).join("")||"<li>Sin préstamos todavía.</li>");
+ $("pHistAll2").hidden=!(esAdmin()&&evs.length)}
 function rDevolver(force){
  const pend=its.filter(i=>!i.devuelto),venc=pend.filter(late),L=imp.filter(i=>i.estado==="por_limpiar"),D=imp.filter(i=>i.estado==="disponible");
  const cI=m=>(m&&m.categoria)||"Sin tipo",cIt=i=>cI(imp.find(x=>x.id===i.implemento_id));
@@ -2246,7 +2330,7 @@ function rDevolver(force){
  const lista=base.filter(x=>(dvc==="*"||x.c===dvc)&&hit(x)),pl=n=>n+" implemento"+(n===1?"":"s");
  set("pdf1",[["todos","Inventario de implementos",imp.length],["disp","Disponibles",D.length],["pend","Por devolver",pend.length],["venc","Vencidos",venc.length],["lim","Por limpiar",L.length]].map(([k,t,n])=>`<button type="button" class="zone" data-pf="${k}" aria-pressed="${dvf===k}">${t}<small${k==="venc"&&n?' class="low"':""}>${pl(n)}</small></button>`).join(""),force);
  set("pdf2",[["*","Todos los tipos",base.length],...cats.map(c=>[c,c,base.filter(x=>x.c===c).length])].map(([k,t,n])=>`<button type="button" class="zone" data-pc="${esc(k)}" aria-pressed="${dvc===k}">${esc(t)}<small>${pl(n)}</small></button>`).join(""),force);
- set("pdf3",evs.filter(e=>e.tipo==="devolucion").slice(0,5).map(e=>`<li><div class="pev-t"><b class="up">Devolución</b><span class="pchip up">${esc(e.numero||"")}</span></div><div class="pev-s">${esc(e.detalle)}</div><time class="pev-d">${f(e.t)}</time></li>`).join("")||"<li>Aún no hay devoluciones.</li>",force);
+ set("pdf3",evs.filter(e=>e.tipo==="devolucion").slice(0,5).map(e=>mvLi({t:"Devolución",c:"up",chip:esc(e.numero||""),s:esc(e.detalle),d:f(e.t),h:hb(e.id)})).join("")||"<li>Aún no hay devoluciones.</li>",force);
  const T=ESTL[dvf];
  let h=`<div class="sechead"><h2>${T}${dvc==="*"?"":" · "+esc(dvc)}</h2><span class="sub">${pl(lista.length)}</span></div>`;
  const nada=k||dvc!=="*";
@@ -2262,25 +2346,67 @@ function rDevolver(force){
 function rCurso(){
  const a=pre.filter(p=>p.estado==="activo").map(p=>{const pe=its.filter(i=>i.prestamo_id===p.id&&!i.devuelto);return{p,pe,m:pe.reduce((x,i)=>Math.min(x,Date.parse(i.vence)),1e15)}}).sort((x,y)=>x.m-y.m);
  set("pcur",a.length?'<div class="cgrid pr-cards">'+a.map(({p,pe,m})=>{const v=pe.some(late);return`<div class="icard rcard${v?" ns":""}"><div class="rtop"><b>${esc(p.numero)}</b><span class="pchip ${v?"late":"on"}">${v?"Vencido":"Activo"}</span></div><div class="rwho"><b>${esc(p.nombre)}</b><span class="sku">${esc(p.documento)}${p.telefono?" · "+esc(p.telefono):""}</span></div><div class="rit"><span class="sku">Pendiente</span>${pe.map(i=>"<span>"+esc(i.nombre)+"</span>").join("")}</div><div class="rdue${v?" late":""}">Devolver antes de ${f(m)}</div><button type="button" class="ghost" data-tk="${p.id}">Ticket PDF</button></div>`}).join("")+"</div>":'<p class="sub">No hay préstamos en curso.</p>')}
-function rGraf(){const c={};its.forEach(i=>c[i.nombre]=(c[i.nombre]||0)+1);const t=Object.entries(c).sort((a,b)=>b[1]-a[1]).slice(0,10),mx=t.length?t[0][1]:1,ac=its.filter(i=>!i.devuelto);
- set("pgs",`Disponibles <b>${imp.filter(i=>i.estado==="disponible").length}</b> · Prestados <b>${ac.length}</b> · Vencidos <b>${ac.filter(late).length}</b> · Por limpiar <b>${imp.filter(i=>i.estado==="por_limpiar").length}</b>`);
- set("pgr",t.length?"<h3>Más prestados</h3>"+t.map(([n,v])=>`<div style="display:flex;gap:8px;align-items:center;margin:4px 0"><span style="width:140px">${esc(n)}</span><i style="display:block;height:14px;border-radius:7px;background:var(--blue-t);width:${Math.round(v/mx*60)}%;min-width:4px"></i><b>${v}</b></div>`).join(""):'<p class="sub">Aún no hay préstamos.</p>')}
-function rMov(){set("pev",evs.map(e=>{const c=e.tipo==="prestamo"?"dn":"up";return`<li><div class="pev-t"><b class="${c}">${e.tipo==="prestamo"?"Préstamo":"Devolución"}</b><span class="pchip ${c}">${esc(e.numero||"")}</span></div><div class="pev-s">${esc(e.detalle)}</div><time class="pev-d">${f(e.t)}${e.apodo?" · "+esc(e.apodo):""}</time></li>`}).join("")||"<li>Sin movimientos todavía.</li>")}
+function rMov(){set("pev",evs.map(e=>mvLi({t:e.tipo==="prestamo"?"Préstamo":"Devolución",c:e.tipo==="prestamo"?"dn":"up",chip:esc(e.numero||""),s:esc(e.detalle),d:f(e.t)+(e.apodo?" · "+esc(e.apodo):""),h:hb(e.id)})).join("")||"<li>Sin movimientos todavía.</li>");
+ $("pHistAll").hidden=!(esAdmin()&&evs.length)}
+const pmov=()=>{const R=[],tk=i=>{const m=imp.find(x=>x.id===i.implemento_id);return m?tipoDe(m):"Sin tipo"};
+ its.forEach(i=>{const p=pre.find(x=>x.id===i.prestamo_id)||{},t=Date.parse(p.salida),b={n:i.nombre,k:tk(i),w:p.nombre||"",num:p.numero||""};
+  if(t)R.push({...b,t,d:-1});const t2=i.devuelto?Date.parse(i.devuelto):0;if(t2)R.push({...b,t:t2,d:1})});return R};
+function pbucks(){const s0=new Date();s0.setHours(0,0,0,0);const b=[];
+ if(pgp==="d")for(let h=0;h<24;h++)b.push({a:+s0+h*36e5,e:+s0+(h+1)*36e5,l:h%3?"":String(h),n:fecha(s0)+" "+String(h).padStart(2,"0")+":00"});
+ else{const n=pgp==="s"?7:30;for(let k=n-1;k>=0;k--){const a=new Date(s0);a.setDate(a.getDate()-k);const e=new Date(a);e.setDate(e.getDate()+1);
+  b.push({a:+a,e:+e,l:pgp==="s"?a.toLocaleDateString("es",{weekday:"short"}).replace(".",""):(k%5?"":String(a.getDate())),n:fecha(a)})}}
+ return b}
+function rGraf(){if(!on||sec!==4)return;
+ $("pgmode").innerHTML=[["i","Por implemento"],["t","Por tipo de implemento"]].map(([k,l])=>`<button type="button" class="tab" data-pgm="${k}" aria-pressed="${pgm===k}">${l}</button>`).join("");
+ $("pgper").innerHTML=[["d","Hoy"],["s","7 días"],["m","30 días"]].map(([k,l])=>`<button type="button" class="tab" data-pgp="${k}" aria-pressed="${pgp===k}">${l}</button>`).join("");
+ $("pgtype").innerHTML=[["bars","Barras"],["balance","Balance acumulado"]].map(([k,l])=>`<button type="button" class="tab" data-pgt="${k}" aria-pressed="${pct===k}">${l}</button>`).join("");
+ const se=$("pgsel"),ops=pgm==="t"?tipos():[...new Set([...imp.map(i=>i.nombre),...its.map(i=>i.nombre)])].sort((a,b)=>a.localeCompare(b,"es",{sensitivity:"base"})),key=pgm+"|"+ops.join("|");
+ if(se.dataset.k!==key){se.dataset.k=key;se.setAttribute("aria-label",pgm==="t"?"Filtrar por tipo de implemento":"Filtrar por implemento");
+  se.innerHTML=`<option value="*">${pgm==="t"?"Todos los tipos de implemento":"Todos los implementos"}</option>`+ops.map(o=>`<option value="${esc(o)}">${esc(o)}</option>`).join("");
+  se.value=ops.includes(pgi)?pgi:"*"}
+ pgi=se.value||"*";if(se._b)pintarSel(se);
+ const B=pbucks(),M=pmov().filter(m=>(pgi==="*"||(pgm==="t"?m.k===pgi:m.n===pgi))&&m.t>=B[0].a&&m.t<B[B.length-1].e);
+ let ti=0,to=0;B.forEach(b=>{b.i=0;b.o=0;b.net=0});
+ M.forEach(m=>{const b=B.find(b=>m.t>=b.a&&m.t<b.e);if(!b)return;if(m.d>0){b.i+=m.d;ti+=m.d}else{b.o-=m.d;to-=m.d}b.net+=m.d});
+ const W=Math.max(280,$("pgc").clientWidth-24),H=260,L=42,T=12,Bt=30,pw=W-L-8,ph=H-T-Bt;
+ let max=Math.max(1,...B.map(b=>Math.max(b.i,b.o,Math.abs(b.net))));
+ let g=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Gráfico de movimientos de préstamos">`;
+ if(pct==="bars"){const y0=T+ph/2,sc=(ph/2-4)/max,bw=pw/B.length;
+  g+=`<line x1="${L}" x2="${W}" y1="${y0}" y2="${y0}" stroke="var(--rule)"/><text x="2" y="${T+10}">+${fm(max)}</text><text x="2" y="${y0+4}">0</text><text x="2" y="${H-Bt-2}">−${fm(max)}</text>`;
+  B.forEach((b,k)=>{const x=L+k*bw,w=Math.max(2,bw-(B.length>20?2:6));
+   g+=`<g><title>${b.n}: +${fm(b.i)} / −${fm(b.o)}</title>${b.i?`<rect x="${x+1}" y="${y0-b.i*sc}" width="${w}" height="${b.i*sc}" rx="3" fill="var(--gchart)"/>`:""}${b.o?`<rect x="${x+1}" y="${y0}" width="${w}" height="${b.o*sc}" rx="3" fill="var(--alert-t)"/>`:""}${b.l?`<text x="${x+bw/2}" y="${H-7}" text-anchor="middle">${b.l}</text>`:""}</g>`})}
+ else{let acc=0;const vals=B.map(b=>{acc+=b.net;return acc});max=Math.max(1,...vals.map(v=>Math.abs(v)));
+  const xs=B.length===1?0:pw/(B.length-1),y0=T+ph/2,sc=(ph/2-8)/max;
+  g+=`<line x1="${L}" x2="${W}" y1="${y0}" y2="${y0}" stroke="var(--rule)"/><text x="2" y="${T+10}">+${fm(max)}</text><text x="2" y="${y0+4}">0</text><text x="2" y="${H-Bt-2}">−${fm(max)}</text>`;
+  g+=`<polyline points="${vals.map((v,k)=>`${L+k*xs},${y0-v*sc}`).join(" ")}" fill="none" stroke="var(--gchart)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>`;
+  vals.forEach((v,k)=>g+=`<circle cx="${L+k*xs}" cy="${y0-v*sc}" r="3.5" fill="var(--gchart)"><title>${B[k].n}: ${fm(v)}</title></circle>`);
+  B.forEach((b,k)=>{if(b.l)g+=`<text x="${L+k*xs}" y="${H-7}" text-anchor="middle">${b.l}</text>`})}
+ $("pgc").innerHTML=g+"</svg>";
+ const ac=its.filter(i=>!i.devuelto);
+ $("pgs").innerHTML=`<span class="chip">Se devolvió: +${fm(ti)}</span><span class="chip bad">Se prestó: −${fm(to)}</span><span class="chip">${M.length} movimientos</span>`
+  +`<span class="sku">Ahora: ${imp.filter(i=>i.estado==="disponible").length} disponibles · ${ac.length} prestados · ${ac.filter(late).length} vencidos · ${imp.filter(i=>i.estado==="por_limpiar").length} por limpiar</span>`
+  +(pgm==="t"&&pgi==="*"?tipos().map(c=>{let a=0,o=0;M.forEach(m=>{if(m.k===c){m.d>0?a+=m.d:o-=m.d}});return a||o?`<span class="chip">${esc(c)}: +${fm(a)} / −${fm(o)}</span>`:""}).join(""):"");
+ $("plive").textContent=`En vivo, actualizado ${hora()}`;
+ const R=M.slice().sort((a,b)=>b.t-a.t).slice(0,10);
+ $("pgl").innerHTML=R.length?R.map(m=>mvLi({t:esc(m.n),c:m.d>0?"up":"dn",chip:m.d>0?"Se devolvió +1":"Se prestó −1",s:(m.w?esc(m.w)+(m.num?" · ":""):"")+esc(m.num),d:f(m.t)})).join(""):"<li>No hay movimientos en este período. Aparecen cuando prestas o recibes implementos.</li>";
+ const c={};its.forEach(i=>c[i.nombre]=(c[i.nombre]||0)+1);const t=Object.entries(c).sort((a,b)=>b[1]-a[1]).slice(0,10),mx=t.length?t[0][1]:1;
+ $("pgr").innerHTML=t.length?t.map(([n,v])=>`<div style="display:flex;gap:10px;align-items:center;margin:6px 0"><span style="flex:0 0 150px;min-width:0;overflow-wrap:anywhere">${esc(n)}</span><i style="display:block;height:14px;border-radius:7px;background:var(--gchart);width:${Math.max(2,Math.round(v/mx*100))}%;max-width:calc(100% - 200px)"></i><b>${v}</b></div>`).join(""):'<p class="sub">Aún no hay préstamos.</p>'}
 function rAll(){if(on)render()}
 function buscar(v){dq=v||"";if(!built)return;
- if(sec===0){$("pq").value=dq;rPrestar();return}
+ if(sec===0){pqTxt=dq;rPrestar(true);return}
  if(sec!==1){if(!dq.trim())return;sec=1;dvf="todos";dvc="*";render();return}
  rDevolver(true)}
-function off(){on=false;try{localStorage.setItem(KM,"0")}catch(_){}dq="";$("scan").value="";pintar()}
+function off(){on=false;try{localStorage.setItem(KM,"0")}catch(_){}dq="";pqTxt="";$("scan").value="";pintar()}
+
 function render(){build();const s=sec;
- if(!$("vtabs").firstChild)$("vtabs").innerHTML=VISTAS.map(([k,l,t])=>`<button class="tab" data-s="${k}" aria-pressed="false"><span class="l-lg">${l}</span><span class="l-sm">${t}</span></button>`).join("");
+ montarTabs();
  [0,1,3,4,5].forEach(k=>{$("v"+k).hidden=true;$("pv"+k).hidden=k!==s});
  document.querySelector(".zones").hidden=true;$("wrap").classList.add("solo");lab(true);
- document.querySelectorAll("#vtabs .tab").forEach(b=>b.setAttribute("aria-pressed",String(+b.dataset.s===s)));
+ document.querySelectorAll("#views .tab").forEach(b=>b.setAttribute("aria-pressed",String(+b.dataset.s===s)));
  ({0:rPrestar,1:rDevolver,3:rCurso,4:rGraf,5:rMov})[s]()}
 function hide(){if(built)[0,1,3,4,5].forEach(k=>$("pv"+k).hidden=true);if($("vtabs").firstChild)lab(false)}
 $("scan").addEventListener("input",()=>{if(on)buscar($("scan").value)});
-$("modo").addEventListener("click",()=>{on=!on;dq="";$("scan").value="";try{localStorage.setItem(KM,on?"1":"0")}catch(_){}pintar();sec=0;msg.textContent="";if(currentUser)renderAll()});
+$("modo").addEventListener("click",()=>{on=!on;dq="";pqTxt="";$("scan").value="";try{localStorage.setItem(KM,on?"1":"0")}catch(_){}pintar();sec=0;msg.textContent="";if(currentUser)renderAll()});
 pintar();
 return{on:()=>on,off,buscar,render,hide,load};
 })();
