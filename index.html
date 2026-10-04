@@ -7872,7 +7872,7 @@ const m=v=>(v<0?"−":"")+"$"+Math.round(Math.abs(v||0)).toLocaleString("es-CO")
  opt=(L,v)=>L.map(([k,l])=>`<option value="${esc(k)}"${k===v?" selected":""}>${esc(l)}</option>`).join(""),
  sop=a=>a.soporte_tipo?SO[a.soporte_tipo]+(a.soporte_num?" "+a.soporte_num:""):"";
 
-let le="",pr=[],ex=[],cc=[],okN=true,pm=hoy().slice(0,7),bd={},bt="",cor=hoy(),bs=null;
+let inv=null,le="",pr=[],ex=[],cc=[],okN=true,pm=hoy().slice(0,7),bd={},bt="",cor=hoy(),bs=null;
 const BK="1110",dd=(a,b)=>Math.abs(Date.parse(a)-Date.parse(b))/864e5,
  ym=p=>{const[y,k]=p.split("-");return[p+"-01",p+"-"+String(new Date(+y,+k,0).getDate()).padStart(2,"0")]},
  ejec=(a,z)=>{const o={};saldos(a,z).forEach(x=>o[x.codigo]=x.s);return o},
@@ -7933,11 +7933,11 @@ async function bAuto(){
  finally{await loadN()}
  aviso(k?k+" movimientos conciliados.":"No encontré coincidencias de igual valor y fecha cercana (hasta 5 días).")}
 function ctlN(){const p=hoy().slice(0,7),[a,z]=ym(p),e=ejec(a,z),B=bnd(),P=cu.filter(c=>"GC".includes(c.tipo)&&pAv(p,c.codigo)>0&&(e[c.codigo]||0)>pAv(p,c.codigo));
- return[[P.length?2:4,`<div class="cn-card"><h3>Presupuesto del mes</h3>${P.length?P.map(c=>`<div class="cn-bad">${esc(c.nombre)}: gastado ${m(e[c.codigo])} de ${m(pAv(p,c.codigo))}</div>`).join(""):'<p class="sub">Ninguna cuenta superó su presupuesto.</p>'}</div>`],[B.pend.length||B.libres.length?2:4,`<div class="cn-card"><h3>Bancos</h3><p class="${B.pend.length||B.libres.length?"cn-bad":"sub"}">${B.pend.length} movimientos del extracto y ${B.libres.length} del libro sin conciliar.</p></div>`]]}
+ return[[P.length?2:4,`<div class="cn-card"><h3>Presupuesto del mes</h3>${P.length?P.map(c=>`<div class="cn-bad">${esc(c.nombre)}: gastado ${m(e[c.codigo])} de ${m(pAv(p,c.codigo))}</div>`).join(""):'<p class="sub">Ninguna cuenta superó su presupuesto.</p>'}</div>`],[B.pend.length||B.libres.length?2:4,`<div class="cn-card"><h3>Bancos</h3><p class="${B.pend.length||B.libres.length?"cn-bad":"sub"}">${B.pend.length} movimientos del extracto y ${B.libres.length} del libro sin conciliar.</p></div>`],[inv&&Math.abs(inv.diferencia)>1?2:4,inv?`<div class="cn-card"><h3>Inventario vs. libros</h3><p class="sub">Libros (1435): ${m(inv.libros)} · Stock valorado al último precio: ${m(inv.stock)}</p><p class="${Math.abs(inv.diferencia)>1?"cn-bad":"sub"}">Diferencia: ${m(inv.diferencia)}</p></div>`:""]]}
 async function load(){
  if(!esAdmin())return;
  const r=await Promise.all([SB.from("cnt_cuentas").select("*").order("codigo"),traerTodo("cnt_terceros","id"),traerTodo("cnt_asientos","id"),traerTodo("cnt_lineas","id"),SB.from("cnt_cierres").select("periodo")]).catch(x=>{le=x.message||String(x);return null});
- ok=!!r&&!r[0].error&&!r[4].error;if(r&&!ok)le=(r[0].error||r[4].error).message;if(ok){cu=r[0].data;te=r[1];as=r[2];li=r[3];ci=new Set(r[4].data.map(x=>x.periodo))}await loadN();await loadP();loaded=true}
+ ok=!!r&&!r[0].error&&!r[4].error;if(r&&!ok)le=(r[0].error||r[4].error).message;if(ok){cu=r[0].data;te=r[1];as=r[2];li=r[3];ci=new Set(r[4].data.map(x=>x.periodo))}await loadN();await loadP();await loadI();loaded=true}
 function saldos(a1,a2){const A=new Map(as.map(a=>[a.id,a])),S={};
  li.forEach(l=>{const a=A.get(l.asiento_id);if(!a||a.estado==="anulado"||(a1&&a.fecha<a1)||(a2&&a.fecha>a2))return;const s=S[l.cuenta]||(S[l.cuenta]={d:0,c:0});s.d+=n(l.debito);s.c+=n(l.credito)});
  return cu.filter(c=>S[c.codigo]).map(c=>{const s=S[c.codigo];return{...c,d:s.d,c:s.c,s:DB[c.tipo]?s.d-s.c:s.c-s.d}})}
@@ -7952,6 +7952,7 @@ const UM=10,KS={i:["don"],e:["com","gas"]},KL={don:"Donación en dinero",com:"Co
  lim=w=>{const d=new Date(w+"T12:00:00");d.setDate(d.getDate()+4);return d.toLocaleDateString("sv-SE")},
  ch=(k,L)=>`<div class="tabs">${L.map(([v,l])=>`<button type="button" class="tab" data-c="sub" data-k="${k}" data-i="${v}" aria-pressed="${sb[k]===v}">${l}</button>`).join("")}</div>`,
  bt2=(c,i,l,on)=>`<button type="button" class="tab" data-c="${c}" data-i="${i}" aria-pressed="${on}">${l}</button>`;
+async function loadI(){try{const r=await SB.rpc("cnt_inventario_control");inv=r.error?null:r.data}catch(_){inv=null}}
 async function loadP(){try{pp=await traerTodo("cnt_precios","id");okP=true}catch(_){pp=[];okP=false}}
 function vista(){const s=sb[tab];
  if(tab==="reg")return vCaja();
@@ -7980,18 +7981,6 @@ ${hint?`<p class="sub">${hint}</p>`:""}${nota2()}<div class="cn-f"><button type=
 function vHoy(){const h=hoy(),L=act().filter(a=>a.fecha===h&&(a.tipo==="ingreso"||a.tipo==="egreso")).sort((x,y)=>y.id-x.id),T=t=>L.filter(a=>a.tipo===t).reduce((s,a)=>s+n(a.valor),0);
  return`<aside class="cn-card" aria-label="Movimientos de hoy"><h3>Hoy</h3><div class="cn-hs"><span>Ingresos ${m(T("ingreso"))}</span><span>Egresos ${m(T("egreso"))}</span></div>${L.length?`<div class="cn-sc" data-top="10">`:""}${L.length?L.map(a=>`<div class="cn-mv"><div><b>${m(a.valor)}</b> · ${a.tipo==="ingreso"?"Ingreso":"Egreso"}<div>${esc(a.concepto)}</div><div class="sub">${[a.numero,ter(a.tercero_id).nombre].filter(Boolean).map(esc).join(" · ")}</div></div><button type="button" class="cn-lk" data-c="anular" data-i="${a.id}">Anular</button></div>`).join("")+"</div>":'<p class="sub">Aún no hay movimientos de hoy.</p>'}</aside>`}
 const nota2=()=>okP?"":'<p class="sub cn-bad">Falta ejecutar supabase/contabilidad-precios.sql para guardar los precios de los productos.</p>';
-const mot=num=>"Entrada: compra "+num;
-function entInv(L,num){const ok=[],no=[];
- L.forEach(x=>{const i=x.s&&itm().find(a=>String(a.sku)===String(x.s)),q=n(x.q);if(!i||!(q>0))return;
-  if(x.u&&nq(x.u)!==nq(i.u)){no.push(i.n+" ("+x.u+" ≠ "+i.u+")");return}
-  mv(i,q,mot(num));sumarLote(i,q,null);i.c=null;addLog("cnt",`Entrada de ${q} ${i.u} de ${i.n.toLowerCase()} por la compra ${num}. Por ${quien()}.`);ok.push(i.n)});
- if(ok.length)window.guardar();return{ok,no}}
-function revInv(a){const R=[];
- pp.filter(r=>r.asiento_id===a.id&&r.sku).forEach(r=>{const i=itm().find(x=>String(x.sku)===String(r.sku));if(!i)return;
-  const e=mov.filter(x=>x.s===i.sku&&x.w===mot(a.numero)&&x.d>0).reduce((t,x)=>t+x.d,0),y=mov.filter(x=>x.s===i.sku&&x.w==="Salida: anulación de la compra "+a.numero).reduce((t,x)=>t-x.d,0),q=Math.min(r2(e-y),i.sys);
-  if(!(q>0)||R.some(z=>z.i===i))return;
-  mv(i,-q,"Salida: anulación de la compra "+a.numero);quitarFEFO(i,q);i.c=null;addLog("adj",`Se descontaron ${q} ${i.u} de ${i.n.toLowerCase()} por anular la compra ${a.numero}. Por ${quien()}.`);R.push({i,q})});
- if(R.length)window.guardar();return R}
 async function gCaja(){
  if(gCaja.b)return;const k=cj.k,p=PL[k],comp=k==="com",dona=!!p[2].don,nof=comp&&!cj.f,
  pr=comp?kp.filter(x=>x.n.trim()&&n(x.v)>0):[],sp=pr.reduce((a,x)=>a+n(x.v),0),v=n(kv.v)||sp,nm=((kv.t==="__nuevo"?kv.tn:kv.t)||"").trim(),fe=kv.f||hoy();
@@ -8009,9 +7998,9 @@ async function gCaja(){
   num=(kv.n||"").trim(),st=k==="cuo"?"pos":comp&&cj.f?"factura":null,
   cab={fecha:fe,tipo:p[3],tercero_id:tid,concepto:((kv.c||"").trim()||KL[k]+(nm?" · "+nm:"")+(pr.length?": "+pr.map(x=>x.n.trim()).join(", "):"")).slice(0,160),soporte_tipo:st&&(num||comp)?st:null,soporte_num:st&&num?num:null,donacion:dona,condicionada:false,especie:!!p[2].es},
   pj=pr.map(x=>({sku:x.s?String(x.s):null,nombre:x.n.trim().slice(0,80),unidad:(x.u||"").trim().slice(0,12)||null,cantidad:n(x.q)||null,valor:n(x.v)})),
-  r=ck(pr.length&&okP?await SB.rpc("cnt_crear_asiento_precios",{p_cab:cab,p_lineas:L,p_precios:pj}):await SB.rpc("cnt_crear_asiento",{p_cab:cab,p_lineas:L}));
-  await load();
-  const iv=comp?entInv(pr,r.data):{ok:[],no:[]};
+  r=ck(pr.length&&okP?await SB.rpc(comp?"cnt_registrar_compra":"cnt_crear_asiento_precios",{p_cab:cab,p_lineas:L,p_precios:pj}):await SB.rpc("cnt_crear_asiento",{p_cab:cab,p_lineas:L}));
+  const R=r.data&&typeof r.data==="object"?r.data:{numero:r.data};r.data=R.numero;await load();if(R.entradas&&R.entradas.length)recargar(true);
+  const iv={ok:(R.entradas||[]).map(x=>x.nombre),no:(R.omitidas||[]).map(x=>x.nombre+" ("+x.motivo+")")};
   kv={};kp=[];render(true);aviso("Guardado "+r.data+(pr.length&&!okP?". Los precios no se guardaron: falta el SQL de precios.":".")+(iv.ok.length?" Entró al inventario: "+iv.ok.join(", ")+".":"")+(iv.no.length?" No entró (otra unidad): "+iv.no.join(", ")+".":""))
  }catch(x){err(x)}finally{gCaja.b=0}}
 let pF="con",pQ="",pCer=new Set(),pAb=new Set(),pG=[];
@@ -8104,7 +8093,7 @@ async function click(e){const b=e.target.closest("[data-c]");if(!b)return;const 
  if(c==="quitar"){if(rows.length>2){rows.splice(+i,1);$("cLin").innerHTML=lin();tot()}return}
  if(c==="cert"){cert(+i);return}
  try{
-  if(c==="anular"){const mo=prompt("Motivo de la anulación:");if(!mo||!mo.trim())return;const A=as.find(x=>x.id===+i);ck(await SB.rpc("cnt_anular",{p_id:+i,p_motivo:mo.trim()}));await load();const R=A?revInv(A):[];aviso("Asiento anulado."+(R.length?" Se descontó del inventario: "+R.map(x=>x.i.n).join(", ")+".":""))}
+  if(c==="anular"){const mo=prompt("Motivo de la anulación:");if(!mo||!mo.trim())return;const an=ck(await SB.rpc("cnt_anular",{p_id:+i,p_motivo:mo.trim()})).data||{},R=an.revertidas||[];await load();if(R.length)recargar(true);aviso("Asiento anulado."+(R.length?" Se descontó del inventario: "+R.map(x=>x.nombre).join(", ")+".":""))}
   if(c==="cierre"){if(ci.has(i))ck(await SB.from("cnt_cierres").delete().eq("periodo",i));else ck(await SB.from("cnt_cierres").insert({periodo:i}));await load()}
   if(c==="ppg"){await pGuardar([pm]);aviso("Presupuesto guardado.")}
   if(c==="panio"){const y=pm.slice(0,4),M=[];for(let k=+pm.slice(5);k<=12;k++)M.push(y+"-"+String(k).padStart(2,"0"));await pGuardar(M);aviso("Presupuesto repetido hasta diciembre.")}
