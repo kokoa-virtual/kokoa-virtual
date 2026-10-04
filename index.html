@@ -1217,6 +1217,29 @@ nav.views .vgr{grid-column:3;grid-row:1;justify-self:end}
 /* ===== Ajustes v4 ===== */
 .impt td.nm{vertical-align:middle!important}
 .pl-sum{margin:0 0 8px;font-size:13px;line-height:1.35}
+
+/* ===== Ajustes v5: Prestar con las mismas medidas que Comidas ===== */
+@media (min-width:561px){
+/* columna izquierda igual que Comidas: 220 px (botón Filtrar por y lista del mismo ancho) */
+.qgrid.pqgrid{grid-template-columns:220px minmax(0,1fr);gap:16px;align-items:stretch}
+.qgrid.pqgrid>.qleft{flex:0 0 220px!important;display:grid;grid-template-rows:auto 1fr;gap:10px;align-content:start;min-width:0}
+.pqgrid .qside{padding:16px!important;border-radius:20px!important}
+.pqgrid .qside h3{font-size:17px!important}
+.pqgrid .qscroll{display:block!important;height:17rem;max-height:none;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin;padding-right:8px;margin-right:-4px}
+.qgrid.pqgrid>.pqmain{align-items:stretch!important;gap:16px!important}
+/* Implementos a prestar y Datos de quien recibe: misma altura que la columna izquierda */
+.pqmain>#pMain,.pqmain>#pf{contain:size;align-self:stretch;min-height:0;display:flex;flex-direction:column}
+.pqmain .plate{flex:1 1 auto;min-height:0!important;overflow-y:auto}
+.pqmain>#pMain .qfoot{flex:0 0 auto;margin-top:12px;flex-wrap:nowrap}
+.pqmain>#pf{padding:16px;overflow-y:auto}
+}
+/* Datos de quien recibe */
+.pqmain .pr-row3{grid-template-columns:minmax(0,1.3fr) minmax(0,1.3fr) minmax(0,.9fr)!important;gap:8px!important}
+.pqmain .pr-row3 input{padding-left:8px;padding-right:8px}
+.pqmain .pr-foot{flex-direction:row!important;flex-wrap:nowrap!important;align-items:center!important;justify-content:space-between;gap:10px;margin-top:auto}
+.pqmain .pr-foot .sub{flex:1 1 0;min-width:0;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.pqmain .pr-foot button{width:auto!important;flex:0 0 auto;white-space:nowrap}
+.pqmain .pr-consent{margin-bottom:14px}
 </style>
 </head>
 <body>
