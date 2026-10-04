@@ -1,16 +1,14 @@
-const V = "kokoa-v5";
+const V = "kokoa-v6";
 const SHELL = ["./", "./index.html", "./manifest.webmanifest", "./vendor/supabase.js", "./vendor/jspdf.min.js", "./icons/icon-192.png", "./icons/apple-touch-icon.png"];
-const ESPERA_RED = 3000; // ms antes de usar la copia guardada si la red está lenta
+const ESPERA_RED = 3000;
 
 self.addEventListener("install", e => {
-  // add() por separado: si falta un archivo no se cae toda la instalación
   e.waitUntil(caches.open(V).then(c => Promise.all(SHELL.map(u => c.add(u).catch(() => {})))).then(() => self.skipWaiting()));
 });
 self.addEventListener("activate", e => {
   e.waitUntil(caches.keys().then(k => Promise.all(k.filter(n => n !== V).map(n => caches.delete(n)))).then(() => self.clients.claim()));
 });
 
-// Librerías, iconos y fuentes: se sirven al instante desde la copia y se actualizan en segundo plano
 async function rapido(e) {
   const c = await caches.open(V), hit = await c.match(e.request);
   const red = fetch(e.request).then(r => { if (r.ok || r.type === "opaque") c.put(e.request, r.clone()); return r; }).catch(() => null);
@@ -18,14 +16,14 @@ async function rapido(e) {
   return (await red) || Response.error();
 }
 
-// Página y datos propios: red primero, pero si tarda más de 3 s se usa la copia guardada
 async function conRed(e) {
   const q = e.request, c = await caches.open(V);
-  const red = fetch(q).then(r => { if (r.ok) c.put(q, r.clone()); return r; });
+  let t;
+  const red = fetch(q).then(r => { clearTimeout(t); if (r.ok) c.put(q, r.clone()); return r; });
   try {
-    const r = await Promise.race([red, new Promise(ok => setTimeout(() => ok(null), ESPERA_RED))]);
+    const r = await Promise.race([red, new Promise(ok => { t = setTimeout(() => ok(null), ESPERA_RED); })]);
     if (r) return r;
-  } catch (_) {}
+  } catch (_) { clearTimeout(t); }
   const hit = (await c.match(q)) || (q.mode === "navigate" ? await c.match("./index.html") : null);
   if (hit) { e.waitUntil(red.catch(() => {})); return hit; }
   return red.catch(() => Response.error());
