@@ -1049,6 +1049,14 @@ nav.views #modo{order:1;margin:0}nav.views .tab[data-s="4"],nav.views .tab[data-
 #addForm .abtns{flex:1 1 100%}
 #addForm .abtns #aCancel,#addForm .abtns #aBtn{flex:1 1 0}
 }
+
+/* Barra de secciones: pestañas a la izquierda, switch Alimentos/Préstamos centrado, tema a la derecha */
+@media(min-width:761px){
+nav.views{grid-template-columns:minmax(0,1fr) auto minmax(0,1fr)}
+nav.views .vgl{grid-column:1;grid-row:1;justify-self:start}
+nav.views #modo.mseg{grid-column:2;grid-row:1;order:0;justify-self:center;margin:0}
+nav.views .vgr{grid-column:3;grid-row:1;justify-self:end}
+}
 </style>
 </head>
 <body>
