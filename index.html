@@ -964,8 +964,10 @@ html{scrollbar-gutter:stable}
 .pr-new{margin-bottom:4px}
 .pr-main #nf{margin-bottom:6px}
 .qgrid.pqg{grid-template-columns:240px minmax(0,1fr)}
-.pqmain{min-width:0}
-.pqmain .pr-form{margin-top:16px}
+.pqmain{min-width:0;display:grid;grid-template-columns:minmax(0,1.25fr) minmax(300px,1fr);gap:16px;align-items:start}
+.pqmain .pr-form{margin-top:0}
+.pqmain .pr-row3{grid-template-columns:repeat(auto-fit,minmax(110px,1fr))}
+@media(max-width:1100px){.pqmain{grid-template-columns:1fr}.pqmain .pr-form{margin-top:0}}
 .pr-row3{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1.5fr) minmax(0,.8fr);gap:10px}
 @media(max-width:900px){.qgrid.pqg{grid-template-columns:1fr}}
 @media(max-width:420px){.pr-row3{gap:6px}}
@@ -1031,6 +1033,21 @@ nav.views #modo{order:1;margin:0}nav.views .tab[data-s="4"],nav.views .tab[data-
 @media (min-width:761px) and (max-width:1020px){
 #modo:not(.grid) .sg-p b,#modo.grid .sg-a b{display:none}
 #modo:not(.grid) .sg-p,#modo.grid .sg-a{padding:0 10px}
+}
+
+/* Alimentos: barra de herramientas arriba a la derecha y formulario de crear compacto */
+#v1 .itool{justify-content:space-between;align-items:center;margin:0 0 12px}
+#v1 .itool .irt{margin-left:auto}
+#addForm{display:flex;flex-wrap:wrap;gap:12px 14px;align-items:flex-end;justify-content:flex-start;margin-bottom:12px}
+#addForm label{flex:0 0 150px;min-width:0}
+#addForm label.aname{flex:0 0 230px}
+#addForm label:has(#aMo){flex-basis:210px}
+#addForm .abtns{flex:0 0 auto;margin-left:0}
+@media(max-width:760px){
+#addForm label{flex:1 1 140px}
+#addForm label.aname{flex:1 1 100%}
+#addForm .abtns{flex:1 1 100%}
+#addForm .abtns #aCancel,#addForm .abtns #aBtn{flex:1 1 0}
 }
 </style>
 </head>
@@ -1099,7 +1116,7 @@ nav.views #modo{order:1;margin:0}nav.views .tab[data-s="4"],nav.views .tab[data-
       <div class="asug" id="aSug" aria-live="polite" hidden></div>
       <section class="imv-m"><h2 class="qh2">Últimos movimientos</h2><ol class="mvl pev" id="imv2"></ol></section>
       <div class="itool">
-        <div class="tabs" id="tabs"></div>
+        <span class="sub" id="icount"></span>
         <div class="irt"><div class="fwrap"><button type="button" class="ghost fbtn" id="fBtn" aria-haspopup="true" aria-expanded="false">Filtrar por</button><div class="fmenu" id="fMenu" hidden></div></div>
         <button type="button" class="vtog" id="vtog" data-lay="1" role="switch" aria-checked="true" aria-label="Alternar vista del inventario entre lista y cuadrícula" title="Lista / Cuadrícula"><i class="knob"></i>
           <svg class="ico il" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M9 6h11M9 12h11M9 18h11"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/></svg>
@@ -1276,11 +1293,15 @@ const zoneOpts=sel=>cameras.map(c=>`<option value="${esc(c.id)}"${c.id===sel?" s
 const pasaF=i=>(zona==="*"||i.z===zona)&&(fTipo==="*"||i.k===fTipo);
 const okVista=i=>{const e=estado(i);return vista==="todos"||(vista==="sin"&&e.sin)||(vista==="bajo"&&e.low)||(vista==="venc"&&e.venc)};
 const ordQ=(a,b)=>(fOrden==="may"?b.sys-a.sys:a.sys-b.sys)||a.n.localeCompare(b.n,"es",{sensitivity:"base"});
-function renderFiltro(){const n=(zona!=="*")+(fTipo!=="*")+(fOrden?1:0);
+const ESTA={todos:"Todos",sin:"Sin stock",bajo:"Bajo el mínimo",venc:"Vencen en 3 días"};
+function renderFiltro(){const n=(vista!=="todos")+(zona!=="*")+(fTipo!=="*")+(fOrden?1:0);
  $("fBtn").innerHTML='<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 5h18l-7 8v6l-4 2v-8z"/></svg>Filtrar por'+(n?` <span class="fn">${n}</span>`:"");
  $("fBtn").setAttribute("aria-expanded",String(fOpen));$("fMenu").hidden=!fOpen;if(!fOpen)return;
  const so=(k,l,on)=>`<button type="button" class="fo${on?" on":""}" data-fo="${k}" aria-pressed="${on}">${l}</button>`;
- $("fMenu").innerHTML=so("zona","Zona"+(zona!=="*"?": "+esc(zonaNombre(zona)):""),fSub==="zona"||zona!=="*")
+ const ve=items.filter(pasaF),vc={todos:ve.length,sin:ve.filter(i=>estado(i).sin).length,bajo:ve.filter(i=>estado(i).low).length,venc:ve.filter(i=>estado(i).venc).length};
+ $("fMenu").innerHTML=so("est","Estado"+(vista!=="todos"?": "+ESTA[vista]:""),fSub==="est"||vista!=="todos")
+  +(fSub==="est"?`<select data-fsel="est" aria-label="Elegir estado">${Object.keys(ESTA).map(k=>`<option value="${k}"${k===vista?" selected":""}>${ESTA[k]} (${vc[k]})</option>`).join("")}</select>`:"")
+  +so("zona","Zona"+(zona!=="*"?": "+esc(zonaNombre(zona)):""),fSub==="zona"||zona!=="*")
   +(fSub==="zona"?`<select data-fsel="zona" aria-label="Elegir zona"><option value="*">Todas las zonas</option>${zoneOpts(zona)}</select>`:"")
   +so("tipo","Tipo de alimento"+(fTipo!=="*"?": "+esc(fTipo):""),fSub==="tipo"||fTipo!=="*")
   +(fSub==="tipo"?`<select data-fsel="tipo" aria-label="Elegir tipo de alimento"><option value="*">Todos los tipos</option>${CATS.map(c=>`<option value="${esc(c)}"${c===fTipo?" selected":""}>${esc(c)}</option>`).join("")}</select>`:"")
@@ -1288,16 +1309,16 @@ function renderFiltro(){const n=(zona!=="*")+(fTipo!=="*")+(fOrden?1:0);
   +(n?`<button type="button" class="fo clr" data-fo="clr">Quitar filtros</button>`:"")}
 $("fBtn").addEventListener("click",()=>{fOpen=!fOpen;fSub="";renderFiltro()});
 $("fMenu").addEventListener("click",e=>{const b=e.target.closest("[data-fo]");if(!b)return;const k=b.dataset.fo;
- if(k==="zona"||k==="tipo"){fSub=fSub===k?"":k;renderFiltro();return}
+ if(k==="est"||k==="zona"||k==="tipo"){fSub=fSub===k?"":k;renderFiltro();return}
  if(k==="may"||k==="men")fOrden=fOrden===k?"":k;
- if(k==="clr"){zona="*";fTipo="*";fOrden=""}
+ if(k==="clr"){vista="todos";zona="*";fTipo="*";fOrden=""}
  fOpen=false;fSub="";renderAll()});
-$("fMenu").addEventListener("change",e=>{const x=e.target.closest("[data-fsel]");if(!x)return;if(x.dataset.fsel==="zona")zona=x.value;else fTipo=x.value;fOpen=false;fSub="";renderAll()});
+$("fMenu").addEventListener("change",e=>{const x=e.target.closest("[data-fsel]");if(!x)return;if(x.dataset.fsel==="est")vista=x.value;else if(x.dataset.fsel==="zona")zona=x.value;else fTipo=x.value;fOpen=false;fSub="";renderAll()});
 document.addEventListener("click",e=>{if(fOpen&&e.target.isConnected&&!e.target.closest(".fwrap")){fOpen=false;fSub="";renderFiltro()}});
 addEventListener("keydown",e=>{if(e.key==="Escape"&&fOpen){fOpen=false;renderFiltro();$("fBtn").focus()}});
 function renderTools(){
- const v=items.filter(pasaF),cnt={todos:v.length,sin:v.filter(i=>estado(i).sin).length,bajo:v.filter(i=>estado(i).low).length,venc:v.filter(i=>estado(i).venc).length};
- $("tabs").innerHTML=[["todos","Todos"],["sin","Sin stock"],["bajo","Bajo el mínimo"],["venc","Vencen en 3 días"]].map(([k,l])=>`<button class="tab ${(k==="sin"||k==="bajo"||k==="venc")&&cnt[k]?"warn":""}" data-v="${k}" aria-pressed="${vista===k}"><b>${cnt[k]}</b>${l}</button>`).join("");
+ const nv=items.filter(x=>pasaF(x)&&okVista(x)).length,act=vista!=="todos"||zona!=="*"||fTipo!=="*";
+ $("icount").textContent=(act?nv+" de "+items.length:items.length)+" alimento"+((act?nv:items.length)===1?"":"s")+(vista!=="todos"?" · "+ESTA[vista]:"");
  renderFiltro();
  const g=invLayout==="grid";$("vtog").classList.toggle("grid",g);$("vtog").setAttribute("aria-checked",String(g))}
 function renderCats(){
@@ -1416,7 +1437,7 @@ const tabsHtml=ks=>VISTAS.filter(v=>ks.includes(v[0])).map(([k,l,t])=>`<button c
 function montarTabs(){if(!$("vtabs").firstChild){$("vtabs").innerHTML=tabsHtml([0,1,3]);$("vtabs2").innerHTML=tabsHtml([4,5])}}
 const VISTAS=[[0,"Comidas: Quitar","Quitar"],[1,"Inventario: Agregar","Agregar"],[3,"Pedido sugerido","Pedido"],[4,"Gráficos","Gráficos"],[5,"Movimientos","Movimientos"]];
 function limpiarPantalla(){alOpen=false;scOpen=false;plate=[];qFindTxt="";sec=0;
- ["vtabs","vtabs2","zones","zsel","ztipos","imv","imv2","qFilt","qList","qMain","qDest","cml","tabs","fMenu","cats","ped","gmode","gper","gtype","gsum","gc","mvl","log","aL","aM","aSug","scanList"].forEach(id=>{const e=$(id);if(e)e.innerHTML=""});
+ ["vtabs","vtabs2","zones","zsel","ztipos","imv","imv2","qFilt","qList","qMain","qDest","cml","fMenu","cats","ped","gmode","gper","gtype","gsum","gc","mvl","log","aL","aM","aSug","scanList"].forEach(id=>{const e=$(id);if(e)e.innerHTML=""});
  msg.textContent="";$("bellN").textContent="0";$("addForm").reset();$("scan").value="";pintarAl()}
 function renderAll(){
  if(!currentUser){limpiarPantalla();return}
@@ -2181,7 +2202,7 @@ function build(){if(built)return;built=true;
  <div class="pr-fields"><label class="f-full">Nombre completo<input id="pn" required maxlength="80"></label><div class="pr-row3 f-full"><label>Documento<input id="pd" required maxlength="20"></label><label>Teléfono<input id="pt" type="tel" maxlength="20"></label><label>Plazo (días)<input id="pz" type="number" min="1" max="60" step="1" value="1" required></label></div><label class="f-full">Notas<input id="po" maxlength="120" placeholder="Opcional"></label></div>
  <label class="pr-consent"><input id="pa" type="checkbox" required><span>La persona autoriza el tratamiento de sus datos (Ley 1581 de 2012) y acepta las condiciones del ticket.</span></label>
  <div class="pr-foot"><div id="psel" class="sub" aria-live="polite"></div><button type="submit">Prestar y generar ticket</button></div></form></div></div>
- <div class="hhead"><h2 class="qh2">Últimos préstamos</h2><button type="button" class="ghost danger" id="pHistAll2" hidden>Borrar todo el historial</button></div><ol class="mvl pev" id="pult"></ol>`);
+ <h2 class="qh2">Últimos préstamos</h2><ol class="mvl pev" id="pult"></ol>`);
  mk("pv1",`<h2>Préstamo: Devolver</h2>
  <div class="pr-pg"><aside class="pnl" aria-label="Filtros de devolución"><h2>Estado</h2><div id="pdf1"></div><h2 class="ztit">Tipos de implementos</h2><div id="pdf2"></div><h2 class="ztit">Últimas devoluciones</h2><ol class="mvl pev" id="pdf3"></ol></aside><div class="pr-main"><div id="nwrap" hidden><div class="sechead"><h2>Crear/Agregar implemento</h2><button type="button" class="ghost danger" id="pDelBtn">Eliminar implementos</button></div><form class="add" id="nf" autocomplete="off"><label class="aname">Nombre<input id="nm" required maxlength="60" autocomplete="off"></label><label data-new>Tipo de implemento<input id="ng" maxlength="40" list="ngl" autocomplete="off"></label><datalist id="ngl"></datalist><label data-new>Accesorios<input id="na" maxlength="80" placeholder="tapa, asas…"></label><label data-new>Valor de reposición<input id="nv" type="number" min="0" step="any" inputmode="decimal" value="0"></label><label>Cantidad<input id="nq2" type="number" min="1" max="50" step="1" inputmode="numeric" value="1"></label><div class="abtns"><button type="button" class="ghost" id="nCancel" hidden>Cancelar</button><button type="submit" id="nBtn">Crear implemento</button></div></form><div class="asug" id="nSug" aria-live="polite" hidden></div></div><div class="itool"><span class="sub" id="pcount"></span><div class="irt"><div class="fwrap"><button type="button" class="ghost fbtn" id="pfBtn" aria-haspopup="true" aria-expanded="false">Filtrar por</button><div class="fmenu" id="pfMenu" hidden></div></div><button type="button" class="vtog" id="pvtog" data-lay="1" role="switch" aria-checked="true" aria-label="Alternar vista del inventario entre lista y cuadrícula" title="Lista / Cuadrícula"><i class="knob"></i><svg class="ico il" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M9 6h11M9 12h11M9 18h11"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/></svg><svg class="ico ig" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="1.5"/><rect x="13.5" y="13.5" width="6.5" height="6.5" rx="1.5"/></svg></button></div></div><div id="pdev"></div></div></div>`);
  mk("pv3",`<h2>Préstamos en curso</h2><div id="pcur"></div>`);
@@ -2221,7 +2242,7 @@ function build(){if(built)return;built=true;
  const finPd=(e,soltar)=>{if(!pd||e.pointerId!==pd.id)return;const d=pd;pd=null;if(!d.on)return;d.ghost.remove();document.body.classList.remove("dragging");noClick=Date.now()+350;
   const pl=$("pPlate");if(pl){pl.classList.remove("over");if(soltar&&sobrePlato(e,pl))gpm(d.k,1)}};
  addEventListener("pointerup",e=>finPd(e,true));addEventListener("pointercancel",e=>finPd(e,false));
- document.addEventListener("click",async e=>{const b=e.target.closest("[data-pdel],#pHistAll,#pHistAll2");if(!b||!on||!esAdmin())return;
+ document.addEventListener("click",async e=>{const b=e.target.closest("[data-pdel],#pHistAll");if(!b||!on||!esAdmin())return;
   try{if(b.dataset.pdel){if(!confirm("¿Borrar este registro del historial?\nNo cambia el estado de los implementos."))return;
     const r=await SB.from("prestamo_eventos").delete().eq("id",+b.dataset.pdel).select("id");if(r.error)throw r.error;if(!r.data||!r.data.length)throw new Error("No se pudo borrar: sin permiso sobre prestamo_eventos.")}
    else{if(!evs.length)return;if(!confirm(`¿Borrar TODO el historial de movimientos de préstamos (${evs.length} registros)?\nNo cambia el estado de los implementos ni de los préstamos activos. No se puede deshacer.`))return;
@@ -2312,14 +2333,14 @@ function rPrestar(force){$("pwarn").hidden=ok;
  renderPQF();
  set("pl","<h3>Implementos</h3>"+(G.length?G.map(g=>{const e=encodeURIComponent(g.k);return`<div class="qrow" data-pqd="${e}"><span class="dgrip" title="Arrastra al préstamo" aria-hidden="true">${ICON_MOVE}</span><button type="button" class="zone qsel" data-pg="${e}"${g.rem<=0?" disabled":""}><b>${esc(g.n)}</b><small>${g.rem} disponible${g.rem===1?"":"s"}${g.t!=="Sin tipo"?" · "+esc(g.t):""}</small></button></div>`}).join(""):`<p class="sub">${q||pqTipo!=="*"?"Ningún implemento coincide con los filtros.":"No hay implementos disponibles."}</p>`),true);
  const P=all.filter(g=>g.c>0).sort(ab),tot=P.reduce((a,g)=>a+g.c,0);
- let h=`<div class="plate" id="pPlate"><div class="plate-h"><h3>Armando el préstamo</h3><div class="plate-find"><input id="pFind" maxlength="40" autocomplete="off" placeholder="Buscar implemento para agregar" aria-label="Buscar implemento para agregar" value="${esc(pFind)}"></div></div><div class="asug" id="pFindSug" aria-live="polite" hidden></div>`;
+ let h=`<div class="plate" id="pPlate"><div class="plate-h"><h3>Implementos a prestar</h3><div class="plate-find"><input id="pFind" maxlength="40" autocomplete="off" placeholder="Buscar implemento para agregar" aria-label="Buscar implemento para agregar" value="${esc(pFind)}"></div></div><div class="asug" id="pFindSug" aria-live="polite" hidden></div>`;
  h+=P.length?P.map(g=>{const e=encodeURIComponent(g.k);return`<div class="prow"><div class="pn"><b>${esc(g.n)}</b><small>Quedan ${g.rem} disponible${g.rem===1?"":"s"}</small></div><div class="pq"><button type="button" data-pm="${e}" aria-label="Menos ${esc(g.n)}">−</button><input type="number" min="0" max="${g.u.length}" step="1" inputmode="numeric" data-pqi="${e}" value="${g.c}" aria-label="Cantidad de ${esc(g.n)}"><span>unid.</span><button type="button" data-pp="${e}" aria-label="Más ${esc(g.n)}"${g.rem<=0?" disabled":""}>+</button></div><button type="button" class="ghost" data-px="${e}" aria-label="Sacar ${esc(g.n)} del préstamo">✕</button></div>`}).join(""):`<div class="pempty"><p><b>Suelta aquí los implementos del préstamo</b></p><p class="sub">Arrástralo desde la lista con el ícono de mover, o tócalo para agregarlo.</p></div>`;
  h+=`</div><div class="qfoot"><div class="qsum">${tot?`${tot} implemento${tot>1?"s":""} para prestar`:"Aún no hay implementos en el préstamo."}</div><div class="qbtns"><button type="button" class="ghost" data-pvac="1"${tot?"":" disabled"}>Vaciar</button></div></div>`;
  set("pMain",h,force);pFindUpd();
  $("psel").innerHTML=tot?`<b>${tot} seleccionado${tot===1?"":"s"}:</b> ${P.map(g=>g.c+"× "+esc(g.n)).join(", ")}`:"Ningún implemento seleccionado";
  const L=evs.filter(e=>e.tipo==="prestamo").slice(0,8);
  set("pult",L.map(e=>mvLi({t:"Préstamo",c:"dn",chip:esc(e.numero||""),s:esc(e.detalle),d:f(e.t)+(e.apodo?" · "+esc(e.apodo):""),h:hb(e.id)})).join("")||"<li>Sin préstamos todavía.</li>");
- $("pHistAll2").hidden=!(esAdmin()&&evs.length)}
+}
 function rDevolver(force){
  const pend=its.filter(i=>!i.devuelto),venc=pend.filter(late),L=imp.filter(i=>i.estado==="por_limpiar"),D=imp.filter(i=>i.estado==="disponible");
  const cI=m=>(m&&m.categoria)||"Sin tipo",cIt=i=>cI(imp.find(x=>x.id===i.implemento_id));
