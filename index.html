@@ -1255,6 +1255,8 @@ nav.views .vgr{grid-column:3;grid-row:1;justify-self:end}
 .pqmain .prow .pq button{width:32px;min-width:32px}
 .pqmain .prow .pqs .pq input{width:48px;padding-left:6px;padding-right:6px}
 .pqmain .prow>button[data-px]{flex:0 0 auto;margin-left:0}
+/* Buenas, Malas y ✕ pegados al borde derecho: en Préstamos la ✕ no es absoluta, no hace falta reservarle 52px */
+.pqmain .prow{padding-right:12px}
 </style>
 </head>
 <body>
@@ -1280,9 +1282,8 @@ nav.views .vgr{grid-column:3;grid-row:1;justify-self:end}
   </div>
   <div class="htools">
     <form class="scan" id="scanForm" role="search">
-      <input id="scan" role="combobox" aria-autocomplete="list" aria-haspopup="listbox" aria-expanded="false" placeholder="Buscar alimento" aria-label="Buscar alimento" autocomplete="off" aria-controls="scanList">
+      <input id="scan" placeholder="Buscar alimento" aria-label="Buscar alimento" autocomplete="off">
       <button type="submit" aria-label="Buscar"><span class="l-lg">Buscar</span><span class="l-sm">🔍</span></button>
-      <div class="slist" id="scanList" role="listbox" hidden></div>
     </form>
     <button type="button" class="ghost" id="exp" title="Exportar a Excel lo que hay en pantalla">Exportar</button>
     <button type="button" class="ghost" id="adminBtn">Editar</button>
@@ -1414,7 +1415,8 @@ const QDEST=[{k:"desayuno",l:"Desayuno",h:"Armar la comida"},{k:"almuerzo",l:"Al
 const logData=[];let movSku=null;
 let zona="*",vista="todos",sec=0,gp="d",gi="*",sync=0,chartType="bars";const mov=[],comidas=[];let disT={},gone=[],DKEY="",datosAl=false;let qMode="desayuno",plate=[],qFindTxt="",alOpen=false;
 let fTipo="*",fOrden="",fSub="",fOpen=false,gm="a";
-let qZona="*",qTipo="*",qOrden="",qSub2="",qFOpen=false,scOpen=false;
+let qZona="*",qTipo="*",qOrden="",qSub2="",qFOpen=false,aq="";
+const hitA=i=>{const k=norm(aq);return !k||norm(i.n+" "+i.k+" "+i.sku).includes(k)};
 let invLayout=(()=>{try{return localStorage.getItem("cocina-central-lay")==="list"?"list":"grid"}catch(_){return"grid"}})();
 let cameras=[
   {id:"B",name:"Congelador",temp:"",max:"",bad:false},
@@ -1527,7 +1529,7 @@ function renderTools(){
  renderFiltro();
  const g=invLayout==="grid";$("vtog").classList.toggle("grid",g);$("vtog").setAttribute("aria-checked",String(g))}
 function renderCats(){
- const vis=pasaF,ok=okVista;
+ const vis=i=>pasaF(i)&&hitA(i),ok=okVista;
  const alfa=(a,b)=>a.n.localeCompare(b.n,"es",{sensitivity:"base"});
  if(invLayout==="list"){const f=items.filter(i=>vis(i)&&ok(i)).sort(fOrden?ordQ:alfa);
   $("cats").innerHTML=f.length?`<div class="tbl"><table class="inv"><thead><tr><th>Alimento</th><th>Lotes y vencimiento</th><th>Ubicación</th><th>Cantidad</th><th>Motivo del cambio</th><th>Vence lo agregado</th><th>Mínimo</th><th></th></tr></thead><tbody>`+
@@ -1537,7 +1539,7 @@ function renderCats(){
    <td class="loc" data-label="Ubicación"><select data-zone aria-label="Zona">${zoneOpts(i.z)}</select></td>
    <td class="ed" data-label="Cantidad (${esc(i.u)})"><input type="number" min="${i.sys}" step="any" data-q value="${i.sys}" aria-label="Cantidad ${esc(i.n)}"></td><td class="ed" data-label="Motivo del cambio"><select data-em aria-label="Motivo" disabled><option value="">Elegir motivo</option>${opts(MOTIVOS_ADD)}</select></td><td class="ed" data-label="Vence lo agregado"><input type="date" data-ev aria-label="Vencimiento de lo agregado" disabled></td>
    <td class="ed" data-label="Mínimo"><input type="number" min="0" step="any" data-mn value="${i.min}" aria-label="Mínimo ${esc(i.n)}"></td>
-   <td class="act" data-label=""><button data-save="${i.sku}">Guardar</button></td></tr>`}).join("")+`</tbody></table></div>`:`<p class="sub">No hay alimentos en esta vista.</p>`}
+   <td class="act" data-label=""><button data-save="${i.sku}">Guardar</button></td></tr>`}).join("")+`</tbody></table></div>`:`<p class="sub">${aq.trim()?"Ningún alimento coincide con el filtro.":"No hay alimentos en esta vista."}</p>`}
  else
  $("cats").innerHTML=(fOrden?[[fOrden==="may"?"De mayor a menor cantidad":"De menor a mayor cantidad",items.filter(i=>vis(i)&&ok(i)).sort(ordQ)]]:CATS.map(c=>[c,items.filter(i=>i.k===c&&vis(i)&&ok(i)).sort(alfa)])).map(([c,l])=>{if(!l.length)return"";
   return`<div class="cat"><h2>${esc(c)}<small>${l.length} alimento${l.length>1?"s":""}</small></h2><div class="cgrid">`+
@@ -1547,7 +1549,7 @@ function renderCats(){
   <div class="frow"><label class="fld">Cantidad (${i.u})<input type="number" min="${i.sys}" step="any" data-q value="${i.sys}" aria-label="Cantidad ${esc(i.n)}"></label>
   <label class="fld">Mínimo<input type="number" min="0" step="any" data-mn value="${i.min}" aria-label="Mínimo ${esc(i.n)}"></label></div>
   <div class="emw" data-emw><label class="fld">Motivo<select data-em aria-label="Motivo" disabled><option value="">Elegir motivo</option>${opts(MOTIVOS_ADD)}</select></label><label class="fld">Vence lo agregado<input type="date" data-ev aria-label="Vencimiento de lo agregado" disabled></label></div>
-  <button data-save="${i.sku}">Guardar</button></div>`).join("")+`</div></div>`}).join("")||`<p class="sub">No hay alimentos en esta vista.</p>`;
+  <button data-save="${i.sku}">Guardar</button></div>`).join("")+`</div></div>`}).join("")||`<p class="sub">${aq.trim()?"Ningún alimento coincide con el filtro.":"No hay alimentos en esta vista."}</p>`;
  {const v=$("aC").value;$("aC").innerHTML=opts(CATS);if(CATS.includes(v))$("aC").value=v}}
 const ICON_TRASH='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M6 6l1 14h10l1-14"/><path d="M10 10v6M14 10v6"/></svg>';
 const mvLi=o=>`<li class="${o.nw?"new":""}"><div class="pev-t"><b>${o.t}</b><span class="pev-r"><span class="pchip ${o.c}">${o.chip}</span>${o.h||""}</span></div>${o.s?`<div class="pev-s">${o.s}</div>`:""}<time class="pev-d">${o.d}</time></li>`;
@@ -1580,9 +1582,9 @@ const ordenQuitar=(a,b)=>qOrden?((qOrden==="may"?b.sys-a.sys:a.sys-b.sys)||a.n.l
 function renderQuitar(){
  plate=plate.filter(x=>items.some(i=>i.sku===x.sku&&i.sys>0));
  plate.forEach(x=>{const i=items.find(a=>a.sku===x.sku);if(x.q>i.sys)x.q=i.sys});
- const l=items.filter(i=>i.sys>0&&(qZona==="*"||i.z===qZona)&&(qTipo==="*"||i.k===qTipo)).sort(ordenQuitar);
+ const l=items.filter(i=>i.sys>0&&(qZona==="*"||i.z===qZona)&&(qTipo==="*"||i.k===qTipo)&&hitA(i)).sort(ordenQuitar);
  renderQFilt();
- $("qList").innerHTML='<h3>Alimentos</h3><div class="qscroll">'+(l.length?l.map(i=>`<div class="qrow" data-qd="${i.sku}"><span class="dgrip" title="Arrastra al plato" aria-hidden="true">${ICON_MOVE}</span><button type="button" class="zone qsel" data-qs="${i.sku}"><b>${esc(i.n)}</b><small data-qa="${i.sku}">${qSub(i)}</small></button></div>`).join(""):`<p class="sub">${(qZona!=="*"||qTipo!=="*")?"Ningún alimento coincide con los filtros.":"No hay alimentos disponibles."}</p>`)+"</div>";
+ $("qList").innerHTML='<h3>Alimentos</h3><div class="qscroll">'+(l.length?l.map(i=>`<div class="qrow" data-qd="${i.sku}"><span class="dgrip" title="Arrastra al plato" aria-hidden="true">${ICON_MOVE}</span><button type="button" class="zone qsel" data-qs="${i.sku}"><b>${esc(i.n)}</b><small data-qa="${i.sku}">${qSub(i)}</small></button></div>`).join(""):`<p class="sub">${(qZona!=="*"||qTipo!=="*"||aq.trim())?"Ningún alimento coincide con los filtros.":"No hay alimentos disponibles."}</p>`)+"</div>";
  $("qDest").innerHTML=QDEST.map(d=>`<button type="button" class="qdest" data-qm="${d.k}" aria-pressed="${qMode===d.k}">${d.l}<small>${d.h}</small></button>`).join("");
  const M=QDEST.find(x=>x.k===qMode),otros=qMode==="otros";
  const venc=`<button type="button" class="ghost" data-qv="1">Agregar lo que vence en 3 días</button>`;
@@ -1641,8 +1643,8 @@ function renderLog(){$("log").innerHTML=logData.map(e=>`<li class="${e.k} ${e.n?
 const tabsHtml=ks=>VISTAS.filter(v=>ks.includes(v[0])).map(([k,l,t])=>`<button class="tab" data-s="${k}" aria-pressed="false"><span class="l-lg">${l}</span><span class="l-sm">${t}</span></button>`).join("");
 function montarTabs(){if(!$("vtabs").firstChild){$("vtabs").innerHTML=tabsHtml([0,1]);$("vtabs2").innerHTML=tabsHtml([3,4,5])}}
 const VISTAS=[[0,"Comidas: Quitar","Quitar"],[1,"Inventario: Agregar","Agregar"],[3,"Pedido sugerido","Pedido"],[4,"Gráficos","Gráficos"],[5,"Movimientos","Movimientos"]];
-function limpiarPantalla(){alOpen=false;scOpen=false;plate=[];qFindTxt="";sec=0;
- ["vtabs","vtabs2","zones","zsel","ztipos","imv","imv2","qFilt","qList","qMain","qDest","cml","fMenu","cats","ped","gmode","gper","gtype","gsum","gc","mvl","log","aL","aM","aSug","scanList"].forEach(id=>{const e=$(id);if(e)e.innerHTML=""});
+function limpiarPantalla(){alOpen=false;aq="";plate=[];qFindTxt="";sec=0;
+ ["vtabs","vtabs2","zones","zsel","ztipos","imv","imv2","qFilt","qList","qMain","qDest","cml","fMenu","cats","ped","gmode","gper","gtype","gsum","gc","mvl","log","aL","aM","aSug"].forEach(id=>{const e=$(id);if(e)e.innerHTML=""});
  msg.textContent="";$("bellN").textContent="0";$("addForm").reset();$("scan").value="";pintarAl()}
 function renderAll(){
  if(!currentUser){limpiarPantalla();return}
@@ -1658,7 +1660,7 @@ function renderAll(){
  else if(sec===4){selMov();renderGraf()}
  else if(sec===5)renderLog();
  renderScanList();guardar()}
-function ir(sku){if(window.PRM&&PRM.on())PRM.off();sec=1;zona="*";fTipo="*";vista="todos";alOpen=false;msg.textContent="";renderAll();const r=document.querySelector(`[data-e="${sku}"]`);if(r){r.classList.add("hit");r.scrollIntoView({block:"center"});const qf=r.querySelector("[data-q]");if(qf)qf.focus()}}
+function ir(sku){if(window.PRM&&PRM.on())PRM.off();aq="";$("scan").value="";sec=1;zona="*";fTipo="*";vista="todos";alOpen=false;msg.textContent="";renderAll();const r=document.querySelector(`[data-e="${sku}"]`);if(r){r.classList.add("hit");r.scrollIntoView({block:"center"});const qf=r.querySelector("[data-q]");if(qf)qf.focus()}}
 document.addEventListener("click",e=>{const b=e.target.closest("button"),D=b&&b.dataset;if(!b)return;
  if(D.asug){const i=items.find(a=>a.sku===D.asug);if(i){$("aN").value=i.n;actualizarAdd();$("aQ").focus()}}
  else if(D.qfs){agregarBusq(D.qfs)}
@@ -1893,12 +1895,12 @@ function xlsxBlob(hojas){const nm=hojas.map((x,i)=>xe(x.name.replace(/[\[\]:*?\/
 function datosExport(){
  const Hj=(name,h,r)=>({name,h,r}),lotesDe=L=>L.flatMap(i=>lotsOf(i).map(l=>[i.sku,i.n,l.q,i.u,fechaExp(l.exp)||"Sin vencimiento"])),
   D=c=>(QDEST.find(x=>x.k===c)||{l:c}).l;
- if(sec===0){const l=items.filter(i=>i.sys>0&&(qZona==="*"||i.z===qZona)&&(qTipo==="*"||i.k===qTipo)).sort(ordenQuitar),otros=qMode==="otros";
+ if(sec===0){const l=items.filter(i=>i.sys>0&&(qZona==="*"||i.z===qZona)&&(qTipo==="*"||i.k===qTipo)&&hitA(i)).sort(ordenQuitar),otros=qMode==="otros";
   return{slug:"comidas",hojas:[
    Hj("Alimentos disponibles",["Alimento","Tipo","Zona","Unidad","Disponible","En el plato","Vence más pronto"],l.map(i=>[i.n,i.k,zonaNombre(i.z),i.u,i.sys,enPlato(i.sku),fechaExp(i.exp)])),
    Hj("Plato",["Destino","Alimento","Cantidad","Unidad","Motivo"],plate.map(x=>{const i=items.find(a=>a.sku===x.sku);return[D(qMode),i?i.n:x.sku,x.q,i?i.u:"",otros?x.m:""]})),
    Hj("Últimas comidas",["Fecha y hora","Tipo","Alimento","Cantidad","Unidad","Motivo","Vence (lote)","Responsable"],comidas.slice(0,10).flatMap(c=>c.it.map(x=>[fechaHora(c.t),D(c.k),x.n,x.q,x.u,x.m||"",x.v||"",c.por])))]}}
- if(sec===1){let l=items.filter(i=>pasaF(i)&&okVista(i));
+ if(sec===1){let l=items.filter(i=>pasaF(i)&&okVista(i)&&hitA(i));
   l.sort(fOrden?ordQ:invLayout==="grid"?(a,b)=>CATS.indexOf(a.k)-CATS.indexOf(b.k)||a.n.localeCompare(b.n,"es",{sensitivity:"base"}):(a,b)=>a.n.localeCompare(b.n,"es",{sensitivity:"base"}));
   const est=i=>{const e=estado(i);return sinRojo(i)||e.sin?"Sin stock":e.low?"Bajo el mínimo":e.venc?"Vence en 3 días":"En rango"};
   return{slug:"inventario",hojas:[
@@ -1920,7 +1922,7 @@ async function guardarArchivo(nombre,blob){
  const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=nombre;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),4000);return"ok"}
 let exportando=false;
 async function exportExcel(){if(!currentUser||exportando)return;
- let X;try{X=sec===5?await histExport():datosExport()}catch(_){msg.textContent="No se pudo leer el historial completo. Intenta de nuevo.";return}
+ let X;try{X=window.PRM&&PRM.on()?PRM.datosExport():sec===5?await histExport():datosExport()}catch(_){msg.textContent="No se pudo leer el historial completo. Intenta de nuevo.";return}
  const hojas=X.hojas.filter(h=>h.r.length);
  if(!hojas.length){msg.textContent="No hay datos para exportar en esta pantalla.";return}
  exportando=true;$("exp").disabled=true;
@@ -1957,30 +1959,17 @@ function renderPurga(){const a=$("purgaAviso");if(!a)return;
 $("purgaOk").addEventListener("click",()=>{try{localStorage.setItem("kokoa-purga-visto",hoyClave())}catch(_){}renderPurga()});
 $("purgaExp").addEventListener("click",()=>{sec=5;renderAll();exportExcel()});
 
-function scanMatches(){const k=norm($("scan").value),rank=i=>{const n=norm(i.n);return n===k?0:n.startsWith(k)?1:2};
- return items.filter(i=>!k||norm(i.n).includes(k)||i.sku.toLowerCase().includes(k)).sort((a,b)=>(k?rank(a)-rank(b):0)||a.n.localeCompare(b.n,"es",{sensitivity:"base"}))}
-function renderScanList(){const b=$("scanList"),inp=$("scan");if(!b)return;
- if(window.PRM&&PRM.on()){inp.placeholder="Buscar implemento";inp.setAttribute("aria-label","Buscar implemento");b.hidden=true;inp.setAttribute("aria-expanded","false");return}
- inp.placeholder=sec===0?"Buscar alimento para agregar":"Buscar en inventario";
- inp.setAttribute("aria-label",inp.placeholder);
- if(!scOpen||document.body.classList.contains("locked")){b.hidden=true;inp.setAttribute("aria-expanded","false");return}
- const c=sec===0,l=scanMatches();
- b.innerHTML=`<div class="sh">${c?"Toca un alimento para agregarlo al plato":"Toca un alimento para ir a Inventario"}</div>`+(l.length?l.map(i=>{
-  const r=c?r2(i.sys-enPlato(i.sku)):i.sys;
-  const sub=c?(r>0?`${fm(r)} ${esc(i.u)}`:(i.sys>0?"Ya en el plato":"Sin stock")):`${esc(i.k)} · ${esc(zonaNombre(i.z))} · ${fm(i.sys)} ${esc(i.u)}`;
-  return`<button type="button" class="sli" role="option" data-sc="${i.sku}"${c&&r<=0?" disabled":""}><b>${esc(i.n)}</b><small>${sub}</small></button>`}).join(""):`<p class="sub">No hay alimentos que coincidan${$("scan").value.trim()?" con «"+esc($("scan").value.trim())+"»":""}.</p>`);
- b.hidden=false;inp.setAttribute("aria-expanded","true")}
-function scanPick(sku){if(sec===0){addPlate(sku);renderScanList();return}
- scOpen=false;$("scan").value="";renderScanList();ir(sku)}
-$("scan").addEventListener("focus",()=>{scOpen=true;renderScanList()});
-$("scan").addEventListener("input",()=>{scOpen=true;renderScanList()});
-$("scanList").addEventListener("click",e=>{const b=e.target.closest("[data-sc]");if(!b||b.disabled)return;scanPick(b.dataset.sc)});
-document.addEventListener("click",e=>{if(scOpen&&e.target.isConnected&&!e.target.closest(".scan")){scOpen=false;renderScanList()}});
-addEventListener("keydown",e=>{if(e.key==="Escape"&&scOpen){scOpen=false;renderScanList()}});
-$("scanForm").addEventListener("submit",e=>{e.preventDefault();if(window.PRM&&PRM.on()){PRM.buscar($("scan").value);return}const txt=$("scan").value.trim();
- const l=scanMatches().filter(i=>sec!==0||r2(i.sys-enPlato(i.sku))>0);
- if(!l.length){msg.textContent=sec===0?`No hay alimentos con stock que coincidan con «${txt}».`:`No hay ningún alimento que coincida con «${txt}». Revisa el nombre o créalo en "Crear/Agregar alimento".`;scOpen=true;renderScanList();return}
- scanPick(l[0].sku)});
+function renderScanList(){const inp=$("scan");if(!inp)return;
+ if(window.PRM&&PRM.on()){inp.placeholder="Buscar implemento";inp.setAttribute("aria-label","Buscar implemento");return}
+ inp.placeholder="Buscar alimento";inp.setAttribute("aria-label","Buscar alimento")}
+/* Búsqueda de alimentos: igual que la de préstamos. Filtra en vivo la lista de la sección actual
+   (Quitar o Inventario) y, desde otra sección, lleva al Inventario ya filtrado. */
+function buscarA(v){aq=v||"";
+ if(sec===0){renderQuitar();return}
+ if(sec!==1){if(!aq.trim())return;sec=1;vista="todos";zona="*";fTipo="*";renderAll();return}
+ renderCats()}
+$("scan").addEventListener("input",()=>{if(!(window.PRM&&PRM.on()))buscarA($("scan").value)});
+$("scanForm").addEventListener("submit",e=>{e.preventDefault();if(window.PRM&&PRM.on()){PRM.buscar($("scan").value);return}buscarA($("scan").value)});
 $("bell").addEventListener("click",()=>{alOpen=!alOpen;pintarAl();if(alOpen)$("aClose").focus()});
 const cerrarAl=()=>{alOpen=false;pintarAl();$("bell").focus()};
 $("aClose").addEventListener("click",cerrarAl);$("alertBack").addEventListener("click",cerrarAl);
@@ -2735,7 +2724,7 @@ function rPrestar(force){$("pwarn").hidden=ok;
  renderPQF();
  set("pl",'<h3>Implementos</h3><p class="sub pl-sum">'+av.length+' disponible'+(av.length===1?'':'s')+(sel.size?' · '+sel.size+' en el préstamo':'')+(imp.some(i=>i.estado==="prestado")?' · '+imp.filter(i=>i.estado==="prestado").length+' prestado'+(imp.filter(i=>i.estado==="prestado").length===1?'':'s'):'')+(imp.some(i=>i.estado!=="disponible"&&i.estado!=="prestado")?' · '+imp.filter(i=>i.estado!=="disponible"&&i.estado!=="prestado").length+' en otros estados':'')+'</p><div class="qscroll">'+(G.length?G.map(g=>{const e=encodeURIComponent(g.k);return`<div class="qrow" data-pqd="${e}"><span class="dgrip" title="Arrastra al préstamo" aria-hidden="true">${ICON_MOVE}</span><button type="button" class="zone qsel" data-pg="${e}"${g.rem<=0?" disabled":""}><b>${esc(g.n)}</b><small>${g.rem} disponible${g.rem===1?"":"s"}${otx(g.k)}${g.mal?" · "+g.mal+" en mala condición":""}${g.t?" · "+esc(g.t):""}</small></button></div>`}).join(""):`<p class="sub">${q||pqTipo!=="*"?"Ningún implemento coincide con los filtros.":"No hay implementos disponibles."}</p>`)+"</div>",true);
  const P=all.filter(g=>g.c>0).sort(ab),tot=P.reduce((a,g)=>a+g.c,0);
- let h=`<div class="plate" id="pPlate"><div class="plate-h"><h3>Implementos a prestar</h3><div class="plate-find"><input id="pFind" maxlength="40" autocomplete="off" placeholder="Buscar implemento para agregar" aria-label="Buscar implemento para agregar" value="${esc(pFind)}"></div></div><div class="asug" id="pFindSug" aria-live="polite" hidden></div>`;
+ let h=`<div class="plate" id="pPlate"><div class="plate-h"><h3>Implementos a prestar</h3><div class="plate-find"><input id="pFind" maxlength="40" autocomplete="off" placeholder="Buscar implemento" aria-label="Buscar implemento" value="${esc(pFind)}"></div></div><div class="asug" id="pFindSug" aria-live="polite" hidden></div>`;
  h+=P.length?P.map(g=>{const e=encodeURIComponent(g.k);return`<div class="prow"><div class="pn"><b>${esc(g.n)}</b><small>Quedan ${g.rem} disponible${g.rem===1?"":"s"}</small></div><div class="pqs">${pqc(e,g,"bueno","Buenas",g.ub,g.cb)}${pqc(e,g,"danado","Malas",g.um,g.cm)}</div><button type="button" class="ghost" data-px="${e}" aria-label="Sacar ${esc(g.n)} del préstamo">✕</button></div>`}).join(""):`<div class="pempty"><p><b>Suelta aquí los implementos del préstamo</b></p><p class="sub">Arrástralo desde la lista con el ícono de mover, o tócalo para agregarlo.</p></div>`;
  h+=`</div><div class="qfoot"><div class="qsum">${tot?`${tot} implemento${tot>1?"s":""} para prestar`:"Aún no hay implementos en el préstamo."}</div><div class="qbtns"><button type="button" class="ghost" data-pvac="1"${tot?"":" disabled"}>Vaciar</button></div></div>`;
  set("pMain",h,force);pFindUpd();
@@ -2821,7 +2810,7 @@ function pendH(pe){const g=[],m=new Map();
   return`<div class="pendr"><span>${esc(i.nombre)}</span><b>× ${n}</b>${c&&(c!=="bueno"||rep.get(k)>1)?`<small class="pchip${c==="bueno"?"":" late"}">${esc(condTxt(c))}</small>`:""}</div>`}).join("")+"</div>"}
 function rCurso(){
  const a=pre.filter(p=>p.estado==="activo").map(p=>{const pe=its.filter(i=>i.prestamo_id===p.id&&!i.devuelto);return{p,pe,m:pe.reduce((x,i)=>Math.min(x,Date.parse(i.vence)),1e15)}}).sort((x,y)=>x.m-y.m);
- set("pcur",a.length?'<div class="tbl"><table class="pcurt"><thead><tr><th>Préstamo</th><th>Prestatario</th><th>Documento</th><th>Teléfono</th><th>Pendiente</th><th>Devolver antes de</th><th>Estado</th><th></th></tr></thead><tbody>'+a.map(({p,pe,m})=>{const v=pe.some(late);return`<tr class="${v?"ns u":""}"><td class="nm"><b>${esc(p.numero)}</b></td><td data-label="Prestatario">${esc(p.nombre)}</td><td data-label="Documento">${esc(p.documento)}</td><td data-label="Teléfono">${esc(p.telefono||"—")}</td><td data-label="Pendiente">${pendH(pe)}</td><td data-label="Devolver antes de"${v?' class="low"':""}>${f(m)}</td><td data-label="Estado"><span class="pchip on">Por devolver</span></td><td class="act" data-label=""><button type="button" data-rcv="${p.id}">Recibir</button> <button type="button" class="ghost" data-tk="${p.id}">Ticket</button></td></tr>`}).join("")+'</tbody></table></div>':'<p class="sub">No hay préstamos en curso.</p>')}
+ set("pcur",'<div class="tbl"><table class="pcurt"><thead><tr><th>Préstamo</th><th>Prestatario</th><th>Documento</th><th>Teléfono</th><th>Pendiente</th><th>Devolver antes de</th><th>Estado</th><th></th></tr></thead><tbody>'+(a.length?a.map(({p,pe,m})=>{const v=pe.some(late);return`<tr class="${v?"ns u":""}"><td class="nm"><b>${esc(p.numero)}</b></td><td data-label="Prestatario">${esc(p.nombre)}</td><td data-label="Documento">${esc(p.documento)}</td><td data-label="Teléfono">${esc(p.telefono||"—")}</td><td data-label="Pendiente">${pendH(pe)}</td><td data-label="Devolver antes de"${v?' class="low"':""}>${f(m)}</td><td data-label="Estado"><span class="pchip on">Por devolver</span></td><td class="act" data-label=""><button type="button" data-rcv="${p.id}">Recibir</button> <button type="button" class="ghost" data-tk="${p.id}">Ticket</button></td></tr>`}).join(""):'<tr><td colspan="8">No hay préstamos en curso.</td></tr>')+'</tbody></table></div>')}
 function rMov(){
  const row=e=>mvLi({t:e.tipo==="prestamo"?"Préstamo":e.tipo==="edicion"?"Edición":"Devolución",c:e.tipo==="prestamo"?"dn":e.tipo==="edicion"?"":"up",chip:e.tipo==="edicion"?"Editar":esc(e.numero||""),s:esc(e.detalle),d:f(e.t)+(e.apodo?" · "+esc(e.apodo):""),h:tkb(e)+hb(e.id)});
  set("pevg",evs.filter(e=>e.tipo==="edicion").map(row).join("")||"<li>Sin movimientos generales todavía.</li>");
@@ -2870,12 +2859,48 @@ function rGraf(){if(!on||sec!==4)return;
  $("pgl").innerHTML=R.length?R.map(m=>mvLi({t:esc(m.n),c:m.d>0?"up":"dn",chip:m.d>0?"Se devolvió +1":"Se prestó −1",s:(m.w?esc(m.w)+(m.num?" · ":""):"")+esc(m.num),d:f(m.t)})).join(""):"<li>No hay movimientos en este período. Aparecen cuando prestas o recibes implementos.</li>";
  const c={};its.forEach(i=>c[i.nombre]=(c[i.nombre]||0)+1);const t=Object.entries(c).sort((a,b)=>b[1]-a[1]).slice(0,10),mx=t.length?t[0][1]:1;
  $("pgr").innerHTML=t.length?t.map(([n,v])=>`<div style="display:flex;gap:10px;align-items:center;margin:6px 0"><span style="flex:0 0 150px;min-width:0;overflow-wrap:anywhere">${esc(n)}</span><i style="display:block;height:14px;border-radius:7px;background:var(--gchart);width:${Math.max(2,Math.round(v/mx*100))}%;max-width:calc(100% - 200px)"></i><b>${v}</b></div>`).join(""):'<p class="sub">Aún no hay préstamos.</p>'}
+
+/* ---- Exportar a Excel (modo préstamos): mismas secciones que la pantalla ---- */
+function datosExport(){
+ const Hj=(name,h,r)=>({name,h,r}),ab=(a,b)=>String(a).localeCompare(String(b),"es",{sensitivity:"base"}),cI=m=>(m&&m.categoria)||"",k=nq(dq.trim());
+ const impDe=i=>imp.find(x=>x.id===i.implemento_id)||{};
+ const tpOk=c=>dvc==="*"||c===dvc;
+ if(sec===0){const q=nq(pqTxt.trim()),all=pgroups();
+  const G=all.filter(g=>(pqTipo==="*"||g.t===pqTipo)&&(!q||nq(g.n+" "+g.t+" "+g.acc).includes(q))).sort((a,b)=>pqOrd?((pqOrd==="may"?b.u.length-a.u.length:a.u.length-b.u.length)||ab(a.n,b.n)):ab(a.n,b.n));
+  return{slug:"prestar",hojas:[
+   Hj("Implementos disponibles",["Implemento","Tipo","Disponibles","Buenas","Malas","En el préstamo"],G.map(g=>[g.n,g.t,g.u.length,g.ub,g.um,g.c])),
+   Hj("Préstamo en armado",["Implemento","Tipo","Buenas","Malas","Total"],all.filter(g=>g.c>0).sort((a,b)=>ab(a.n,b.n)).map(g=>[g.n,g.t,g.cb,g.cm,g.c])),
+   Hj("Últimos préstamos",["Fecha y hora","Número","Detalle","Por"],evs.filter(e=>e.tipo==="prestamo").slice(0,10).map(e=>[f(e.t),e.numero||"",e.detalle||"",e.apodo||""]))]}}
+ if(sec===1){let H1;
+  if(dvf==="pend"||dvf==="venc"){
+   const R=its.filter(i=>!i.devuelto&&(dvf==="pend"||late(i))).map(i=>({i,m:impDe(i)})).filter(({i,m})=>tpOk(cI(m))&&(!k||nq(i.nombre+" "+cI(m)+" "+(m.accesorios||"")).includes(k))).sort((x,y)=>ab(x.i.nombre,y.i.nombre));
+   H1=Hj(ESTL[dvf]||"Por devolver",["Implemento","Tipo","Préstamo","Prestado a","Documento","Teléfono","Devolver antes de","Condición al salir","Estado"],R.map(({i,m})=>{const r=pre.find(x=>x.id===i.prestamo_id)||{};return[i.nombre,cI(m),r.numero||"",r.nombre||"",r.documento||"",r.telefono||"",f(i.vence),condTxt(i.cond_salida),late(i)?"Vencido":"Por devolver"]}))}
+  else{const cl=dvf.startsWith("e:")?dvf.slice(2):"";
+   const L=imp.filter(m=>dvf==="todos"||(dvf==="disp"&&m.estado==="disponible")||(dvf==="lim"&&m.estado==="por_limpiar")||(cl&&m.estado===cl)).filter(m=>tpOk(cI(m))&&(!k||nq(m.nombre+" "+cI(m)+" "+(m.accesorios||"")).includes(k))).sort((a,b)=>ab(a.nombre,b.nombre));
+   H1=Hj(ESTL[dvf]||"Implementos",["Implemento","Tipo","Estado","Condición","Accesorios"],L.map(m=>[m.nombre,cI(m),lbl(m.estado),condTxt(m.condicion),m.accesorios||""]))}
+  return{slug:"devolver",hojas:[H1,
+   Hj("Últimas devoluciones",["Fecha y hora","Número","Detalle","Por"],evs.filter(e=>e.tipo==="devolucion").slice(0,10).map(e=>[f(e.t),e.numero||"",e.detalle||"",e.apodo||""]))]}}
+ if(sec===3){
+  const a=pre.filter(p=>p.estado==="activo").map(p=>{const pe=its.filter(i=>i.prestamo_id===p.id&&!i.devuelto);return{p,pe,m:pe.reduce((x,i)=>Math.min(x,Date.parse(i.vence)),1e15)}}).sort((x,y)=>x.m-y.m);
+  const pt=pe=>{const g=new Map();pe.forEach(i=>{const c=i.cond_salida||"",key=String(i.nombre||"").trim().toLowerCase()+"¦"+c;if(!g.has(key))g.set(key,{n:i.nombre,c,q:0});g.get(key).q++});return[...g.values()].map(o=>o.n+" × "+o.q+(o.c&&o.c!=="bueno"?" ("+condTxt(o.c).toLowerCase()+")":"")).join("; ")};
+  return{slug:"prestamos-en-curso",hojas:[Hj("Préstamos en curso",["Préstamo","Prestatario","Documento","Teléfono","Pendiente","Devolver antes de","Estado"],a.map(({p,pe,m})=>[p.numero||"",p.nombre||"",p.documento||"",p.telefono||"",pt(pe),pe.length?f(m):"",pe.some(late)?"Vencido":"Por devolver"]))]}}
+ if(sec===4){
+  const B=pbucks(),M=pmov().filter(m=>(pgi==="*"||(pgm==="t"?m.k===pgi:m.n===pgi))&&m.t>=B[0].a&&m.t<B[B.length-1].e);
+  let ti=0,to=0,acc=0;B.forEach(b=>{b.i=0;b.o=0;b.net=0});
+  M.forEach(m=>{const b=B.find(b=>m.t>=b.a&&m.t<b.e);if(!b)return;if(m.d>0){b.i+=m.d;ti+=m.d}else{b.o-=m.d;to-=m.d}b.net+=m.d});
+  const sl=pgi==="*"?(pgm==="t"?"Todos los tipos de implemento":"Todos los implementos"):pgi,cnt={};its.forEach(i=>cnt[i.nombre]=(cnt[i.nombre]||0)+1);
+  return{slug:"graficos-prestamos",hojas:[
+   Hj("Resumen",["Dato","Valor"],[["Vista",pgm==="t"?"Por tipo de implemento":"Por implemento"],["Selección",sl],["Período",{d:"Hoy",s:"7 días",m:"30 días"}[pgp]],["Se devolvió",ti],["Se prestó",to],["Movimientos",M.length],["Disponibles ahora",imp.filter(i=>i.estado==="disponible").length],["Prestados ahora",imp.filter(i=>i.estado==="prestado").length],["Por limpiar ahora",imp.filter(i=>i.estado==="por_limpiar").length]]),
+   Hj("Gráfico",["Período","Se devolvió","Se prestó","Neto","Balance acumulado"],B.map(b=>{acc+=b.net;return[b.n,b.i,b.o,b.net,acc]})),
+   Hj("Últimos movimientos",["Fecha y hora","Implemento","Tipo de movimiento","Tipo de implemento","Prestatario","Préstamo"],M.slice().sort((a,b)=>b.t-a.t).slice(0,10).map(m=>[f(m.t),m.n,m.d>0?"Se devolvió":"Se prestó",m.k,m.w||"",m.num||""])),
+   Hj("Más prestados",["Implemento","Veces prestado"],Object.entries(cnt).sort((a,b)=>b[1]-a[1]||ab(a[0],b[0])).slice(0,10))]}}
+ return{slug:"movimientos-prestamos",hojas:[Hj("Movimientos de préstamos",["Fecha y hora","Tipo","Número","Detalle","Por"],evs.map(e=>[f(e.t),e.tipo==="prestamo"?"Préstamo":e.tipo==="edicion"?"Edición":"Devolución",e.numero||"",e.detalle||"",e.apodo||""]))]}}
 function rAll(){if(on)render()}
 function buscar(v){dq=v||"";if(!built)return;
  if(sec===0){pqTxt=dq;rPrestar(true);return}
  if(sec!==1){if(!dq.trim())return;sec=1;dvf="todos";dvc="*";render();return}
  rDevolver(true)}
-function off(){on=false;try{localStorage.setItem(KM,"0")}catch(_){}dq="";pqTxt="";$("scan").value="";pintar()}
+function off(){on=false;try{localStorage.setItem(KM,"0")}catch(_){}dq="";pqTxt="";aq="";$("scan").value="";pintar()}
 
 function render(){build();const s=sec;
  montarTabs();
@@ -2885,9 +2910,9 @@ function render(){build();const s=sec;
  ({0:rPrestar,1:rDevolver,3:rCurso,4:rGraf,5:rMov})[s]();const tm=$("tpModal");if(tm&&!tm.hidden&&!(ordDrag&&ordDrag.on)&&!busy($("tpBody")))tpRender()}
 function hide(){if(built)[0,1,3,4,5].forEach(k=>$("pv"+k).hidden=true);if($("vtabs").firstChild)lab(false)}
 $("scan").addEventListener("input",()=>{if(on)buscar($("scan").value)});
-$("modo").addEventListener("click",()=>{on=!on;dq="";pqTxt="";$("scan").value="";try{localStorage.setItem(KM,on?"1":"0")}catch(_){}pintar();sec=0;msg.textContent="";if(currentUser)renderAll()});
+$("modo").addEventListener("click",()=>{on=!on;dq="";pqTxt="";aq="";$("scan").value="";try{localStorage.setItem(KM,on?"1":"0")}catch(_){}pintar();sec=0;msg.textContent="";if(currentUser)renderAll()});
 pintar();
-return{on:()=>on,off,buscar,render,hide,load,ordOn:()=>{const m=document.getElementById("tpModal");return !!m&&!m.hidden&&/-ord$/.test(tpV)},ordMove:(a,b)=>tpOrdMove(a,b)};
+return{on:()=>on,off,buscar,render,hide,load,datosExport,ordOn:()=>{const m=document.getElementById("tpModal");return !!m&&!m.hidden&&/-ord$/.test(tpV)},ordMove:(a,b)=>tpOrdMove(a,b)};
 })();
 </script>
 </body>
