@@ -6098,6 +6098,27 @@ nav.views #cntL,nav.views #cntR{display:none}
 #cnt .cn-bad{color:var(--alert-t)}
 #cnt .r{text-align:right}
 @media (max-width:560px){#cnt .cn-l{grid-template-columns:minmax(0,1fr) minmax(0,1fr) 44px}#cnt .cn-l select{grid-column:1/-1}}
+.cal-g.cal-m{grid-template-columns:repeat(3,1fr)}
+#cnt .cn-caja{display:grid;gap:16px;align-items:start}
+@media (min-width:900px){#cnt .cn-caja{grid-template-columns:minmax(0,560px) minmax(280px,1fr)}}
+#cnt .cn-caja>.cn-card{margin:0}
+#cnt .cn-hs{display:flex;flex-wrap:wrap;gap:6px 16px;font-weight:700;margin:0 0 10px}
+#cnt .cn-mv{display:flex;justify-content:space-between;gap:10px;align-items:flex-start;padding:8px 0;border-top:1px solid var(--rule)}
+#cnt .cn-mv>div{min-width:0;overflow-wrap:anywhere}
+#cnt .cn-lk{background:none;border:0;box-shadow:none;padding:0;min-height:0;width:auto;color:var(--alert-t);text-decoration:underline;cursor:pointer;font:inherit;flex:none}
+#cnt .cn-2{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,340px),1fr));gap:14px;align-items:start}
+#cnt .cn-2>.cn-card{margin:0}
+#cnt .cn-pf{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:0 0 12px}
+#cnt .cn-pf input{flex:1 1 220px;min-width:0}
+#cnt .cn-pf .tab{flex:none}
+#cnt .cn-gh{display:flex;width:100%;justify-content:space-between;align-items:center;gap:8px;background:none;border:0;border-radius:0;box-shadow:none;padding:4px 2px 8px;min-height:0;color:var(--ink);font-weight:700;cursor:pointer;text-align:left}
+#cnt .cn-pt{width:100%;border-collapse:collapse}
+#cnt .cn-pt th,#cnt .cn-pt td{padding:6px 8px;text-align:left;border-top:1px solid var(--rule)}
+#cnt .cn-pt .r{text-align:right}
+#cnt .cn-pt tr.cn-pr{cursor:pointer}
+#cnt .cn-pt tr.cn-pr:hover{background:var(--mint)}
+#cnt .cn-nm{color:var(--ink);text-decoration:none;font-weight:600;text-align:left}
+#cnt .cn-hi td{background:var(--mint)}
 </style>
 </head>
 <body>
@@ -7086,7 +7107,7 @@ function abrirLista(s){if(s.disabled)return;cerrarPk();
   if(e.key==="Escape"){e.preventDefault();e.stopPropagation();cerrarPk()}
   else if(e.key==="ArrowDown"||e.key==="ArrowUp"){e.preventDefault();const k=v.findIndex(l=>+l.dataset.i===act),n=v[Math.max(0,Math.min(v.length-1,k+(e.key==="ArrowDown"?1:-1)))];if(n){act=+n.dataset.i;marca()}}
   else if(e.key==="Enter"&&e.target.tagName!=="BUTTON"){e.preventDefault();elegir(act)}});
- const q=back.querySelector(".pk-q");if(q)q.addEventListener("input",()=>{const k=norm(q.value);filas.forEach(l=>{l.hidden=!!k&&!norm(l.textContent).includes(k)});const v=vis();if(v.length&&!v.some(l=>+l.dataset.i===act))act=+v[0].dataset.i;marca()});
+ const fj=l=>s.options[+l.dataset.i].hasAttribute("data-fijo"),q=back.querySelector(".pk-q");if(q)q.addEventListener("input",()=>{const k=norm(q.value);filas.forEach(l=>{l.hidden=!!k&&!fj(l)&&!norm(l.textContent).includes(k)});const v=vis(),p=v.filter(l=>!fj(l)),w=p.length?p:v;if(w.length&&!w.some(l=>+l.dataset.i===act))act=+w[0].dataset.i;marca()});
  document.body.appendChild(back);marca();(q||ul).setAttribute("tabindex","-1");(q||ul).focus({preventScroll:true})}
 document.addEventListener("click",e=>{const b=e.target.closest&&e.target.closest("button.csel");
  if(b&&b._s){e.preventDefault();abrirLista(b._s);return}
@@ -7115,11 +7136,33 @@ function abrirFecha(inp){cerrarPk();const hoy=new Date(),hs=ymd(hoy);
   else if(b.dataset.n){vis=new Date(vis.getFullYear(),vis.getMonth()+ +b.dataset.n,1);pintar(false);const k=box.querySelector(`[data-n="${b.dataset.n}"]`);if(k)k.focus({preventScroll:true})}});
  back.addEventListener("keydown",e=>{if(e.key==="Escape"){e.preventDefault();e.stopPropagation();cerrarPk()}});
  document.body.appendChild(back);pintar(true)}
-document.addEventListener("click",e=>{const b=e.target.closest&&e.target.closest("button.dsel");if(b&&b._i){e.preventDefault();abrirFecha(b._i)}},true);
+document.addEventListener("click",e=>{const b=e.target.closest&&e.target.closest("button.dsel");if(b&&b._i){e.preventDefault();(b._i._mes?abrirMes:abrirFecha)(b._i)}},true);
+
+const MESES_TXT=v=>/^\d{4}-\d\d$/.test(v)?MESES[+v.slice(5)-1]+" "+v.slice(0,4):"";
+function pintarMes(i){const b=i._b;if(!b)return;const v=/^\d{4}-\d\d$/.test(i.value)?i.value:"",t=v?MESES_TXT(v):"Todos";
+ if(b.firstChild.textContent!==t)b.firstChild.textContent=t;b.classList.toggle("vacia",!v);if(b.disabled!==i.disabled)b.disabled=i.disabled}
+function mejorarMes(i){if(i._b)return;i._mes=1;i.type="hidden";
+ const b=document.createElement("button");b.type="button";b.className="dsel";b.innerHTML="<span></span>";b.setAttribute("aria-haspopup","dialog");
+ const l=i.closest("label");if(l){const t=[...l.childNodes].filter(n=>n.nodeType===3).map(n=>n.textContent).join("").trim();if(t)b.setAttribute("aria-label",t)}
+ i.after(b);i._b=b;b._i=i;pintarMes(i)}
+function abrirMes(inp){cerrarPk();const h=new Date(),hm=h.getFullYear()+"-"+String(h.getMonth()+1).padStart(2,"0");
+ let sel=/^\d{4}-\d\d$/.test(inp.value)?inp.value:"",y=+(sel||hm).slice(0,4);
+ const back=document.createElement("div");back.className="pk-back";back._ret=inp._b;
+ back.innerHTML='<div class="pk cal" role="dialog" aria-modal="true" aria-label="Elegir mes"></div>';const box=back.firstChild;
+ function pintar(foco){let c="";for(let k=0;k<12;k++){const v=y+"-"+String(k+1).padStart(2,"0");c+=`<button type="button" data-m="${v}" class="${v===hm?"hoy ":""}${v===sel?"sel":""}"${v===sel?' aria-pressed="true"':""}>${MESES[k].slice(0,3)}</button>`}
+  box.innerHTML=`<div class="cal-h"><button type="button" data-n="-1" aria-label="Año anterior">‹</button><b>${y}</b><button type="button" data-n="1" aria-label="Año siguiente">›</button></div><div class="cal-g cal-m">${c}</div><div class="cal-f"><button type="button" class="ghost" data-hoy="1">Este mes</button>${inp.hasAttribute("data-req")?"":'<button type="button" class="ghost" data-no="1">Todos</button>'}<button type="button" class="ghost" data-x="1">Cerrar</button></div>`;
+  if(foco){const f=box.querySelector(".sel")||box.querySelector(".hoy")||box.querySelector("[data-m]");if(f)f.focus({preventScroll:true})}}
+ const poner=v=>{if(inp.value!==v){inp.value=v;inp.dispatchEvent(new Event("input",{bubbles:true}));inp.dispatchEvent(new Event("change",{bubbles:true}))}pintarMes(inp);cerrarPk()};
+ back.addEventListener("click",e=>{e.stopPropagation();const t=e.target;if(t===back){cerrarPk();return}const b=t.closest("button");if(!b)return;
+  if(b.dataset.m)poner(b.dataset.m);else if(b.dataset.hoy)poner(hm);else if(b.dataset.no)poner("");else if(b.dataset.x)cerrarPk();
+  else if(b.dataset.n){y+=+b.dataset.n;pintar(false);const k=box.querySelector(`[data-n="${b.dataset.n}"]`);if(k)k.focus({preventScroll:true})}});
+ back.addEventListener("keydown",e=>{if(e.key==="Escape"){e.preventDefault();e.stopPropagation();cerrarPk()}});
+ document.body.appendChild(back);pintar(true)}
 
 function mejorarUI(){document.querySelectorAll("select:not(.cs-src):not([data-native])").forEach(mejorarSel);
  document.querySelectorAll('input[type="date"]:not([data-native])').forEach(mejorarFecha);
- document.querySelectorAll("select.cs-src").forEach(pintarSel);document.querySelectorAll("input[data-fecha-ok],input[type=hidden]").forEach(i=>{if(i._b&&i._b.classList.contains("dsel"))pintarFecha(i)})}
+ document.querySelectorAll('input[type="month"]:not([data-native])').forEach(mejorarMes);
+ document.querySelectorAll("select.cs-src").forEach(pintarSel);document.querySelectorAll("input[data-fecha-ok],input[type=hidden]").forEach(i=>{if(i._b&&i._b.classList.contains("dsel"))(i._mes?pintarMes:pintarFecha)(i)})}
 let uiRaf=0;new MutationObserver(()=>{if(uiRaf)return;uiRaf=requestAnimationFrame(()=>{uiRaf=0;mejorarUI()})}).observe(document.body,{childList:true,subtree:true,attributes:true,attributeFilter:["disabled","value"]});
 document.addEventListener("reset",()=>setTimeout(mejorarUI,0),true);document.addEventListener("change",()=>setTimeout(mejorarUI,0),true);
 setInterval(()=>{if(!document.hidden)mejorarUI()},3000);document.addEventListener("visibilitychange",()=>{if(!document.hidden)mejorarUI()});mejorarUI();
@@ -7829,7 +7872,7 @@ function vPre(){const y=pm.slice(0,4),[a,z]=ym(pm),em=ejec(a,z),ea=ejec(y+"-01-0
   return`<tr><td>${esc(c.codigo)} ${esc(c.nombre)}</td><td><input type="number" min="0" step="any" inputmode="decimal" data-bd="${c.codigo}" value="${bd[c.codigo]!==undefined?esc(bd[c.codigo]):p||""}" aria-label="Presupuesto de ${esc(c.nombre)}"></td><td class="r">${m(e)}</td><td class="r ${p&&df<0?"cn-bad":""}">${m(df)}</td><td class="r ${!g&&p&&e>p?"cn-bad":""}">${p?Math.round(e/p*100)+"%":"—"}</td><td class="r">${m(pa(c.codigo))}</td><td class="r">${m(ea[c.codigo]||0)}</td></tr>`},
  body=[["I","Ingresos"],["C","Costos"],["G","Gastos"]].map(([k,l])=>`<tr><th colspan="7">${l}</th></tr>`+cu.filter(c=>c.tipo===k).map(fila).join("")).join(""),
  ti=T.I||[0,0,0,0],tc=T.C||[0,0,0,0],tg=T.G||[0,0,0,0],P=i=>tc[i]+tg[i];
- return`<h2>Presupuesto</h2>${nota()}<div class="cn-f"><label>Mes<input id="pMes" type="month" value="${pm}"></label><label>&nbsp;<button type="button" class="ghost" data-c="pcopia">Copiar el mes anterior</button></label><label>&nbsp;<button type="button" class="ghost" data-c="panio">Repetir en el resto del año</button></label></div>
+ return`<h2>Presupuesto</h2>${nota()}<div class="cn-f"><label>Mes<input id="pMes" type="month" data-req value="${pm}"></label><label>&nbsp;<button type="button" class="ghost" data-c="pcopia">Copiar el mes anterior</button></label><label>&nbsp;<button type="button" class="ghost" data-c="panio">Repetir en el resto del año</button></label></div>
 <p class="sub">Escribe lo que esperas recibir o gastar en el mes. El ejecutado sale de los asientos. En ingresos, la diferencia es lo recaudado menos lo presupuestado. En costos y gastos es lo presupuestado menos lo gastado, y sale en rojo si te pasaste.</p>
 <div class="tbl"><table style="min-width:760px"><thead><tr><th>Cuenta</th><th>Presupuesto del mes</th><th class="r">Ejecutado</th><th class="r">Diferencia</th><th class="r">Avance</th><th class="r">Presupuesto del año</th><th class="r">Ejecutado del año</th></tr></thead><tbody>${body}</tbody></table></div>
 <div class="gsum"><span class="chip">Ingresos: ${m(ti[1])} de ${m(ti[0])}</span><span class="chip ${P(0)&&P(1)>P(0)?"bad":""}">Costos y gastos: ${m(P(1))} de ${m(P(0))}</span><span class="chip">Excedente presupuestado: ${m(ti[0]-P(0))}</span><span class="chip">Excedente real: ${m(ti[1]-P(1))}</span></div>
@@ -7874,7 +7917,7 @@ async function bAuto(){
  finally{await loadN()}
  aviso(k?k+" movimientos conciliados.":"No encontré coincidencias de igual valor y fecha cercana (hasta 5 días).")}
 function ctlN(){const p=hoy().slice(0,7),[a,z]=ym(p),e=ejec(a,z),B=bnd(),P=cu.filter(c=>"GC".includes(c.tipo)&&pAv(p,c.codigo)>0&&(e[c.codigo]||0)>pAv(p,c.codigo));
- return`<div class="cn-card"><h3>Presupuesto del mes</h3>${P.length?P.map(c=>`<div class="cn-bad">${esc(c.nombre)}: gastado ${m(e[c.codigo])} de ${m(pAv(p,c.codigo))}</div>`).join(""):'<p class="sub">Ninguna cuenta superó su presupuesto.</p>'}</div><div class="cn-card"><h3>Bancos</h3><p class="${B.pend.length||B.libres.length?"cn-bad":"sub"}">${B.pend.length} movimientos del extracto y ${B.libres.length} del libro sin conciliar.</p></div>`}
+ return[[P.length?2:4,`<div class="cn-card"><h3>Presupuesto del mes</h3>${P.length?P.map(c=>`<div class="cn-bad">${esc(c.nombre)}: gastado ${m(e[c.codigo])} de ${m(pAv(p,c.codigo))}</div>`).join(""):'<p class="sub">Ninguna cuenta superó su presupuesto.</p>'}</div>`],[B.pend.length||B.libres.length?2:4,`<div class="cn-card"><h3>Bancos</h3><p class="${B.pend.length||B.libres.length?"cn-bad":"sub"}">${B.pend.length} movimientos del extracto y ${B.libres.length} del libro sin conciliar.</p></div>`]]}
 async function load(){
  if(!esAdmin())return;
  const r=await Promise.all([SB.from("cnt_cuentas").select("*").order("codigo"),traerTodo("cnt_terceros","id"),traerTodo("cnt_asientos","id"),traerTodo("cnt_lineas","id"),SB.from("cnt_cierres").select("periodo")]).catch(x=>{le=x.message||String(x);return null});
@@ -7904,23 +7947,29 @@ function vCaja(){
  if(avz)return`<div class="cn-f"><button type="button" class="ghost" data-c="avz">← Volver a Caja</button></div>`+vAvz();
  const k=cj.k,p=PL[k],ing=cj.t==="i",comp=k==="com",dona=!!p[2].don,L1=p[1](1),MD=L1.some(x=>x[0]==="1105"||x[0]==="1110"),b=cj.b||(L1.some(x=>x[0]==="1105")?"e":"b");
  if(comp&&!kp.length)kp.push({n:"",q:"",v:"",u:"",s:""});
- const na=itm().map(i=>i.n).sort((a,c)=>a.localeCompare(c,"es")),
+ const na=[...new Set(itm().map(i=>i.n))].sort((a,c)=>a.localeCompare(c,"es")),
+ tn=[...new Set(te.map(t=>t.nombre))].sort((a,c)=>String(a).localeCompare(c,"es")),tsel=kv.t==="__nuevo"||tn.includes(kv.t)?kv.t:"",
+ sopt=(L,v,ph)=>`<option value="">${ph}</option><option value="__nuevo" data-fijo${v==="__nuevo"?" selected":""}>＋ Nuevo…</option>`+L.map(x=>`<option value="${esc(x)}"${x===v?" selected":""}>${esc(x)}</option>`).join(""),
+ pSel=(x,i)=>{const ps=x.nuevo||(x.n&&!na.some(a=>nq(a)===nq(x.n)))?"__nuevo":(na.find(a=>nq(a)===nq(x.n))||"");
+  return`<div style="grid-column:span 2;display:grid;gap:6px;min-width:0"><select data-p="${i}" data-f="n" aria-label="Producto">${sopt(na,ps,"Producto…")}</select>${ps==="__nuevo"?`<input data-p="${i}" data-f="n" maxlength="80" value="${esc(x.n)}" placeholder="Nombre del producto nuevo" aria-label="Producto nuevo">`:""}</div>`},
  hint=k==="cuo"?"Cada cuota necesita su documento (factura o POS electrónico). Anota el número.":dona?"No se factura. El certificado sale en Movimientos › Donaciones.":comp&&!cj.f?"Sin factura: genera el documento soporte esta semana. Queda en Cierre › Control.":"";
- return`<h2>Caja</h2><form id="cK" autocomplete="off" class="cn-card"><div class="cn-f">${[["i","Ingreso"],["e","Egreso"]].map(([v,l])=>`<button type="button" class="kbig${cj.t===v?"":" ghost"}" data-c="kt" data-i="${v}">${l}</button>`).join("")}</div>
+ return`<h2>Caja</h2><div class="cn-caja"><form id="cK" autocomplete="off" class="cn-card"><div class="cn-f">${[["i","Ingreso"],["e","Egreso"]].map(([v,l])=>`<button type="button" class="kbig${cj.t===v?"":" ghost"}" data-c="kt" data-i="${v}">${l}</button>`).join("")}</div>
 <div class="tabs">${KS[cj.t].map(x=>bt2("kk",x,KL[x],k===x)).join("")}</div>
-<div class="cn-f"><label>Valor<input id="kV" data-kv="v" type="number" min="0" step="any" inputmode="decimal" value="${esc(kv.v||"")}"></label>${k==="cuo"?"":`<label>${dona?"Donante":comp?"Proveedor":ing?"Quién paga":"A quién se paga"}<input id="kT" data-kv="t" list="kTl" maxlength="80" value="${esc(kv.t||"")}"></label>`}${k==="cuo"||(comp&&cj.f)?`<label>${k==="cuo"?"N.º del documento":"N.º de factura"}<input data-kv="n" maxlength="40" value="${esc(kv.n||"")}"></label>`:""}</div>
+<div class="cn-f"><label>Valor<input id="kV" data-kv="v" type="number" min="0" step="any" inputmode="decimal" value="${esc(kv.v||"")}"></label>${k==="cuo"?"":`<label>${dona?"Donante":comp?"Proveedor":ing?"Quién paga":"A quién se paga"}<select id="kT" data-kv="t">${sopt(tn,tsel,"Elegir…")}</select></label>${kv.t==="__nuevo"?`<label>Nombre nuevo<input id="kTn" data-kv="tn" maxlength="80" value="${esc(kv.tn||"")}"></label>`:""}`}${k==="cuo"||(comp&&cj.f)?`<label>${k==="cuo"?"N.º del documento":"N.º de factura"}<input data-kv="n" maxlength="40" value="${esc(kv.n||"")}"></label>`:""}</div>
 ${comp?`<div class="tabs">${bt2("kf",1,"Sí factura",cj.f)}${bt2("kf",0,"No factura",!cj.f)}</div>`:""}
 ${MD?`<div class="tabs">${bt2("kb","e","Efectivo",b==="e")}${bt2("kb","b","Banco",b==="b")}</div>`:""}
-${comp?`<div><b>Productos</b> <span class="sub">(opcional: sirve para seguir precios; también puedes escribir uno nuevo)</span>${kp.map((x,i)=>`<div class="kg"><input style="grid-column:span 2" list="kPl" data-p="${i}" data-f="n" value="${esc(x.n)}" placeholder="Producto" aria-label="Producto"><input type="number" min="0" step="any" inputmode="decimal" data-p="${i}" data-f="q" value="${esc(x.q)}" placeholder="Cantidad"><input data-p="${i}" data-f="u" maxlength="12" value="${esc(x.u)}" placeholder="Unidad"><input type="number" min="0" step="any" inputmode="decimal" data-p="${i}" data-f="v" value="${esc(x.v)}" placeholder="Valor total"><button type="button" class="ghost" data-c="pq" data-i="${i}" aria-label="Quitar">✕</button></div>`).join("")}<button type="button" class="ghost" data-c="pa">＋ Producto</button></div>`:""}
+${comp?`<div><b>Productos</b> <span class="sub">(opcional: sirve para seguir precios; también puedes escribir uno nuevo)</span>${kp.map((x,i)=>`<div class="kg">${pSel(x,i)}<input type="number" min="0" step="any" inputmode="decimal" data-p="${i}" data-f="q" value="${esc(x.q)}" placeholder="Cantidad"><input data-p="${i}" data-f="u" maxlength="12" value="${esc(x.u)}" placeholder="Unidad"><input type="number" min="0" step="any" inputmode="decimal" data-p="${i}" data-f="v" value="${esc(x.v)}" placeholder="Valor total"><button type="button" class="ghost" data-c="pq" data-i="${i}" aria-label="Quitar">✕</button></div>`).join("")}<button type="button" class="ghost" data-c="pa">＋ Producto</button></div>`:""}
 <details><summary>Más datos</summary><div class="cn-f"><label>Fecha<input type="date" data-kv="f" value="${esc(kv.f||hoy())}"></label><label>Nota<input data-kv="c" maxlength="120" value="${esc(kv.c||"")}"></label></div></details>
 ${hint?`<p class="sub">${hint}</p>`:""}${nota2()}<div class="cn-f"><button type="submit" class="kbig">Guardar</button><button type="button" class="ghost" data-c="avz">Asiento avanzado</button></div>
-<datalist id="kTl">${te.map(t=>`<option value="${esc(t.nombre)}">`).join("")}</datalist><datalist id="kPl">${na.map(x=>`<option value="${esc(x)}">`).join("")}</datalist></form>`}
+</form>${vHoy()}</div>`}
+function vHoy(){const h=hoy(),L=act().filter(a=>a.fecha===h&&(a.tipo==="ingreso"||a.tipo==="egreso")).sort((x,y)=>y.id-x.id),T=t=>L.filter(a=>a.tipo===t).reduce((s,a)=>s+n(a.valor),0);
+ return`<aside class="cn-card" aria-label="Movimientos de hoy"><h3>Hoy</h3><div class="cn-hs"><span>Ingresos ${m(T("ingreso"))}</span><span>Egresos ${m(T("egreso"))}</span></div>${L.length?L.map(a=>`<div class="cn-mv"><div><b>${m(a.valor)}</b> · ${a.tipo==="ingreso"?"Ingreso":"Egreso"}<div>${esc(a.concepto)}</div><div class="sub">${[a.numero,ter(a.tercero_id).nombre].filter(Boolean).map(esc).join(" · ")}</div></div><button type="button" class="cn-lk" data-c="anular" data-i="${a.id}">Anular</button></div>`).join(""):'<p class="sub">Aún no hay movimientos de hoy.</p>'}</aside>`}
 const nota2=()=>okP?"":'<p class="sub cn-bad">Falta ejecutar supabase/contabilidad-precios.sql para guardar los precios de los productos.</p>';
 async function gCaja(){
  if(gCaja.b)return;const k=cj.k,p=PL[k],comp=k==="com",dona=!!p[2].don,nof=comp&&!cj.f,
- pr=comp?kp.filter(x=>x.n.trim()&&n(x.v)>0):[],sp=pr.reduce((a,x)=>a+n(x.v),0),v=n(kv.v)||sp,nm=(kv.t||"").trim(),fe=kv.f||hoy();
+ pr=comp?kp.filter(x=>x.n.trim()&&n(x.v)>0):[],sp=pr.reduce((a,x)=>a+n(x.v),0),v=n(kv.v)||sp,nm=((kv.t==="__nuevo"?kv.tn:kv.t)||"").trim(),fe=kv.f||hoy();
  if(!(v>0)){aviso("Escribe el valor.","err");return}
- if(comp&&!nm){aviso("Escribe el proveedor.","err");return}
+ if(comp&&!nm){aviso("Elige o escribe el proveedor.","err");return}
  if(sp>v){aviso("Los productos suman "+m(sp)+" y el total es "+m(v)+".","err");return}
  gCaja.b=1;
  try{let tid=null;
@@ -7937,19 +7986,29 @@ async function gCaja(){
   await load();
   kv={};kp=[];render(true);aviso("Guardado "+r.data+(pr.length&&!okP?". Los precios no se guardaron: falta el SQL de precios.":"."))
  }catch(x){err(x)}finally{gCaja.b=0}}
-function vPro(){
- const AN=new Set(as.filter(a=>a.estado==="anulado").map(a=>a.id)),M=new Map(),A=new Map(),mk=(nm,u,st,inv)=>({nm,u,st,inv,h:[]});
- itm().forEach(i=>{const g=mk(i.n,i.u||"",n(i.sys),1);M.set(String(i.sku),g);A.set(nq(i.n),g)});
- pp.filter(r=>!AN.has(r.asiento_id)).sort((a,c)=>String(a.fecha).localeCompare(c.fecha)||a.id-c.id).forEach(r=>{
+let pF="con",pQ="",pCer=new Set(),pAb=new Set(),pG=[];
+function pDatos(){
+ const AN=new Set(as.filter(a=>a.estado==="anulado").map(a=>a.id)),M=new Map(),A=new Map(),mk=(nm,u,st,inv,k)=>({nm,u,st,inv,k,h:[]});
+ itm().forEach(i=>{const g=mk(i.n,i.u||"",n(i.sys),1,i.k||"");M.set(String(i.sku),g);A.set(nq(i.n),g)});
+ pp.filter(r=>!AN.has(r.asiento_id)).sort((x,c)=>String(x.fecha).localeCompare(c.fecha)||x.id-c.id).forEach(r=>{
   let g=(r.sku&&M.get(String(r.sku)))||A.get(nq(r.nombre));
-  if(!g){g=mk(r.nombre,r.unidad||"",0,0);A.set(nq(r.nombre),g);M.set("n:"+nq(r.nombre),g)}g.h.push(r)});
- const G=[...new Set(M.values())].map(g=>{const H=g.h.filter(r=>n(r.cantidad)>0),pu=r=>n(r.valor)/n(r.cantidad),
+  if(!g){g=mk(r.nombre,r.unidad||"",0,0,"");A.set(nq(r.nombre),g);M.set("n:"+nq(r.nombre),g)}g.h.push(r)});
+ return[...new Set(M.values())].map(g=>{const H=g.h.filter(r=>n(r.cantidad)>0),pu=r=>n(r.valor)/n(r.cantidad),
   u=H.length?pu(H[H.length-1]):null,a=H.length>1?pu(H[H.length-2]):null,q=H.reduce((s,r)=>s+n(r.cantidad),0),
-  v=a?(u-a)/a*100:null;return{...g,u2:u,a,v,pr:q?H.reduce((s,r)=>s+n(r.valor),0)/q:null}}).sort((x,y)=>x.nm.localeCompare(y.nm,"es")),
- up=G.filter(g=>g.v!==null&&g.v>UM).length,sin=G.filter(g=>!g.h.length).length;
- return`<h2>Productos y precios</h2>${nota2()}<div class="gsum"><span class="chip ${up?"bad":""}">Subieron más de ${UM} %: ${up}</span><span class="chip">Sin precio aún: ${sin}</span></div>
-<p class="sub">Salen del inventario y de las compras que registras en Caja. Un alimento nuevo aparece aquí solo.</p>`+
- (G.length?G.map(g=>`<details class="cn-card"><summary><b>${esc(g.nm)}</b>${g.u2!==null?`<span>Último ${m(g.u2)}/${esc(g.u||"u")}</span>${g.v!==null?`<span class="${g.v>UM?"cn-bad":""}">${g.v>0?"+":""}${f2(g.v)} %</span>`:""}<span>Promedio ${m(g.pr)}</span>`:'<span class="sub">Sin compras con cantidad</span>'}${g.inv?`<span>Stock ${f2(g.st)} ${esc(g.u)}${g.u2!==null?" · "+m(g.st*g.u2):""}</span>`:""}</summary>${g.h.length?g.h.slice().reverse().slice(0,20).map(r=>`<div class="sub">${esc(r.fecha)} · ${esc(ter(r.tercero_id).nombre||"—")} · ${n(r.cantidad)?f2(n(r.cantidad))+" "+esc(r.unidad||g.u||"")+" · ":""}${m(r.valor)}${n(r.cantidad)?" · "+m(n(r.valor)/n(r.cantidad))+"/u":""}</div>`).join(""):'<p class="sub">Aún no hay compras.</p>'}</details>`).join(""):'<p class="sub">Aún no hay productos.</p>')}
+  v=a?(u-a)/a*100:null;return{...g,key:nq(g.nm),u2:u,a,v,pr:q?H.reduce((s,r)=>s+n(r.valor),0)/q:null}}).sort((x,y)=>x.nm.localeCompare(y.nm,"es"))}
+const pHist=g=>(g.h.length?g.h.slice().reverse().slice(0,20).map(r=>`<div class="sub">${esc(r.fecha)} · ${esc(ter(r.tercero_id).nombre||"—")} · ${n(r.cantidad)?f2(n(r.cantidad))+" "+esc(r.unidad||g.u||"")+" · ":""}${m(r.valor)}${n(r.cantidad)?" · "+m(n(r.valor)/n(r.cantidad))+"/u":""}</div>`).join(""):'<p class="sub">Aún no hay compras.</p>')+(g.inv&&g.u2!==null?`<div class="sub">Valor en stock: ${m(g.st*g.u2)}</div>`:"");
+const pFila=g=>{const ab=pAb.has(g.key),k=esc(g.key),u=esc(g.u||"u");
+ return`<tr class="cn-pr" data-c="pro" data-i="${k}"><td><button type="button" class="cn-lk cn-nm" data-c="pro" data-i="${k}" aria-expanded="${ab}">${esc(g.nm)}</button></td><td class="r">${g.u2!==null?m(g.u2)+"/"+u:"—"}</td><td class="r ${g.v!==null&&g.v>UM?"cn-bad":""}">${g.v!==null?(g.v>0?"+":"")+f2(g.v)+" %":"—"}</td><td class="r">${g.pr!==null?m(g.pr):"—"}</td><td class="r">${g.inv?f2(g.st)+" "+esc(g.u):"—"}</td></tr>`+(ab?`<tr class="cn-hi"><td colspan="5">${pHist(g)}</td></tr>`:"")};
+function pTabla(){const k=nq(pQ),F={con:g=>g.u2!==null,sin:g=>g.u2===null,sub:g=>g.v!==null&&g.v>UM}[pF],L=pG.filter(g=>F(g)&&(!k||nq(g.nm).includes(k)));
+ if(!L.length){const o=k&&pF!=="sin"?pG.filter(g=>g.u2===null&&nq(g.nm).includes(k)).length:0;
+  return`<p class="sub">${pG.length?"No hay productos con este filtro"+(k?" y esa búsqueda":"")+".":"Aún no hay productos."}</p>${o?`<button type="button" class="ghost" data-c="pf" data-i="sin">Hay ${o} sin precio que coinciden: verlos</button>`:""}`}
+ const Gp=new Map();L.forEach(g=>{const t=g.k||"Sin tipo";(Gp.get(t)||Gp.set(t,[]).get(t)).push(g)});
+ return[...Gp.keys()].sort((a,c)=>(a==="Sin tipo")-(c==="Sin tipo")||a.localeCompare(c,"es")).map(t=>{const R=Gp.get(t),cer=pCer.has(t)&&!k;
+  return`<div class="cn-card"><button type="button" class="cn-gh" data-c="pgr" data-i="${esc(t)}" aria-expanded="${!cer}"><span>${esc(t)}</span><span class="sub">${R.length} ${cer?"▸":"▾"}</span></button>${cer?"":`<div class="tbl"><table class="cn-pt" style="min-width:440px"><thead><tr><th>Producto</th><th class="r">Último precio</th><th class="r">Var.</th><th class="r">Promedio</th><th class="r">Stock</th></tr></thead><tbody>${R.map(pFila).join("")}</tbody></table></div>`}</div>`}).join("")}
+function vPro(){pG=pDatos();
+ const up=pG.filter(g=>g.v!==null&&g.v>UM).length,con=pG.filter(g=>g.u2!==null).length,sin=pG.length-con;
+ return`<h2>Productos y precios</h2>${nota2()}<div class="cn-pf"><input id="pQ" type="search" placeholder="Buscar producto" aria-label="Buscar producto" autocomplete="off" value="${esc(pQ)}">${[["con","Con precio ("+con+")"],["sin","Sin precio ("+sin+")"],["sub","Subieron más de "+UM+" % ("+up+")"]].map(([k,l])=>bt2("pf",k,l,pF===k)).join("")}</div>
+<div id="pTb">${pTabla()}</div><p class="sub">Salen del inventario y de las compras que registras en Caja. Toca un producto para ver su historial.</p>`}
 function vAvz(){return`<h2>Registrar movimiento</h2><form id="cF" autocomplete="off" class="cn-card"><div class="cn-f"><label>Plantilla<select id="cPl"><option value="">Asiento libre</option>${opt(Object.entries(PL).map(([k,v])=>[k,v[0]]),"")}</select></label><label>Valor total<input id="cVl" type="number" min="0" step="any" inputmode="decimal"></label><label>&nbsp;<button type="button" class="ghost" data-c="aplicar">Llenar líneas</button></label></div>
 <div class="cn-f"><label>Fecha<input id="cFe" type="date" required value="${hoy()}"></label><label>Tipo<select id="cTp">${opt(Object.entries(TD),"ingreso")}</select></label><label>Tercero<select id="cTe"><option value="">Sin tercero</option>${te.map(t=>`<option value="${t.id}">${esc(t.nombre)}</option>`).join("")}</select></label><label>Soporte<select id="cSo"><option value="">Sin soporte</option>${opt(Object.entries(SO),"")}</select></label><label>N.º del soporte<input id="cSn" maxlength="40"></label></div>
 <label>Concepto<input id="cCo" required maxlength="160"></label>
@@ -7980,11 +8039,13 @@ function vCtl(){const P=act().filter(a=>a.tipo==="egreso"&&ter(a.tercero_id).no_
  const CS=act().filter(a=>a.tipo==="ingreso"&&!a.soporte_num&&li.some(l=>l.asiento_id===a.id&&l.cuenta==="4210")),
  R=act().filter(a=>a.tipo!=="apertura"&&ter(a.tercero_id).relacionado),ms=[];
  for(let k=0;k<12;k++){const d=new Date();d.setDate(1);d.setMonth(d.getMonth()-k);ms.push(d.toLocaleDateString("sv-SE").slice(0,7))}
- return`<h2>Control</h2><div class="cn-card"><h3>Documento soporte por generar</h3><p class="sub">Compras a quien no factura: un documento por proveedor y semana, a más tardar el viernes (o el último día hábil) de la semana de la compra. Confírmalo con tu contador.</p>${Object.values(G).length?Object.values(G).map(g=>`<div class="cn-l ${hoy()>g.l?"cn-bad":""}" style="grid-template-columns:1fr auto"><span>${esc(g.t)} · ${g.c} compra${g.c===1?"":"s"} · ${m(g.v)} · límite ${g.l}${hoy()>g.l?" (vencido)":""}</span><button type="button" class="ghost" data-c="dsg" data-i="${g.ids.join(",")}">Ya lo generé</button></div>`).join(""):'<p class="sub">Nada pendiente.</p>'}</div>
-<div class="cn-card"><h3>Cuotas sin n.º de documento</h3>${CS.length?CS.slice(0,30).map(a=>`<div class="cn-bad">${esc(a.numero)} · ${esc(a.fecha)} · ${m(a.valor)}</div>`).join(""):'<p class="sub">Todas tienen número.</p>'}</div>
-<div class="cn-card"><h3>Operaciones con terceros relacionados</h3><p class="sub">Los contratos con fundadores, donantes, administradores o sus familiares se registran ante la DIAN.</p>${R.length?R.map(a=>`<div>${esc(a.numero)} · ${esc(a.fecha)} · ${esc(ter(a.tercero_id).nombre)} · ${m(a.valor)}</div>`).join(""):'<p class="sub">Ninguna.</p>'}</div>
-<div class="cn-card"><h3>Cierre de períodos</h3><p class="sub">Un período cerrado no admite asientos nuevos ni anulaciones.</p>${ms.map(p=>`<div class="cn-l" style="grid-template-columns:1fr auto"><span>${p}${ci.has(p)?" · cerrado":""}</span><button type="button" class="ghost" data-c="cierre" data-i="${p}">${ci.has(p)?"Reabrir":"Cerrar"}</button></div>`).join("")}</div>
-${ctlN()}`}
+ const DS=Object.values(G).sort((a,c)=>(hoy()>c.l)-(hoy()>a.l)||a.l.localeCompare(c.l)),venc=DS.filter(g=>hoy()>g.l).length,
+ K=[[venc?0:DS.length?1:4,`<div class="cn-card"><h3>Documento soporte por generar${venc?` · <span class="cn-bad">${venc} vencido${venc===1?"":"s"}</span>`:""}</h3><p class="sub">Compras a quien no factura: un documento por proveedor y semana, a más tardar el viernes (o el último día hábil) de la semana de la compra. Confírmalo con tu contador.</p>${DS.length?DS.map(g=>`<div class="cn-l ${hoy()>g.l?"cn-bad":""}" style="grid-template-columns:1fr auto"><span>${esc(g.t)} · ${g.c} compra${g.c===1?"":"s"} · ${m(g.v)} · límite ${g.l}${hoy()>g.l?" (vencido)":""}</span><button type="button" class="ghost" data-c="dsg" data-i="${g.ids.join(",")}">Ya lo generé</button></div>`).join(""):'<p class="sub">Nada pendiente.</p>'}</div>`],
+ [CS.length?1:4,`<div class="cn-card"><h3>Cuotas sin n.º de documento</h3>${CS.length?CS.slice(0,30).map(a=>`<div class="cn-bad">${esc(a.numero)} · ${esc(a.fecha)} · ${m(a.valor)}</div>`).join(""):'<p class="sub">Todas tienen número.</p>'}</div>`],
+ ...ctlN(),
+ [R.length?3:5,`<div class="cn-card"><h3>Operaciones con terceros relacionados</h3><p class="sub">Los contratos con fundadores, donantes, administradores o sus familiares se registran ante la DIAN.</p>${R.length?R.map(a=>`<div>${esc(a.numero)} · ${esc(a.fecha)} · ${esc(ter(a.tercero_id).nombre)} · ${m(a.valor)}</div>`).join(""):'<p class="sub">Ninguna.</p>'}</div>`],
+ [5,`<div class="cn-card"><h3>Cierre de períodos</h3><p class="sub">Un período cerrado no admite asientos nuevos ni anulaciones.</p>${ms.map(p=>`<div class="cn-l" style="grid-template-columns:1fr auto"><span>${p}${ci.has(p)?" · cerrado":""}</span><button type="button" class="ghost" data-c="cierre" data-i="${p}">${ci.has(p)?"Reabrir":"Cerrar"}</button></div>`).join("")}</div>`]];
+ return`<h2>Control</h2><div class="cn-2">${K.sort((a,c)=>a[0]-c[0]).map(x=>x[1]).join("")}</div>`}
 function aplicar(){const k=$("cPl").value,v=n($("cVl").value);if(!k||!v){aviso("Elige una plantilla y escribe el valor.","err");return}
  const p=PL[k];rows=p[1](v).map(([c,d,h])=>({c,d:d||"",h:h||""}));$("cLin").innerHTML=lin();$("cTp").value=p[3];$("cDn").checked=!!p[2].don;$("cCd").checked=!!p[2].cd;$("cEs").checked=!!p[2].es;if(!$("cCo").value)$("cCo").value=p[0];tot()}
 function cert(id){const a=as.find(x=>x.id===id),t=ter(a.tercero_id),
@@ -8002,6 +8063,9 @@ async function click(e){const b=e.target.closest("[data-c]");if(!b)return;const 
  if(c==="kk"){cj.k=i;cj.b=null;render(true);return}
  if(c==="kf"){cj.f=+i;render(true);return}
  if(c==="kb"){cj.b=i;render(true);return}
+ if(c==="pf"){pF=i;render(true);return}
+ if(c==="pgr"){if(pCer.has(i))pCer.delete(i);else pCer.add(i);const bx=$("pTb");if(bx)bx.innerHTML=pTabla();return}
+ if(c==="pro"){if(pAb.has(i))pAb.delete(i);else pAb.add(i);const bx=$("pTb");if(bx)bx.innerHTML=pTabla();return}
  if(c==="pa"){kp.push({n:"",q:"",v:"",u:"",s:""});render(true);return}
  if(c==="pq"){kp.splice(+i,1);render(true);return}
  if(c==="avz"){avz=!avz;render(true);return}
@@ -8023,7 +8087,10 @@ async function click(e){const b=e.target.closest("[data-c]");if(!b)return;const 
   if(c==="bundo"){ck(await SB.from("cnt_extractos").update({linea_id:null}).eq("id",+i));await loadN()}
   render(true)}catch(x){err(x)}}
 function chg(e){const t=e.target;
- if(t.dataset.p!==undefined&&t.dataset.f==="n"){const x=kp[+t.dataset.p],it=itm().find(a=>nq(a.n)===nq(t.value));x.n=t.value;x.s=it?it.sku:"";if(it){x.u=it.u||"";const u=t.closest(".kg").querySelector("[data-f=u]");if(u)u.value=x.u}return}
+ if(t.id==="kT"){render(true);const z=kv.t==="__nuevo"&&$("kTn");if(z)z.focus();return}
+ if(t.dataset.p!==undefined&&t.dataset.f==="n"){const x=kp[+t.dataset.p];
+  if(t.tagName==="SELECT"){if(t.value==="__nuevo"){x.nuevo=true;x.n="";x.s="";render(true);const z=document.querySelector(`#cnt input[data-p="${t.dataset.p}"][data-f="n"]`);if(z)z.focus();return}x.nuevo=false}
+  const it=itm().find(a=>nq(a.n)===nq(t.value));x.n=t.value;x.s=it?it.sku:"";if(it){x.u=it.u||"";const u=t.closest(".kg").querySelector("[data-f=u]");if(u)u.value=x.u}return}
  if(t.dataset.r!==undefined){rows[+t.dataset.r][t.dataset.k]=t.value;tot();return}
  if(t.id==="pMes"){pm=t.value||pm;bd={};render(true)}else if(t.id==="bCor"){cor=t.value||cor;bs=null;render(true)}else if(t.id==="bFl"){const f=t.files[0];if(f)f.text().then(x=>{bt=x;render(true)})}else if(t.id==="cPer"){per=t.value;render(true)}else if(t.id==="cQ"){q=t.value;render(true)}else if(t.id==="cD1"){d1=t.value;render(true)}else if(t.id==="cD2"){d2=t.value;render(true)}}
 async function sub(e){e.preventDefault();
@@ -8031,7 +8098,7 @@ async function sub(e){e.preventDefault();
  if(e.target.id==="cK")return gCaja();
  if(e.target.id==="cTf")try{ck(await SB.from("cnt_terceros").insert({nombre:$("tN").value.trim(),documento:$("tD").value.trim()||null,tipo:$("tT").value,relacionado:$("tR").checked,no_obligado:$("tO").checked}));await load();render(true);aviso("Tercero guardado.")}catch(x){err(x)}}
 function build(){if(built)return;built=true;const s=document.createElement("section");s.id="cnt";s.hidden=true;$("v5").after(s);
- s.addEventListener("click",click);["cntL","cntR"].forEach(id=>$(id).addEventListener("click",click));s.addEventListener("change",chg);s.addEventListener("input",e=>{const t=e.target;if(t.dataset.kv!==undefined)kv[t.dataset.kv]=t.value;else if(t.dataset.p!==undefined)kp[+t.dataset.p][t.dataset.f]=t.value;else if(t.dataset.r!==undefined){rows[+t.dataset.r][t.dataset.k]=t.value;tot()}else if(t.dataset.bd!==undefined)bd[t.dataset.bd]=t.value;else if(t.id==="bTx")bt=t.value;else if(t.id==="bSl")bs=t.value});s.addEventListener("submit",sub)}
+ s.addEventListener("click",click);["cntL","cntR"].forEach(id=>$(id).addEventListener("click",click));s.addEventListener("change",chg);s.addEventListener("input",e=>{const t=e.target;if(t.dataset.kv!==undefined)kv[t.dataset.kv]=t.value;else if(t.dataset.p!==undefined){if(t.value!=="__nuevo")kp[+t.dataset.p][t.dataset.f]=t.value}else if(t.id==="pQ"){pQ=t.value;const bx=$("pTb");if(bx)bx.innerHTML=pTabla()}else if(t.dataset.r!==undefined){rows[+t.dataset.r][t.dataset.k]=t.value;tot()}else if(t.dataset.bd!==undefined)bd[t.dataset.bd]=t.value;else if(t.id==="bTx")bt=t.value;else if(t.id==="bSl")bs=t.value});s.addEventListener("submit",sub)}
 const tb=([k,l,c])=>`<button type="button" class="tab" data-c="tab" data-t="${k}" aria-pressed="${tab===k}" title="${l}"><span class="cl">${l}</span><span class="cs">${c||l}</span></button>`;
 function pintarNav(){$("cntL").innerHTML=TABS.slice(0,2).map(tb).join("");$("cntR").innerHTML=TABS.slice(2).map(tb).join("")}
 function pintarModo(){const b=$("modo"),a=esAdmin(),mo=on&&a?"c":window.PRM&&PRM.on()?"p":"a";b.dataset.m=mo;b.querySelector(".sg-c").hidden=!a;b.setAttribute("aria-checked",String(mo!=="a"));
