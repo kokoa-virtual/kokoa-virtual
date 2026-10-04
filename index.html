@@ -1254,7 +1254,11 @@ nav.views .vgr{grid-column:3;grid-row:1;justify-self:end}
 .pqmain .prow .pq{gap:4px}
 .pqmain .prow .pq button{width:32px;min-width:32px}
 .pqmain .prow .pqs .pq input{width:48px;padding-left:6px;padding-right:6px}
-.pqmain .prow>button[data-px]{flex:0 0 auto;margin-left:0}
+.pqmain .prow>button[data-px]{flex:0 0 auto;margin-left:0;align-self:flex-end}
+.pqmain .prow{flex-wrap:nowrap;align-items:flex-end}
+.pqmain .prow .pn{flex:1 1 0;align-self:center;overflow-wrap:anywhere}
+.pqmain .prow .pqs{flex:0 0 auto}
+@media (max-width:420px){.pqmain .prow{gap:6px}.pqmain .prow .pqs{gap:6px}.pqmain .prow .pq button{width:28px;min-width:28px}.pqmain .prow .pqs .pq input{width:40px}}
 /* Buenas, Malas y ✕ pegados al borde derecho: en Préstamos la ✕ no es absoluta, no hace falta reservarle 52px */
 .pqmain .prow{padding-right:12px}
 </style>
@@ -1921,8 +1925,8 @@ async function guardarArchivo(nombre,blob){
  if(dl){try{await dl.save({filename:nombre,data:blob});return"ok"}catch(e){const c=e&&e.code;if(c==="declined")return"no";if(c==="rate_limited")return"espera"}}
  const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=nombre;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),4000);return"ok"}
 let exportando=false;
-async function exportExcel(){if(!currentUser||exportando)return;
- let X;try{X=window.PRM&&PRM.on()?PRM.datosExport():sec===5?await histExport():datosExport()}catch(_){msg.textContent="No se pudo leer el historial completo. Intenta de nuevo.";return}
+async function exportExcel(completo){if(!currentUser||exportando)return;
+ let X;try{X=window.PRM&&PRM.on()?PRM.datosExport():completo===true?await histExport():datosExport()}catch(_){msg.textContent="No se pudo leer el historial completo. Intenta de nuevo.";return}
  const hojas=X.hojas.filter(h=>h.r.length);
  if(!hojas.length){msg.textContent="No hay datos para exportar en esta pantalla.";return}
  exportando=true;$("exp").disabled=true;
@@ -1930,7 +1934,7 @@ async function exportExcel(){if(!currentUser||exportando)return;
   msg.textContent=r==="ok"?"Exportado: "+nombre:r==="no"?"Exportación cancelada.":"Espera un momento y vuelve a intentarlo."}
  catch(_){msg.textContent="No se pudo exportar. Intenta de nuevo."}
  finally{exportando=false;$("exp").disabled=false}}
-$("exp").addEventListener("click",exportExcel);
+$("exp").addEventListener("click",()=>exportExcel());
 /* ---- Historial: borrar (solo admins), exportar completo y aviso anual ---- */
 async function traerTodo(n,o){let a=[],d=0;for(;;){const r=ck(await SB.from(n).select("*").order(o,{ascending:false}).range(d,d+999));a=a.concat(r.data);if(r.data.length<1000)break;d+=1000}return a}
 async function histExport(){
@@ -1943,9 +1947,9 @@ async function histExport(){
 async function borrarHist(tabla,id){
  if(!esAdmin()||!listo)return;
  if(id){if(!confirm("¿Borrar este registro del historial?\nEl stock del inventario no cambia."))return}
- else{if(!confirm("¿Borrar TODO el historial (movimientos, comidas y bitácora)?\n\nEl inventario y su stock no cambian. No se puede deshacer.\n\n¿Ya exportaste los datos?"))return;
-  if(!confirm("Última confirmación: se borrará todo el historial. ¿Continuar?"))return}
- try{ck(await SB.rpc("borrar_historial",{p_tabla:tabla,p_id:id?+id:null}));await recargar();msg.textContent=id?"Registro borrado.":"Historial borrado."}
+ else{if(!confirm("¿Borrar TODO el historial de ALIMENTOS (movimientos, comidas y bitácora)?\n\nEl inventario y su stock no cambian. No afecta a préstamos. No se puede deshacer.\n\n¿Ya exportaste los datos?"))return;
+  if(!confirm("Última confirmación: se borrará todo el historial de alimentos. ¿Continuar?"))return}
+ try{ck(await SB.rpc("borrar_historial",{p_tabla:tabla,p_id:id?+id:null}));if(!id){if(tabla==="todo"||tabla==="movimientos")mov.length=0;if(tabla==="todo"||tabla==="comidas")comidas.length=0;if(tabla==="todo"||tabla==="bitacora")logData.length=0}await recargar();msg.textContent=id?"Registro borrado.":"Historial borrado."}
  catch(x){aviso("No se pudo borrar: "+(x.message||x))}}
 document.addEventListener("click",e=>{const b=e.target.closest("[data-hdel],#histAll");if(!b)return;
  if(b.id==="histAll")borrarHist("todo",null);else borrarHist(b.dataset.hdel,b.dataset.hid)});
@@ -1957,7 +1961,7 @@ function renderPurga(){const a=$("purgaAviso");if(!a)return;
  $("purgaTxt").innerHTML=`<b>Aviso:</b> el 1 de mayo se borrará automáticamente todo el historial (movimientos, comidas y bitácora). ${d===1?"Es <b>mañana</b>.":"Faltan <b>"+d+" días</b>."} Exporta los datos antes: pulsa «Exportar ahora».`;
  a.hidden=false}
 $("purgaOk").addEventListener("click",()=>{try{localStorage.setItem("kokoa-purga-visto",hoyClave())}catch(_){}renderPurga()});
-$("purgaExp").addEventListener("click",()=>{sec=5;renderAll();exportExcel()});
+$("purgaExp").addEventListener("click",()=>{sec=5;renderAll();exportExcel(true)});
 
 function renderScanList(){const inp=$("scan");if(!inp)return;
  if(window.PRM&&PRM.on()){inp.placeholder="Buscar implemento";inp.setAttribute("aria-label","Buscar implemento");return}
@@ -2332,12 +2336,12 @@ function pdfDoc(p,rows){
  d.text("Documento: "+p.documento,10,y);d.text("Teléfono: "+(p.telefono||"-"),58,y);
  d.text(`Plazo: ${plazoDe(p,rows)||"-"} día${plazoDe(p,rows)===1?"":"s"}`,104,y);
  y+=12;
- d.setFont("helvetica","bold");const cxr=88+d.getTextWidth("Condición al salir")/2;d.text("IMPLEMENTOS",10,y);y+=5;d.text("Implemento",10,y);d.text("Cantidad",56,y);d.text("Condición al salir",cxr,y,{align:"right"});d.text("Devolver antes de",106,y);d.setFont("helvetica","normal");y+=5;
+ d.setFont("helvetica","bold");const cxr=88-d.getTextWidth("Condición al salir")/2;d.text("IMPLEMENTOS",10,y);y+=5;d.text("Implemento",10,y);d.text("Cantidad",56,y);d.text("Condición al salir",cxr,y);d.text("Devolver antes de",106,y);d.setFont("helvetica","normal");y+=5;
  const grp=[],gm=new Map();
  rows.forEach(i=>{const k=[String(i.nombre||"").trim().toLowerCase(),i.cond_salida||"",Math.floor((Date.parse(i.vence)||0)/6e4),i.devuelto?"d|"+(i.cond_regreso||"")+"|"+(i.limpio?1:0)+"|"+(i.novedad||""):"p"].join("¦");
   if(!gm.has(k)){const g={i,n:0};gm.set(k,g);grp.push(g)}gm.get(k).n++});
  grp.forEach(({i,n})=>{if(y>175){d.addPage();y=14}const nl=d.splitTextToSize(String(i.nombre||""),42);
-  d.text(nl,10,y);d.text(String(n),56,y);d.text(condPdf(i.cond_salida),cxr,y,{align:"right"});d.text(f(i.vence),106,y);y+=(nl.length-1)*4.2;
+  d.text(nl,10,y);d.text(String(n),56,y);d.text(condPdf(i.cond_salida),cxr,y);d.text(f(i.vence),106,y);y+=(nl.length-1)*4.2;
   if(i.devuelto){y+=4;d.setFontSize(8);d.text(`Devuelto ${f(i.devuelto)} · Condición ${condPdf(i.cond_regreso)}${i.limpio?"":" · sin limpiar"}${i.novedad?" · "+i.novedad:""}`,10,y);d.setFontSize(9)}y+=6});
  if(p.notas){if(y>175){d.addPage();y=14}const nl=d.splitTextToSize("Notas: "+p.notas,W-20);d.setFontSize(9);d.text(nl,10,y);y+=nl.length*4.5+2}
  y=Math.max(y+6,150);if(y>190){d.addPage();y=20}
@@ -2578,7 +2582,7 @@ function build(){if(built)return;built=true;
  <div class="pr-pg"><aside class="pnl" aria-label="Filtros de devolución"><h2>Estado</h2><div id="pdf1"></div><h2 class="ztit">Tipos de implementos</h2><div id="pdf2"></div><h2 class="ztit">Últimas devoluciones</h2><ol class="mvl pev" id="pdf3"></ol></aside><div class="pr-main"><div id="nwrap" hidden><div class="sechead"><h2>Crear/Agregar implemento</h2><button type="button" class="ghost danger" id="pDelBtn">Eliminar implementos</button></div><form class="add" id="nf" autocomplete="off"><label class="aname">Nombre<input id="nm" required maxlength="60" autocomplete="off"></label><label data-tl>Tipo de implemento<select id="ng" aria-label="Tipo de implemento"></select></label><label data-new>Detalles<input id="na" maxlength="200" placeholder="Observaciones"></label><label>Cantidad<input id="nq2" type="number" min="1" max="50" step="1" inputmode="numeric" value="1"></label><label>Condición<select id="nc" aria-label="Condición"><option value="bueno">Buena condición</option><option value="danado">Mala condición</option></select></label><div class="abtns"><button type="button" class="ghost" id="nCancel" hidden>Cancelar</button><button type="submit" id="nBtn">Crear implemento</button></div></form><div class="asug" id="nSug" aria-live="polite" hidden></div></div><div class="itool"><div class="tabs" id="ptabs"></div><span class="sub" id="pcount" hidden></span><div class="irt"><div class="fwrap"><button type="button" class="ghost fbtn" id="pfBtn" aria-haspopup="true" aria-expanded="false">Filtrar por</button><div class="fmenu" id="pfMenu" hidden></div></div><button type="button" class="vtog" id="pvtog" data-lay="1" role="switch" aria-checked="true" aria-label="Alternar vista del inventario entre lista y cuadrícula" title="Lista / Cuadrícula"><i class="knob"></i><svg class="ico il" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M9 6h11M9 12h11M9 18h11"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/></svg><svg class="ico ig" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="1.5"/><rect x="13.5" y="13.5" width="6.5" height="6.5" rx="1.5"/></svg></button></div></div><div id="pdev"></div></div></div>`);
  mk("pv3",`<h2>Préstamos en curso</h2><div id="pcur"></div>`);
  mk("pv4",`<h2>Movimientos de préstamos<span class="live" id="plive"></span></h2><div class="gctl"><div class="tabs" id="pgmode"></div><div class="tabs" id="pgper"></div><select id="pgsel" aria-label="Filtrar por implemento"></select></div><div class="chart-alt" id="pgtype"></div><div class="gsum" id="pgs"></div><div class="gbox" id="pgc"></div><h2>Más prestados</h2><div class="gbox" id="pgr"></div><h2 class="qh2">Últimos movimientos</h2><ol class="mvl pev" id="pgl"></ol>`);
- mk("pv5",`<div class="hhead"><h2>Movimientos de préstamos</h2><button type="button" class="ghost danger" id="pHistAll" hidden>Borrar todo el historial</button></div><div class="pr-grid"><div class="pr-col"><h3 class="pr-h">Movimientos generales</h3><ol class="mvl pev" id="pevg"></ol></div><div class="pr-col"><h3 class="pr-h">Préstamos</h3><ol class="mvl pev" id="pev"></ol></div></div>`);
+ mk("pv5",`<div class="hhead"><h2>Movimientos de préstamos</h2><div style="display:flex;gap:8px;flex-wrap:wrap"><button type="button" class="ghost danger" id="pHistG" hidden>Borrar movimientos generales</button><button type="button" class="ghost danger" id="pHistP" hidden>Borrar préstamos</button><button type="button" class="ghost danger" id="pHistAll" hidden>Borrar todo el historial</button></div></div><div class="pr-grid"><div class="pr-col"><h3 class="pr-h">Movimientos generales</h3><ol class="mvl pev" id="pevg"></ol></div><div class="pr-col"><h3 class="pr-h">Préstamos</h3><ol class="mvl pev" id="pev"></ol></div></div>`);
  const enc=encodeURIComponent,dec=decodeURIComponent;
  const gpm=(e,d)=>{const k=dec(e),u=imp.filter(i=>i.estado==="disponible"&&gkey(i)===k);
   if(d>0){const x=u.find(i=>!sel.has(String(i.id)));if(x)sel.add(String(x.id))}else{const x=[...u].reverse().find(i=>sel.has(String(i.id)));if(x)sel.delete(String(x.id))}rPrestar(true)};
@@ -2617,11 +2621,13 @@ const unitsC=(k,c)=>imp.filter(i=>i.estado==="disponible"&&gkey(i)===k&&((i.cond
  const finPd=(e,soltar)=>{if(!pd||e.pointerId!==pd.id)return;const d=pd;pd=null;if(!d.on)return;d.ghost.remove();document.body.classList.remove("dragging");noClick=Date.now()+350;
   const pl=$("pPlate");if(pl){pl.classList.remove("over");if(soltar&&sobrePlato(e,pl))gpm(d.k,1)}};
  addEventListener("pointerup",e=>finPd(e,true));addEventListener("pointercancel",e=>finPd(e,false));
- document.addEventListener("click",async e=>{const b=e.target.closest("[data-pdel],#pHistAll");if(!b||!on||!esAdmin())return;
-  try{if(b.dataset.pdel){if(!confirm("¿Borrar este registro del historial?\nNo cambia el estado de los implementos."))return;
-    const r=await SB.rpc("borrar_historial_prestamos",{p_id:+b.dataset.pdel});if(r.error)throw r.error}
-   else{if(!evs.length)return;if(!confirm(`¿Borrar TODO el historial de movimientos de préstamos (${evs.length} registros)?\nNo cambia el estado de los implementos ni de los préstamos activos. No se puede deshacer.`))return;
-    const r=await SB.rpc("borrar_historial_prestamos",{p_id:null});if(r.error)throw r.error}
+ document.addEventListener("click",async e=>{const b=e.target.closest("[data-pdel],#pHistAll,#pHistG,#pHistP");if(!b||!on||!esAdmin())return;
+  try{let a;
+   if(b.dataset.pdel){if(!confirm("¿Borrar este registro del historial?\nNo cambia el estado de los implementos."))return;a={p_id:+b.dataset.pdel,p_tipo:null}}
+   else{const t=b.id==="pHistG"?"generales":b.id==="pHistP"?"prestamos":"todo",
+     x={generales:"los movimientos generales (ediciones)",prestamos:"los préstamos y devoluciones del historial y los préstamos ya cerrados (también salen de los gráficos)",todo:"TODO el historial de préstamos (movimientos generales, préstamos y devoluciones) y los préstamos ya cerrados (también salen de los gráficos)"}[t];
+    if(!confirm(`¿Borrar ${x}?\nSolo afecta a préstamos: no toca alimentos, el estado de los implementos ni los préstamos en curso. No se puede deshacer.`))return;a={p_id:null,p_tipo:t}}
+   const r=await SB.rpc("borrar_historial_prestamos",a);if(r.error)throw r.error;
    await load();rAll();aviso("Historial actualizado.")}catch(x){err(x)}});
  $("pv4").addEventListener("click",e=>{const a=e.target.closest("[data-pgm]"),b=e.target.closest("[data-pgp]"),c=e.target.closest("[data-pgt]");
   if(a){pgm=a.dataset.pgm;pgi="*";rGraf()}else if(b){pgp=b.dataset.pgp;rGraf()}else if(c){pct=c.dataset.pgt;rGraf()}});
@@ -2815,7 +2821,7 @@ function rMov(){
  const row=e=>mvLi({t:e.tipo==="prestamo"?"Préstamo":e.tipo==="edicion"?"Edición":"Devolución",c:e.tipo==="prestamo"?"dn":e.tipo==="edicion"?"":"up",chip:e.tipo==="edicion"?"Editar":esc(e.numero||""),s:esc(e.detalle),d:f(e.t)+(e.apodo?" · "+esc(e.apodo):""),h:tkb(e)+hb(e.id)});
  set("pevg",evs.filter(e=>e.tipo==="edicion").map(row).join("")||"<li>Sin movimientos generales todavía.</li>");
  set("pev",evs.filter(e=>e.tipo!=="edicion").map(row).join("")||"<li>Sin préstamos ni devoluciones todavía.</li>");
- $("pHistAll").hidden=!(esAdmin()&&evs.length)}
+ $("pHistG").hidden=!(esAdmin()&&evs.some(e=>e.tipo==="edicion"));$("pHistP").hidden=!(esAdmin()&&(evs.some(e=>e.tipo!=="edicion")||its.some(i=>i.devuelto)));$("pHistAll").hidden=!(esAdmin()&&(evs.length||its.some(i=>i.devuelto)))}
 const pmov=()=>{const R=[],tk=i=>{const m=imp.find(x=>x.id===i.implemento_id);return m?tipoDe(m):""};
  its.forEach(i=>{const p=pre.find(x=>x.id===i.prestamo_id)||{},t=Date.parse(p.salida),b={n:i.nombre,k:tk(i),w:p.nombre||"",num:p.numero||""};
   if(t)R.push({...b,t,d:-1});const t2=i.devuelto?Date.parse(i.devuelto):0;if(t2)R.push({...b,t:t2,d:1})});return R};
