@@ -654,19 +654,19 @@ header .hright{flex:1 1 100%;margin-left:0;justify-content:space-between}
 header h1{font-size:30px}
 }
 .vtabs{display:contents}
-.views #theme{align-self:center;margin-left:6px;flex:none}
-#theme.vtog{width:64px;height:34px;min-height:34px;border-radius:999px;display:block}
-#theme.vtog .knob{top:3px;left:3px;width:26px;height:26px}
-#theme.vtog.grid .knob{transform:translateX(30px)}
-#theme.vtog .ico{top:7px;width:20px;height:20px;font-size:15px;line-height:20px;text-align:center}
-#theme.vtog .il{left:6px}
-#theme.vtog .ig{left:38px}
+.views #theme,.views #modo{align-self:center;margin-left:6px;flex:none}
+#theme.vtog,#modo.vtog{width:64px;height:34px;min-height:34px;border-radius:999px;display:block}
+#theme.vtog .knob,#modo.vtog .knob{top:3px;left:3px;width:26px;height:26px}
+#theme.vtog.grid .knob,#modo.vtog.grid .knob{transform:translateX(30px)}
+#theme.vtog .ico,#modo.vtog .ico{top:7px;width:20px;height:20px;font-size:15px;line-height:20px;text-align:center}
+#theme.vtog .il,#modo.vtog .il{left:6px}
+#theme.vtog .ig,#modo.vtog .ig{left:38px}
 @media (max-width:760px){
 .views{grid-template-columns:repeat(5,minmax(0,1fr)) 46px}
-.views #theme{width:46px;height:38px;min-height:38px;margin:0;border-radius:14px}
-#theme.vtog .knob{display:none}
-#theme.vtog .ico{top:50%;left:50%;transform:translate(-50%,-50%);font-size:19px;color:var(--ink)}
-#theme.vtog:not(.grid) .ig,#theme.vtog.grid .il{display:none}
+.views #theme,.views #modo{width:46px;height:38px;min-height:38px;margin:0;border-radius:14px}
+#theme.vtog .knob,#modo.vtog .knob{display:none}
+#theme.vtog .ico,#modo.vtog .ico{top:50%;left:50%;transform:translate(-50%,-50%);font-size:19px;color:var(--ink)}
+#theme.vtog:not(.grid) .ig,#theme.vtog.grid .il,#modo.vtog:not(.grid) .ig,#modo.vtog.grid .il{display:none}
 }
 @media (min-width:761px){
 .htools .scan{flex:0 1 300px;min-width:230px}
@@ -913,6 +913,9 @@ header:has(#adminBtn:not([hidden])) .htools #exp{grid-column:1/3;grid-row:3}
 header:has(#adminBtn:not([hidden])) .htools #adminBtn{grid-column:3/5;grid-row:3}
 header:has(#adminBtn:not([hidden])) .htools #usersBtn{grid-column:5/7;grid-row:3}
 }
+#modo{order:1}.views .tab[data-s="3"],.views .tab[data-s="4"],.views .tab[data-s="5"]{order:2}#theme{order:3}
+.views #modo{margin:0 auto;align-self:center;flex:none}.views .tab[data-s="3"]{margin-left:0}
+@media (max-width:760px){.views{grid-template-columns:repeat(2,minmax(0,1fr)) 46px repeat(3,minmax(0,1fr)) 46px}.views #modo{margin:0}}
 </style>
 </head>
 <body>
@@ -947,7 +950,7 @@ header:has(#adminBtn:not([hidden])) .htools #usersBtn{grid-column:5/7;grid-row:3
     <button type="button" class="ghost" id="usersBtn" hidden>Usuarios</button>
   </div>
 </header>
-<nav class="views" id="views" aria-label="Secciones"><div class="vtabs" id="vtabs"></div><button type="button" class="vtog" id="theme" role="switch" aria-checked="false" aria-label="Modo oscuro"><i class="knob"></i><span class="ico il" aria-hidden="true">☀</span><span class="ico ig" aria-hidden="true">🌙</span></button></nav>
+<nav class="views" id="views" aria-label="Secciones"><div class="vtabs" id="vtabs"></div><button type="button" class="vtog" id="modo" role="switch" aria-checked="false" aria-label="Cambiar entre alimentos y préstamos"><i class="knob"></i><span class="ico il" aria-hidden="true">🥕</span><span class="ico ig" aria-hidden="true">🍲</span></button><button type="button" class="vtog" id="theme" role="switch" aria-checked="false" aria-label="Modo oscuro"><i class="knob"></i><span class="ico il" aria-hidden="true">☀</span><span class="ico ig" aria-hidden="true">🌙</span></button></nav>
 <div class="wrap" id="wrap">
   <nav class="zones" aria-label="Zonas"><div class="zsel" id="zsel"></div><h2>Zonas</h2><div id="zones"></div><h2 class="ztit">Tipos de alimento</h2><div id="ztipos"></div><div class="zmov"><h2>Últimos movimientos</h2><ol class="mvl" id="imv"></ol></div></nav>
   <main>
@@ -1060,6 +1063,7 @@ header:has(#adminBtn:not([hidden])) .htools #usersBtn{grid-column:5/7;grid-row:3
   <section class="alerts"><h2><span id="aT">Alertas próximas</span><button type="button" class="ghost arrow" id="aClose" aria-label="Cerrar alertas" title="Cerrar alertas">✕</button></h2><ul id="aL"></ul><div id="aM"></div><div id="pushBox" class="pushbox"></div></section>
 </aside>
 <script src="vendor/supabase.js"></script>
+<script src="vendor/jspdf.min.js"></script>
 <script>
 const hoy12=()=>{const d=new Date();d.setHours(12,0,0,0);return d};
 const zonaNombre=k=>cameras.find(c=>c.id===k)?.name||k;
@@ -1297,6 +1301,7 @@ function limpiarPantalla(){alOpen=false;scOpen=false;plate=[];qFindTxt="";sec=0;
  msg.textContent="";$("bellN").textContent="0";$("addForm").reset();$("scan").value="";pintarAl()}
 function renderAll(){
  if(!currentUser){limpiarPantalla();return}
+ if(window.PRM){if(PRM.on()){PRM.render();return}PRM.hide()}
  const vt=$("vtabs");if(!vt.firstChild)vt.innerHTML=VISTAS.map(([k,l,t])=>`<button class="tab" data-s="${k}" aria-pressed="false"><span class="l-lg">${l}</span><span class="l-sm">${t}</span></button>`).join("");
  vt.querySelectorAll(".tab").forEach(b=>b.setAttribute("aria-pressed",String(+b.dataset.s===sec)));
  $("v0").hidden=sec!==0;$("v1").hidden=sec!==1;$("v3").hidden=sec!==3;$("v4").hidden=sec!==4;$("v5").hidden=sec!==5;
@@ -1705,6 +1710,7 @@ async function cargar(){
   if(z.data.length)cameras=z.data.map(r=>({id:r.id,name:r.nombre,temp:r.temp||"",max:r.max||"",bad:!!r.mala}));
   if(t.data.length){CATS.splice(0,CATS.length,...t.data.map(r=>r.nombre));Object.keys(CZ).forEach(k=>delete CZ[k]);t.data.forEach(r=>{CZ[r.nombre]=r.zona})}
   normalizar();known=new Set(items.map(i=>i.sku));fp={};items.forEach(i=>fp[i.sku]=itFp(i));fpZ=zFp();
+  if(window.PRM)try{await PRM.load()}catch(_){}
   datosAl=true;sync=1;try{renderAll()}finally{sync=0}
 }
 async function recargar(){if(!currentUser||!listo)return;try{await cola;await cargar()}catch(e){aviso("No se pudo actualizar: "+(e.message||e))}}
@@ -1952,6 +1958,95 @@ function avisarNuevas(){if(!datosAl||!currentUser)return;const u=alertas().filte
 const _renderAlertas=renderAlertas;renderAlertas=function(){_renderAlertas();avisarNuevas();pintarPush()};
 const _logout=logout;logout=function(){vistas=null;return _logout.apply(this,arguments)};
 pintarPush();
+</script>
+<script>
+window.PRM=(()=>{
+const KM="kokoa-modo",E={disponible:"Disponible",prestado:"Prestado",por_limpiar:"Por limpiar",en_reparacion:"En reparación",perdido:"Perdido",retirado:"Retirado"};
+const LB={0:["Prestar","Prestar"],1:["Devolver","Devolver"],3:["Préstamos en curso","En curso"],4:["Gráficos","Gráficos"],5:["Movimientos","Movimientos"]};
+let on=false,ok=true,imp=[],pre=[],its=[],evs=[],sel=new Set(),built=false;
+try{on=localStorage.getItem(KM)==="1"}catch(_){}
+const f=d=>d?new Date(d).toLocaleString("es-CO",{dateStyle:"short",timeStyle:"short"}):"-";
+const late=i=>!i.devuelto&&Date.parse(i.vence)<Date.now();
+const busy=e=>e.contains(document.activeElement)&&/INPUT|SELECT|TEXTAREA/.test(document.activeElement.tagName);
+const set=(id,h)=>{const e=$(id);if(e&&!busy(e))e.innerHTML=h};
+const err=x=>aviso(x.message||String(x),"err");
+async function load(){
+ const q=(n,o,l)=>SB.from(n).select("*").order(o,{ascending:false}).limit(l);
+ const r=await Promise.all([q("implementos","codigo",1000),q("prestamos","id",500),q("prestamo_items","id",3000),q("prestamo_eventos","id",1000)]);
+ ok=!r.some(x=>x.error);
+ if(ok){imp=r[0].data.sort((a,b)=>a.codigo.localeCompare(b.codigo,"es"));pre=r[1].data;its=r[2].data;evs=r[3].data}
+}
+function lab(p){document.querySelectorAll("#vtabs .tab").forEach(b=>{const k=+b.dataset.s,v=VISTAS.find(x=>x[0]===k),t=p?LB[k]:v.slice(1);b.querySelector(".l-lg").textContent=t[0];b.querySelector(".l-sm").textContent=t[1]})}
+function pintar(){const b=$("modo");b.classList.toggle("grid",on);b.setAttribute("aria-checked",String(on));b.title=on?"Modo préstamos (clic para alimentos)":"Modo alimentos (clic para préstamos)"}
+function pdf(p,rows){
+ const d=new window.jspdf.jsPDF({unit:"mm",format:"a5"}),W=148;let y=14;
+ d.setFont("helvetica","bold");d.setFontSize(14);d.text("Kokoa Virtual · Ticket de préstamo",10,y);d.setFontSize(11);d.text(p.numero,W-10,y,{align:"right"});
+ y+=7;d.setFont("helvetica","normal");d.setFontSize(9);d.text("Salida: "+f(p.salida)+"    Entregó: "+(p.entregado_por||"-"),10,y);
+ y+=8;d.setFont("helvetica","bold");d.text("PRESTATARIO",10,y);d.setFont("helvetica","normal");y+=5;
+ [`Nombre: ${p.nombre}`,`Documento: ${p.documento}`,`Teléfono: ${p.telefono||"-"}    Barrio: ${p.barrio||"-"}`].forEach(t=>{d.text(t,10,y);y+=5});
+ y+=3;d.setFont("helvetica","bold");d.text("IMPLEMENTOS",10,y);y+=5;d.text("Código",10,y);d.text("Implemento",32,y);d.text("Estado al salir",80,y);d.text("Devolver antes de",108,y);d.setFont("helvetica","normal");y+=5;
+ rows.forEach(i=>{if(y>175){d.addPage();y=14}d.text(String(i.codigo||""),10,y);d.text(d.splitTextToSize(String(i.nombre||""),46),32,y);d.text(String(i.cond_salida||""),80,y);d.text(f(i.vence),108,y);
+  if(i.devuelto){y+=4;d.setFontSize(8);d.text(`Devuelto ${f(i.devuelto)} · ${i.cond_regreso}${i.limpio?"":" · sin limpiar"}${i.novedad?" · "+i.novedad:""}`,32,y);d.setFontSize(9)}y+=6});
+ y=Math.max(y+6,150);if(y>190){d.addPage();y=20}
+ d.setFontSize(8);d.text(d.splitTextToSize("Me comprometo a devolver los implementos completos, limpios y en la fecha indicada, y a responder por su daño o pérdida. El préstamo es gratuito. Autorizo el tratamiento de mis datos personales (Ley 1581 de 2012) para gestionar este préstamo.",W-20),10,y);
+ y+=22;d.line(10,y,60,y);d.line(W-60,y,W-10,y);d.text("Firma prestatario",10,y+4);d.text("Recibe devolución",W-60,y+4);
+ d.save("ticket-"+p.numero+".pdf");
+}
+function build(){if(built)return;built=true;
+ const mk=(id,h)=>{const s=document.createElement("section");s.id=id;s.hidden=true;s.innerHTML=h;$("v5").after(s)};
+ mk("pv0",`<h2>Préstamo: Prestar</h2><p class="sub" id="pwarn" hidden>Falta ejecutar supabase/prestamos.sql en Supabase.</p>
+ <div style="display:grid;gap:16px;grid-template-columns:repeat(auto-fit,minmax(280px,1fr))"><div><input id="pq" placeholder="Buscar implemento" aria-label="Buscar implemento" autocomplete="off"><div class="qside" id="pl"></div></div>
+ <form class="add" id="pf" autocomplete="off"><label class="aname">Nombre completo<input id="pn" required maxlength="80"></label><label>Documento<input id="pd" required maxlength="20"></label><label>Teléfono<input id="pt" type="tel" maxlength="20"></label><label>Barrio<input id="pb" maxlength="60"></label><label class="aname">Notas<input id="po" maxlength="120"></label>
+ <label class="aname" style="flex-direction:row;gap:8px;align-items:center"><input id="pa" type="checkbox" required style="width:auto">La persona autoriza el tratamiento de sus datos (Ley 1581 de 2012) y acepta las condiciones del ticket.</label>
+ <div id="psel" class="sub" aria-live="polite"></div><div class="abtns"><button type="submit">Prestar y generar ticket</button></div></form></div>
+ <h2 class="qh2">Últimos préstamos</h2><ol class="mvl" id="pult"></ol>`);
+ mk("pv1",`<h2>Préstamo: Devolver</h2><div id="pdev"></div><h2 class="qh2">Por limpiar</h2><div id="plim"></div>
+ <div id="padm" hidden><h2 class="qh2">Nuevo implemento</h2><form class="add" id="nf" autocomplete="off"><label>Código<input id="nc" required maxlength="20" placeholder="OLLA-001"></label><label class="aname">Nombre<input id="nm" required maxlength="60"></label><label>Categoría<input id="ng" maxlength="40"></label><label>Accesorios<input id="na" maxlength="80" placeholder="tapa, asas…"></label><label>Valor de reposición<input id="nv" type="number" min="0" step="any" value="0"></label><label>Plazo (días)<input id="np" type="number" min="1" max="60" value="3"></label><div class="abtns"><button type="submit">Crear implemento</button></div></form></div>
+ <h2 class="qh2">Inventario de implementos</h2><div id="pinv"></div>`);
+ mk("pv3",`<h2>Préstamos en curso</h2><div id="pcur"></div>`);
+ mk("pv4",`<h2>Gráficos de préstamos</h2><div class="gsum" id="pgs"></div><div id="pgr"></div>`);
+ mk("pv5",`<h2>Movimientos de préstamos</h2><ol class="mvl" id="pev"></ol>`);
+ $("pq").oninput=rPrestar;
+ $("pv0").addEventListener("click",e=>{const b=e.target.closest("[data-pi]");if(!b)return;const i=b.dataset.pi;sel.has(i)?sel.delete(i):sel.add(i);rPrestar()});
+ $("pf").onsubmit=async e=>{e.preventDefault();const ids=[...sel].map(Number);if(!ids.length){aviso("Elige al menos un implemento.","err");return}
+  try{const r=(await SB.rpc("crear_prestamo",{p_nombre:$("pn").value,p_documento:$("pd").value,p_telefono:$("pt").value,p_barrio:$("pb").value,p_ids:ids,p_notas:$("po").value}));if(r.error)throw r.error;
+   sel.clear();$("pf").reset();await load();rAll();pdf(r.data,its.filter(i=>i.prestamo_id===r.data.id));aviso("Préstamo "+r.data.numero+" registrado.")}catch(x){err(x)}};
+ $("pv1").addEventListener("click",async e=>{const b=e.target.closest("[data-rec],[data-lim]");if(!b)return;
+  try{const r=b.dataset.rec?await SB.rpc("registrar_devolucion",{p_item:+b.dataset.rec,p_condicion:b.closest("[data-row]").querySelector(".pc").value,p_limpio:b.closest("[data-row]").querySelector(".pl").checked,p_novedad:b.closest("[data-row]").querySelector(".pn2").value}):await SB.rpc("marcar_limpio",{p_id:+b.dataset.lim});
+   if(r.error)throw r.error;await load();rAll()}catch(x){err(x)}});
+ $("nf").onsubmit=async e=>{e.preventDefault();try{const r=await SB.from("implementos").insert({codigo:$("nc").value.trim(),nombre:$("nm").value.trim(),categoria:$("ng").value.trim(),accesorios:$("na").value.trim(),valor:+$("nv").value||0,dias_plazo:+$("np").value||3});if(r.error)throw r.error;$("nf").reset();await load();rAll()}catch(x){err(x)}};
+ $("pv3").addEventListener("click",e=>{const b=e.target.closest("[data-tk]");if(!b)return;const p=pre.find(x=>x.id==b.dataset.tk);if(p)pdf(p,its.filter(i=>i.prestamo_id===p.id))});
+}
+function rPrestar(){$("pwarn").hidden=ok;const q=$("pq").value.trim().toLowerCase();
+ const l=imp.filter(i=>i.estado==="disponible"&&(i.nombre+i.codigo+(i.categoria||"")).toLowerCase().includes(q));
+ set("pl",l.map(i=>{const s=sel.has(String(i.id));return`<button type="button" class="sli" data-pi="${i.id}" aria-pressed="${s}"${s?' style="outline:2px solid var(--blue-t)"':""}><b>${esc(i.nombre)}</b><small>${esc(i.codigo)} · ${i.dias_plazo} día(s)${i.accesorios?" · "+esc(i.accesorios):""}</small></button>`}).join("")||'<p class="sub">No hay implementos disponibles.</p>');
+ $("psel").textContent=sel.size?sel.size+" seleccionado(s)":"Ningún implemento seleccionado";
+ set("pult",pre.slice(0,8).map(p=>`<li>${f(p.salida)} · <b>${esc(p.numero)}</b> · ${esc(p.nombre)}${p.estado==="activo"?"":" · cerrado"}</li>`).join("")||"<li>Sin préstamos todavía.</li>")}
+function rDevolver(){$("padm").hidden=!esAdmin();
+ const p=its.filter(i=>!i.devuelto);
+ set("pdev",p.length?p.map(i=>{const r=pre.find(x=>x.id===i.prestamo_id)||{};return`<div data-row style="padding:8px 0;border-bottom:1px solid var(--rule)"><b>${esc(i.nombre)}</b> <small>${esc(i.codigo)} · ${esc(r.numero)} · ${esc(r.nombre)}</small>${late(i)?' <b style="color:var(--alert-t)">vencido</b>':""}<div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:6px"><select class="pc" aria-label="Condición"><option value="bueno">Buen estado</option><option value="danado">Dañado</option><option value="perdido">Perdido</option></select><label style="display:flex;gap:4px;align-items:center"><input class="pl" type="checkbox" checked style="width:auto">Limpio y completo</label><input class="pn2" placeholder="Novedad" maxlength="120"><button type="button" data-rec="${i.id}">Recibir</button></div></div>`}).join(""):'<p class="sub">No hay implementos por devolver.</p>');
+ const L=imp.filter(i=>i.estado==="por_limpiar");
+ set("plim",L.map(i=>`<div style="display:flex;gap:8px;align-items:center;padding:4px 0"><b>${esc(i.nombre)}</b><small>${esc(i.codigo)}</small><button type="button" class="ghost" data-lim="${i.id}">Marcar limpio</button></div>`).join("")||'<p class="sub">Nada pendiente de limpieza.</p>');
+ set("pinv",imp.length?`<div class="tbl"><table style="min-width:560px"><thead><tr><th>Código</th><th>Implemento</th><th>Plazo</th><th>Valor</th><th>Estado</th></tr></thead><tbody>`+imp.map(i=>`<tr><td>${esc(i.codigo)}</td><td class="nm"><b>${esc(i.nombre)}</b><div class="low">${esc(i.accesorios||"")}</div></td><td>${i.dias_plazo} d</td><td>${i.valor}</td><td>${E[i.estado]||i.estado}</td></tr>`).join("")+"</tbody></table></div>":'<p class="sub">Aún no hay implementos. Un admin puede crearlos arriba.</p>')}
+function rCurso(){
+ const a=pre.filter(p=>p.estado==="activo").map(p=>{const pe=its.filter(i=>i.prestamo_id===p.id&&!i.devuelto);return{p,pe,m:pe.reduce((x,i)=>Math.min(x,Date.parse(i.vence)),1e15)}}).sort((x,y)=>x.m-y.m);
+ set("pcur",a.length?`<div class="tbl"><table style="min-width:640px"><thead><tr><th>Ticket</th><th>Persona</th><th>Pendiente</th><th>Vence</th><th></th></tr></thead><tbody>`+a.map(({p,pe,m})=>{const v=pe.some(late);return`<tr class="${v?"ns u":""}"><td>${esc(p.numero)}</td><td class="nm"><b>${esc(p.nombre)}</b><div class="low">${esc(p.documento)} · ${esc(p.telefono||"")}</div></td><td>${pe.map(i=>esc(i.nombre)).join(", ")}</td><td>${f(m)}${v?" <b>vencido</b>":""}</td><td><button type="button" class="ghost" data-tk="${p.id}">Ticket PDF</button></td></tr>`}).join("")+"</tbody></table></div>":'<p class="sub">No hay préstamos en curso.</p>')}
+function rGraf(){const c={};its.forEach(i=>c[i.nombre]=(c[i.nombre]||0)+1);const t=Object.entries(c).sort((a,b)=>b[1]-a[1]).slice(0,10),mx=t.length?t[0][1]:1,ac=its.filter(i=>!i.devuelto);
+ set("pgs",`Disponibles <b>${imp.filter(i=>i.estado==="disponible").length}</b> · Prestados <b>${ac.length}</b> · Vencidos <b>${ac.filter(late).length}</b> · Por limpiar <b>${imp.filter(i=>i.estado==="por_limpiar").length}</b>`);
+ set("pgr",t.length?"<h3>Más prestados</h3>"+t.map(([n,v])=>`<div style="display:flex;gap:8px;align-items:center;margin:4px 0"><span style="width:140px">${esc(n)}</span><i style="display:block;height:14px;border-radius:7px;background:var(--blue-t);width:${Math.round(v/mx*60)}%;min-width:4px"></i><b>${v}</b></div>`).join(""):'<p class="sub">Aún no hay préstamos.</p>')}
+function rMov(){set("pev",evs.map(e=>`<li>${f(e.t)} · <b>${e.tipo==="prestamo"?"Prestó":"Recibió"}</b> ${esc(e.numero)} · ${esc(e.detalle)} · ${esc(e.apodo||"")}</li>`).join("")||"<li>Sin movimientos todavía.</li>")}
+function rAll(){if(on)render()}
+function render(){build();const s=sec;
+ if(!$("vtabs").firstChild)$("vtabs").innerHTML=VISTAS.map(([k,l,t])=>`<button class="tab" data-s="${k}" aria-pressed="false"><span class="l-lg">${l}</span><span class="l-sm">${t}</span></button>`).join("");
+ [0,1,3,4,5].forEach(k=>{$("v"+k).hidden=true;$("pv"+k).hidden=k!==s});
+ document.querySelector(".zones").hidden=true;$("wrap").classList.add("solo");lab(true);
+ document.querySelectorAll("#vtabs .tab").forEach(b=>b.setAttribute("aria-pressed",String(+b.dataset.s===s)));
+ ({0:rPrestar,1:rDevolver,3:rCurso,4:rGraf,5:rMov})[s]()}
+function hide(){if(built)[0,1,3,4,5].forEach(k=>$("pv"+k).hidden=true);if($("vtabs").firstChild)lab(false)}
+$("modo").addEventListener("click",()=>{on=!on;try{localStorage.setItem(KM,on?"1":"0")}catch(_){}pintar();sec=0;msg.textContent="";if(currentUser)renderAll()});
+pintar();
+return{on:()=>on,render,hide,load};
+})();
 </script>
 </body>
 </html>
