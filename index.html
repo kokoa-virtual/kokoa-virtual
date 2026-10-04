@@ -2166,12 +2166,13 @@ function pdfDoc(p,rows){
  d.setFont("helvetica","bold");d.setFontSize(14);d.text("Kokoa Virtual · Ticket de préstamo",10,y);d.setFontSize(11);d.text(p.numero,W-10,y,{align:"right"});
  y+=7;d.setFont("helvetica","normal");d.setFontSize(9);d.text("Salida: "+f(p.salida)+"    Entregó: "+(p.entregado_por||"-"),10,y);
  y+=8;d.setFont("helvetica","bold");d.text("PRESTATARIO",10,y);d.setFont("helvetica","normal");y+=5;
- const cap=t=>{t=String(t||"");return t?t.charAt(0).toUpperCase()+t.slice(1):""},nmL=d.splitTextToSize("Nombre: "+p.nombre,58);
- d.text(nmL,10,y);d.text("Documento: "+p.documento,70,y);d.text("Teléfono: "+(p.telefono||"-"),108,y);
- d.text(`Plazo: ${plazoDe(p,rows)||"-"} día${plazoDe(p,rows)===1?"":"s"}`,70,y+5);
- y+=Math.max(5,(nmL.length-1)*4.5)+13;
- d.setFont("helvetica","bold");d.text("IMPLEMENTOS",10,y);y+=5;d.text("Implemento",10,y);d.text("Estado al salir",80,y);d.text("Devolver antes de",108,y);d.setFont("helvetica","normal");y+=5;
- rows.forEach(i=>{if(y>175){d.addPage();y=14}d.text(d.splitTextToSize(String(i.nombre||""),66),10,y);d.text(cap(i.cond_salida),80,y);d.text(f(i.vence),108,y);
+ const cap=t=>{t=String(t||"");return t?t.charAt(0).toUpperCase()+t.slice(1):""},nmL=d.splitTextToSize("Nombre: "+p.nombre,W-20);
+ d.text(nmL,10,y);y+=(nmL.length-1)*4.5+5;
+ d.text("Documento: "+p.documento,10,y);d.text("Teléfono: "+(p.telefono||"-"),58,y);
+ d.text(`Plazo: ${plazoDe(p,rows)||"-"} día${plazoDe(p,rows)===1?"":"s"}`,104,y);
+ y+=12;
+ d.setFont("helvetica","bold");d.text("IMPLEMENTOS",10,y);y+=5;d.text("Implemento",10,y);d.text("Estado al salir",64,y);d.text("Devolver antes de",94,y);d.setFont("helvetica","normal");y+=5;
+ rows.forEach(i=>{if(y>175){d.addPage();y=14}d.text(d.splitTextToSize(String(i.nombre||""),50),10,y);d.text(cap(i.cond_salida),64,y);d.text(f(i.vence),94,y);
   if(i.devuelto){y+=4;d.setFontSize(8);d.text(`Devuelto ${f(i.devuelto)} · ${cap(i.cond_regreso)}${i.limpio?"":" · sin limpiar"}${i.novedad?" · "+i.novedad:""}`,10,y);d.setFontSize(9)}y+=6});
  if(p.notas){if(y>175){d.addPage();y=14}const nl=d.splitTextToSize("Notas: "+p.notas,W-20);d.setFontSize(9);d.text(nl,10,y);y+=nl.length*4.5+2}
  y=Math.max(y+6,150);if(y>190){d.addPage();y=20}
@@ -2344,7 +2345,14 @@ function renderPF(){const n=(dvf!=="todos")+(dvc!=="*")+(dord?1:0);
   +(n?`<button type="button" class="fo clr" data-pfo="clr">Quitar filtros</button>`:"")}
 const estSel=i=>{const ed=["disponible","en_reparacion","perdido","retirado"];return ed.includes(i.estado)?`<select data-est aria-label="Estado">${ed.map(x=>`<option value="${x}"${x===i.estado?" selected":""}>${E[x]}</option>`).join("")}</select>`:`<span class="pchip${i.estado==="prestado"?" on":""}">${E[i.estado]||esc(i.estado)}</span>`};
 const quienTiene=i=>{if(i.estado!=="prestado")return"";const it=its.find(x=>x.implemento_id===i.id&&!x.devuelto);if(!it)return"";const p=pre.find(x=>x.id===it.prestamo_id)||{};return`Con ${esc(p.nombre||"—")} · vence ${f(it.vence)}`};
-const gstH=(g,kk)=>`<div class="gst"><input type="number" min="1" step="1" value="1" data-gstq aria-label="Unidades"><select data-gstt aria-label="Pasar a estado">${stateList().filter(e=>e.k==="disp"||e.k==="lim"||!e.base).map(e=>e.k==="disp"?"disponible":e.k==="lim"?"por_limpiar":e.clave).map(k=>`<option value="${esc(k)}">${esc(lbl(k))}</option>`).join("")}</select><button type="button" class="ghost" data-gst="${kk}">Pasar</button></div>`;
+const gstH=(g,kk)=>`<div class="gst"><select data-gstt="${kk}" aria-label="Pasar una unidad a otro estado"><option value="">Pasar 1 unidad a…</option>${stateList().filter(e=>e.k==="disp"||e.k==="lim"||!e.base).map(e=>e.k==="disp"?"disponible":e.k==="lim"?"por_limpiar":e.clave).map(k=>`<option value="${esc(k)}">${esc(lbl(k))}</option>`).join("")}</select></div>`;
+async function gstPasar(k,t){
+ if(!esAdmin()||!t)return;
+ const src=imp.filter(x=>gkey(x)===k&&x.estado!==t&&x.estado!=="prestado").sort((a,b)=>(a.estado==="disponible"?0:1)-(b.estado==="disponible"?0:1));
+ if(!src.length){aviso("No hay unidades que pasar a ese estado (las prestadas no se pueden cambiar).","err");rAll();return}
+ const ids=[src[0].id];
+ try{const q=await SB.from("implementos").update({estado:t}).in("id",ids).select("id");if(q.error)throw q.error;if(!q.data||q.data.length<ids.length)throw new Error("No se pudo actualizar: sin permiso.");await load();rAll();aviso("1 unidad → "+lbl(t)+".")}catch(x){err(x);rAll()}
+}
 const tipoSel=v=>`<select data-tipo aria-label="Tipo de implemento"><option value="">Sin tipo</option>${tpTipos().map(t=>`<option${t===v?" selected":""}>${esc(t)}</option>`).join("")}</select>`;
 function rInv(lista){
  const ed=esAdmin(),map=new Map();
@@ -2449,12 +2457,6 @@ function build(){if(built)return;built=true;
   const ns=e.target.closest("[data-nsug]");if(ns){$("nm").value=ns.dataset.nsug;nUpd();$("nq2").focus();return}
   const gd=e.target.closest("[data-gdisp]");if(gd){const k=decodeURIComponent(gd.dataset.gdisp),ids=imp.filter(x=>gkey(x)===k&&estX.some(s=>s.clave===x.estado)).map(x=>x.id);if(!ids.length)return;
    try{const q=await SB.from("implementos").update({estado:"disponible"}).in("id",ids).select();if(q.error)throw q.error;if(!q.data||!q.data.length)throw new Error("No se pudo actualizar: sin permiso.");await load();rAll();aviso(ids.length+" unidad"+(ids.length>1?"es":"")+" disponible"+(ids.length>1?"s":"")+".")}catch(x){err(x)}return}
-  const gs=e.target.closest("[data-gst]");if(gs){if(!esAdmin())return;const k=decodeURIComponent(gs.dataset.gst),box=gs.closest(".gst"),n=Math.floor(+box.querySelector("[data-gstq]").value),t=box.querySelector("[data-gstt]").value;
-   if(!(n>=1)){aviso("Indica cuántas unidades.","err");return}
-   const src=imp.filter(x=>gkey(x)===k&&x.estado!==t&&x.estado!=="prestado").sort((a,b)=>(a.estado==="disponible"?0:1)-(b.estado==="disponible"?0:1));
-   if(!src.length){aviso("No hay unidades que pasar a ese estado (las prestadas no se pueden cambiar).","err");return}
-   const ids=src.slice(0,n).map(x=>x.id);
-   try{const q=await SB.from("implementos").update({estado:t}).in("id",ids).select("id");if(q.error)throw q.error;if(!q.data||q.data.length<ids.length)throw new Error("No se pudo actualizar: sin permiso.");await load();rAll();aviso(ids.length+" unidad"+(ids.length>1?"es":"")+" → "+lbl(t)+".")}catch(x){err(x)}return}
   const sv=e.target.closest("[data-isave]");if(sv){const k=decodeURIComponent(sv.dataset.isave),r=sv.closest("[data-g]"),all=imp.filter(x=>gkey(x)===k);if(!all.length)return;
    const cant=Math.floor(+r.querySelector("[data-cant]").value);
    
@@ -2475,7 +2477,7 @@ function build(){if(built)return;built=true;
   else{if(sug.length&&!confirm(`«${n}» no existe. Hay implementos parecidos: ${sug.join(", ")}.\n¿Crear «${n}» como implemento nuevo?`))return;
    rows=codeNew(q).map(c=>({codigo:c,nombre:n,categoria:$("ng").value.trim(),accesorios:$("na").value.trim(),valor:0,dias_plazo:1}))}
   try{const r=await SB.from("implementos").insert(rows);if(r.error)throw r.error;$("nf").reset();await load();rAll();nUpd();aviso(rows.length>1?rows.length+" unidades agregadas.":"Implemento "+(exact?"agregado":"creado")+": "+n+".")}catch(x){err(x)}});
- $("pv1").addEventListener("change",e=>{const x=e.target.closest("[data-pfsel]");if(!x)return;if(x.dataset.pfsel==="est")dvf=x.value;else dvc=x.value;fo=false;fsub="";rDevolver(true)});
+ $("pv1").addEventListener("change",e=>{const g=e.target.closest("[data-gstt]");if(g){if(g.value){const t=g.value;if(document.activeElement&&document.activeElement.blur)document.activeElement.blur();gstPasar(decodeURIComponent(g.dataset.gstt),t)}return}const x=e.target.closest("[data-pfsel]");if(!x)return;if(x.dataset.pfsel==="est")dvf=x.value;else dvc=x.value;fo=false;fsub="";rDevolver(true)});
  $("pv1").addEventListener("input",e=>{if(e.target.closest("#nf"))nUpd()});
  $("pv1").addEventListener("reset",e=>{if(e.target.id==="nf")setTimeout(nUpd)});
  const dm=document.createElement("div");dm.id="pdelModal";dm.className="modal-backdrop";dm.hidden=true;
