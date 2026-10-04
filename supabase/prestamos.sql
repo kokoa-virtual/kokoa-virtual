@@ -8,7 +8,7 @@ create table implementos(
   condicion text not null default 'bueno', creado timestamptz not null default now());
 create table prestamos(
   id bigint generated always as identity primary key, numero text not null unique,
-  nombre text not null, documento text not null, telefono text default '', barrio text default '', notas text default '',
+  nombre text not null, documento text not null, telefono text default '', notas text default '',
   salida timestamptz not null default now(), estado text not null default 'activo' check (estado in ('activo','cerrado')),
   entregado_por text, autoriza_datos timestamptz not null default now());
 create table prestamo_items(
@@ -34,7 +34,7 @@ create policy ver_prest on prestamos for select to authenticated using (true);
 create policy ver_pitem on prestamo_items for select to authenticated using (true);
 create policy ver_pev on prestamo_eventos for select to authenticated using (true);
 
-create function crear_prestamo(p_nombre text, p_documento text, p_telefono text, p_barrio text, p_ids bigint[], p_notas text default '')
+create function crear_prestamo(p_nombre text, p_documento text, p_telefono text, p_ids bigint[], p_notas text default '')
 returns prestamos language plpgsql security definer set search_path=public as $$
 declare ap text; pr prestamos; im implementos; n int := 0;
 begin
@@ -42,9 +42,9 @@ begin
   if length(trim(coalesce(p_nombre,'')))<2 or length(trim(coalesce(p_documento,'')))<4 then raise exception 'Faltan nombre o documento'; end if;
   if coalesce(array_length(p_ids,1),0)=0 then raise exception 'Elige al menos un implemento'; end if;
   select apodo into ap from perfiles where id=auth.uid();
-  insert into prestamos(numero,nombre,documento,telefono,barrio,notas,entregado_por)
+  insert into prestamos(numero,nombre,documento,telefono,notas,entregado_por)
     values('P-'||extract(year from now())::int||'-'||lpad(nextval('prestamo_seq')::text,4,'0'),trim(p_nombre),trim(p_documento),
-    coalesce(p_telefono,''),coalesce(p_barrio,''),coalesce(p_notas,''),ap) returning * into pr;
+    coalesce(p_telefono,''),coalesce(p_notas,''),ap) returning * into pr;
   for im in select * from implementos where id=any(p_ids) order by id for update loop
     if im.estado<>'disponible' then raise exception '% no está disponible',im.nombre; end if;
     update implementos set estado='prestado' where id=im.id;
