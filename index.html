@@ -1113,46 +1113,40 @@ nav.views .vgr{grid-column:3;grid-row:1;justify-self:end}
 .rtl .zone{width:100%;margin:0}
 .csel.falta{border-color:var(--alert-t)!important;box-shadow:0 0 0 2px color-mix(in srgb,var(--alert-t) 30%,transparent)}
 
-/* ===== Ajustes de alineación (préstamos, estado/condición, formularios Crear/Agregar) ===== */
-:root{--ctl-h:40px}
-@media (pointer:coarse){:root{--ctl-h:44px}}
-
-/* 1) Préstamos: Implementos | Implementos a prestar | Datos de quien recibe en una misma fila, mismo borde superior e igual altura */
-.pqmain .plate{min-height:200px;padding:12px;gap:8px;border-width:2px;border-radius:20px}
-.pqmain .plate-h h3{font-size:18px}
-.pqmain .prow{padding:8px 46px 8px 10px;gap:8px;border-radius:14px}
-.pqmain .qfoot{margin-top:8px}
-@media (min-width:901px){
-.qgrid.pqg{grid-template-columns:230px minmax(0,1fr) minmax(0,1fr);grid-template-rows:auto 1fr;align-items:stretch;column-gap:16px;row-gap:10px}
-.qgrid.pqg>.qleft{display:contents}
-.qgrid.pqg>.pqmain{display:contents}
-.qgrid.pqg #pqFilt{grid-column:1;grid-row:1}
-.qgrid.pqg #pl{grid-column:1;grid-row:2;min-width:0}
-.qgrid.pqg #pl .qscroll{max-height:18rem}
-.qgrid.pqg #pMain{grid-column:2;grid-row:2;min-width:0;display:flex;flex-direction:column}
-.qgrid.pqg #pMain .plate{flex:1 1 auto}
-.qgrid.pqg .pr-form{grid-column:3;grid-row:2;margin:0;display:flex;flex-direction:column;min-width:0}
-.qgrid.pqg .pr-form .pr-foot{margin-top:auto}
+/* ===== Ajustes: préstamo en horizontal, Estado/Condición, formularios crear ===== */
+/* 1. Implementos a prestar + Datos de quien recibe, lado a lado */
+@media (min-width:641px) and (max-width:1100px){
+.pqmain{grid-template-columns:minmax(0,1.1fr) minmax(250px,1fr);gap:12px}
 }
+@media (max-width:640px){
+.pqmain{grid-template-columns:1fr}
+}
+/* Cuadro de implementos a prestar más compacto */
+.pqmain .plate{min-height:190px;padding:12px;gap:8px;border-radius:20px;border-width:2px}
+.pqmain .plate-h{gap:8px}
+.pqmain .plate-h h3{font-size:17px}
+.pqmain .plate-h .plate-find{flex:1 1 150px;max-width:none}
+.pqmain .pr-form{padding:14px}
+.pqmain .pr-h{font-size:17px}
 
-/* 2) Estado y Condición: casilla de número y "Pasar a…" en la misma línea y con la misma altura */
-.gst{flex-wrap:nowrap;align-items:center}
-.gst input,.gst select{height:var(--ctl-h);min-height:var(--ctl-h);box-sizing:border-box;margin:0;padding-top:0;padding-bottom:0;line-height:normal}
-.gst input{width:64px!important;flex:none}
-.gst select{flex:1 1 0;min-width:0}
+/* 2. Estado y Condición: casilla de número + "Pasar a" en una sola fila, misma altura */
+.gst{flex-wrap:nowrap;align-items:stretch;gap:6px}
+.gst input,.gst select{box-sizing:border-box;height:44px;min-height:44px;padding:6px 10px;border-radius:12px;line-height:1.2}
+.gst input{width:60px!important;flex:0 0 60px}
+.gst select{flex:0 1 128px;min-width:0;width:auto;max-width:150px;text-overflow:ellipsis}
 
-/* 3) Crear/Agregar (alimento e implemento): misma altura en todas las casillas, casillas más anchas y espacio reservado para los botones */
-.add{align-items:flex-end}
-.add label{flex:1 1 130px;min-width:0}
-.add input,.add select,.add .abtns button{height:var(--ctl-h);min-height:var(--ctl-h);box-sizing:border-box}
-.add input,.add select{padding-top:0;padding-bottom:0;line-height:normal;width:100%!important;max-width:none}
-.add .abtns{display:flex;align-items:flex-end;gap:8px;flex:0 0 auto;margin-left:auto}
-.add .abtns button{flex:0 0 auto;width:auto;min-width:0;margin:0;padding-top:0;padding-bottom:0;white-space:nowrap}
-.add .abtns #aBtn{margin-left:0;min-width:0}
-@media (min-width:761px){.add label.aname{flex:2 1 200px;min-width:140px}}
-@media (max-width:760px){
-.add .abtns{flex:1 1 100%;margin-left:0}
-.add .abtns button{flex:1 1 0;width:auto}
+/* 3. Crear/Agregar implemento y alimento: misma altura y casillas más anchas */
+#nf,#addForm{display:flex;flex-wrap:wrap;align-items:flex-end;gap:12px 14px}
+#nf label,#addForm label{flex:1 1 200px;min-width:0}
+#nf label.aname,#addForm label.aname{flex:2 1 280px}
+#nf input,#nf select,#addForm input,#addForm select{box-sizing:border-box;width:100%!important;max-width:none;height:44px;min-height:44px;padding:6px 12px;line-height:1.2}
+#nf input[type=number],#addForm input[type=number]{text-align:left}
+#nf .abtns,#addForm .abtns{display:flex;flex:0 0 auto;align-items:center;justify-content:flex-end;gap:10px;margin-left:auto}
+#nf .abtns button,#addForm .abtns button,#nf #nBtn,#nf #nCancel,#addForm #aBtn,#addForm #aCancel{box-sizing:border-box;width:auto!important;min-width:0!important;height:44px;min-height:44px;margin:0!important;padding:0 20px;flex:0 0 auto}
+@media (max-width:700px){
+#nf label,#addForm label{flex:1 1 100%}
+#nf .abtns,#addForm .abtns{flex:1 1 100%;margin-left:0}
+#nf .abtns button,#addForm .abtns button{flex:1 1 0!important}
 }
 </style>
 </head>
