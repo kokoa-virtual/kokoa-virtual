@@ -1057,6 +1057,23 @@ nav.views .vgl{grid-column:1;grid-row:1;justify-self:start}
 nav.views #modo.mseg{grid-column:2;grid-row:1;order:0;justify-self:center;margin:0}
 nav.views .vgr{grid-column:3;grid-row:1;justify-self:end}
 }
+
+/* Ticket: ventanilla y botón en movimientos; préstamos en curso en lista */
+.tkm{width:min(420px,100%)}
+.tkm h2{margin:0 0 4px}
+.tkb{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:10px;margin:14px 0 6px}
+.tkb button{min-height:48px}
+.tkm .abtns{display:flex;justify-content:flex-end;margin-top:10px}
+.tkbtn{padding:2px 10px;min-height:30px;font-size:13px}
+.tbl table.pcurt{min-width:860px;width:100%}
+.tbl table.pcurt td{vertical-align:middle}
+@media(max-width:760px){.tbl table.pcurt{min-width:0}}
+
+/* Editar tipos de implementos */
+.tprow{flex-wrap:wrap}
+.tprow [data-ren]{flex:1 1 150px;min-width:0;max-width:240px}
+.tprow select{max-width:220px}
+#tpMsg.okm{color:var(--ink)}
 </style>
 </head>
 <body>
@@ -2112,7 +2129,7 @@ pintarPush();
 window.PRM=(()=>{
 const KM="kokoa-modo",E={disponible:"Disponible",prestado:"Prestado",por_limpiar:"Por limpiar",en_reparacion:"En reparación",perdido:"Perdido",retirado:"Retirado"};
 const LB={0:["Prestar: Quitar","Prestar"],1:["Devolver: Agregar","Devolver"],3:["Préstamos en curso","En curso"],4:["Gráficos","Gráficos"],5:["Movimientos","Movimientos"]};
-let on=false,ok=true,imp=[],pre=[],its=[],evs=[],sel=new Set(),built=false,dvf="todos",dvc="*",dq="",dord="",fo=false,fsub="",pqTxt="",pqTipo="*",pqOrd="",pqFO=false,pqSub="",pFind="",pgm="i",pgp="d",pgi="*",pct="bars";const dsel=new Map();
+let on=false,ok=true,tipX=[],imp=[],pre=[],its=[],evs=[],sel=new Set(),built=false,dvf="todos",dvc="*",dq="",dord="",fo=false,fsub="",pqTxt="",pqTipo="*",pqOrd="",pqFO=false,pqSub="",pFind="",pgm="i",pgp="d",pgi="*",pct="bars";const dsel=new Map();
 try{on=localStorage.getItem(KM)==="1"}catch(_){}
 const nq=x=>String(x||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase();
 const f=d=>d?new Date(d).toLocaleString("es-CO",{dateStyle:"short",timeStyle:"short"}):"-";
@@ -2125,28 +2142,97 @@ async function load(){
  const q=(n,o,l)=>SB.from(n).select("*").order(o,{ascending:false}).limit(l);
  const r=await Promise.all([q("implementos","codigo",1000),q("prestamos","id",500),q("prestamo_items","id",3000),q("prestamo_eventos","id",1000)]);
  ok=!r.some(x=>x.error);
+ try{const t=await SB.from("tipos_implemento").select("nombre").order("nombre");tipX=t.error?[]:t.data.map(x=>x.nombre)}catch(_){tipX=[]}
  if(ok){imp=r[0].data.sort((a,b)=>String(a.nombre).localeCompare(String(b.nombre),"es")||a.id-b.id);pre=r[1].data;its=r[2].data;evs=r[3].data}
 }
 function lab(p){document.querySelectorAll("#views .tab").forEach(b=>{const k=+b.dataset.s,v=VISTAS.find(x=>x[0]===k),t=p?LB[k]:v.slice(1);b.querySelector(".l-lg").textContent=t[0];b.querySelector(".l-sm").textContent=t[1]})}
 function pintar(){const b=$("modo");b.classList.toggle("grid",on);b.setAttribute("aria-checked",String(on));b.title=on?"Modo préstamos (clic para volver a alimentos)":"Modo alimentos (clic para ir a préstamos)"}
-function pdf(p,rows){
+const plazoDe=(p,rows)=>{const t=Date.parse(p.salida),v=Math.max(0,...rows.map(i=>Date.parse(i.vence)||0));return t&&v?Math.max(1,Math.round((v-t)/864e5)):0};
+function pdfDoc(p,rows){
  const d=new window.jspdf.jsPDF({unit:"mm",format:"a5"}),W=148;let y=14;
  d.setFont("helvetica","bold");d.setFontSize(14);d.text("Kokoa Virtual · Ticket de préstamo",10,y);d.setFontSize(11);d.text(p.numero,W-10,y,{align:"right"});
  y+=7;d.setFont("helvetica","normal");d.setFontSize(9);d.text("Salida: "+f(p.salida)+"    Entregó: "+(p.entregado_por||"-"),10,y);
  y+=8;d.setFont("helvetica","bold");d.text("PRESTATARIO",10,y);d.setFont("helvetica","normal");y+=5;
- [`Nombre: ${p.nombre}`,`Documento: ${p.documento}`,`Teléfono: ${p.telefono||"-"}`].forEach(t=>{d.text(t,10,y);y+=5});
+ [`Nombre: ${p.nombre}`,`Documento: ${p.documento}`,`Teléfono: ${p.telefono||"-"}`,`Plazo: ${plazoDe(p,rows)||"-"} día${plazoDe(p,rows)===1?"":"s"}`].concat(p.notas?[`Notas: ${p.notas}`]:[]).forEach(t=>{d.text(t,10,y);y+=5});
  y+=3;d.setFont("helvetica","bold");d.text("IMPLEMENTOS",10,y);y+=5;d.text("Implemento",10,y);d.text("Estado al salir",80,y);d.text("Devolver antes de",108,y);d.setFont("helvetica","normal");y+=5;
  rows.forEach(i=>{if(y>175){d.addPage();y=14}d.text(d.splitTextToSize(String(i.nombre||""),66),10,y);d.text(String(i.cond_salida||""),80,y);d.text(f(i.vence),108,y);
   if(i.devuelto){y+=4;d.setFontSize(8);d.text(`Devuelto ${f(i.devuelto)} · ${i.cond_regreso}${i.limpio?"":" · sin limpiar"}${i.novedad?" · "+i.novedad:""}`,10,y);d.setFontSize(9)}y+=6});
  y=Math.max(y+6,150);if(y>190){d.addPage();y=20}
  d.setFontSize(8);d.text(d.splitTextToSize("Me comprometo a devolver los implementos completos, limpios y en la fecha indicada, y a responder por su daño o pérdida. El préstamo es gratuito. Autorizo el tratamiento de mis datos personales (Ley 1581 de 2012) para gestionar este préstamo.",W-20),10,y);
  y+=22;d.line(10,y,60,y);d.line(W-60,y,W-10,y);d.text("Firma prestatario",10,y+4);d.text("Recibe devolución",W-60,y+4);
- d.save("ticket-"+p.numero+".pdf");
+ return d;
 }
+/* ---- Ventanilla del ticket: compartir, descargar, imprimir ---- */
+let tkSt=null;
+function tkClose(){const m=$("tkModal");if(m)m.hidden=true;if(tkSt&&tkSt.url)URL.revokeObjectURL(tkSt.url);tkSt=null;const f=$("tkFrame");if(f)f.remove()}
+function ticketDlg(p,rows){
+ let doc;try{doc=pdfDoc(p,rows)}catch(x){err(x);return}
+ const blob=doc.output("blob"),name="ticket-"+p.numero+".pdf",file=new File([blob],name,{type:"application/pdf"});
+ if(tkSt)tkClose();tkSt={blob,name,file,url:URL.createObjectURL(blob),p};
+ let m=$("tkModal");
+ if(!m){m=document.createElement("div");m.id="tkModal";m.className="modal-backdrop";m.hidden=true;
+  m.innerHTML='<section class="modal tkm" role="dialog" aria-modal="true" aria-labelledby="tkT"><h2 id="tkT"></h2><p class="small-note" id="tkS"></p><div class="tkb"><button type="button" id="tkShare">Compartir</button><button type="button" id="tkDown">Descargar</button><button type="button" id="tkPrint">Imprimir</button></div><p class="small-note" id="tkMsg" aria-live="polite"></p><div class="abtns"><button type="button" class="ghost" id="tkClose">Cerrar</button></div></section>';
+  document.body.appendChild(m);
+  m.addEventListener("click",e=>{if(e.target===m)tkClose()});
+  $("tkClose").onclick=tkClose;
+  $("tkDown").onclick=()=>{if(!tkSt)return;const a=document.createElement("a");a.href=tkSt.url;a.download=tkSt.name;document.body.appendChild(a);a.click();a.remove();$("tkMsg").textContent="Descargando "+tkSt.name+"…"};
+  $("tkPrint").onclick=()=>{if(!tkSt)return;const old=$("tkFrame");if(old)old.remove();const f=document.createElement("iframe");f.id="tkFrame";f.style.cssText="position:fixed;right:0;bottom:0;width:0;height:0;border:0";f.src=tkSt.url;
+   f.onload=()=>{try{f.contentWindow.focus();f.contentWindow.print()}catch(_){window.open(tkSt.url,"_blank")}};document.body.appendChild(f);$("tkMsg").textContent="Abriendo la impresión…"};
+  $("tkShare").onclick=async()=>{if(!tkSt)return;try{await navigator.share({files:[tkSt.file],title:"Ticket "+tkSt.p.numero,text:"Ticket de préstamo "+tkSt.p.numero})}catch(x){if(x&&x.name!=="AbortError")$("tkMsg").textContent="No se pudo compartir. Usa Descargar."}};
+  addEventListener("keydown",e=>{if(e.key==="Escape"&&$("tkModal")&&!$("tkModal").hidden)tkClose()})}
+ $("tkT").textContent="Ticket "+p.numero;$("tkS").textContent=p.nombre+" · "+rows.length+" implemento"+(rows.length===1?"":"s")+". ¿Qué quieres hacer con el ticket?";$("tkMsg").textContent="";
+ const can=!!(navigator.canShare&&navigator.canShare({files:[file]}));$("tkShare").hidden=!can;
+ m.hidden=false;$("tkDown").focus()}
+const pdf=ticketDlg;
 const SVGF='<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 5h18l-7 8v6l-4 2v-8z"/></svg>';
-const ESTL={todos:"Inventario de implementos",disp:"Disponibles",pend:"Por devolver",venc:"Vencidos",lim:"Por limpiar"};
+const ESTL={todos:"Toda la cocina",disp:"Disponibles",pend:"Por devolver",venc:"Vencidos",lim:"Por limpiar"};
 const tipoDe=m=>(m&&m.categoria)||"Sin tipo";
-const tipos=()=>[...new Set(imp.map(tipoDe))].sort((a,b)=>a.localeCompare(b,"es"));
+const tipos=()=>[...new Set([...imp.map(tipoDe),...tipX])].sort((a,b)=>a.localeCompare(b,"es"));
+
+/* ---- Editar tipos de implementos (botón Editar en modo préstamos) ---- */
+const tpMsg=(t,bad)=>{const m=$("tpMsg");if(m){m.textContent=t||"";m.className="admin-msg"+(bad&&t?"":" okm")}};
+const tpFalta=x=>/tipos_implemento|42P01|schema cache|does not exist/i.test((x&&(x.code+" "+x.message))||"");
+function tpRender(){
+ const B=$("tpBody");if(!B)return;
+ const L=tipos().filter(t=>t!=="Sin tipo"),cnt=t=>imp.filter(m=>tipoDe(m)===t).length;
+ B.innerHTML=`<form class="aform" id="tpNew" autocomplete="off"><div class="two"><label>Nombre del nuevo tipo<input name="nombre" required maxlength="40" placeholder="Ej. Ollas"></label><div style="align-self:end"><button type="submit">Crear tipo</button></div></div></form>`
+ +(L.length?L.map((t,n)=>{const q=cnt(t);return`<div class="arow tprow" data-tp="${esc(t)}"><span class="dtx"><b>${esc(t)}</b><small>${q} unidad${q===1?"":"es"}</small></span><input data-ren maxlength="40" value="${esc(t)}" aria-label="Nuevo nombre de ${esc(t)}"><button type="button" class="ghost" data-tren="${n}">Renombrar</button>${q?`<select data-tdst="${n}" aria-label="Pasar los implementos a"><option value="">Pasar a: Sin tipo</option>${L.filter(x=>x!==t).map(x=>`<option value="${esc(x)}">Pasar a: ${esc(x)}</option>`).join("")}</select>`:""}<button type="button" class="ghost danger" data-tdel="${n}">Eliminar</button></div>`}).join("")+'<p class="small-note">Al eliminar un tipo, sus implementos pasan al tipo que elijas (o quedan «Sin tipo»). Al renombrar, el cambio se aplica a todos sus implementos.</p>':'<p class="sub">Aún no hay tipos de implementos. Crea el primero arriba.</p>')}
+async function tpLoad(){await load();rAll();tpRender()}
+async function tpMover(de,a){
+ const ids=imp.filter(m=>tipoDe(m)===de).map(m=>m.id);
+ if(ids.length){const q=await SB.from("implementos").update({categoria:a}).in("id",ids).select("id");if(q.error)throw q.error;if(!q.data||q.data.length<ids.length)throw new Error("No se pudo guardar: sin permiso sobre implementos.")}
+ if(dvc===de)dvc="*";if(pqTipo===de)pqTipo="*"}
+async function tpTabla(fn){try{const r=await fn();if(r&&r.error&&!tpFalta(r.error))throw r.error}catch(x){if(!tpFalta(x))throw x}}
+function tpOpen(){
+ let m=$("tpModal");
+ if(!m){m=document.createElement("div");m.id="tpModal";m.className="modal-backdrop";m.hidden=true;
+  m.innerHTML='<section class="modal" role="dialog" aria-modal="true" aria-labelledby="tpT" style="width:min(760px,100%)"><div class="modal-head"><h2 id="tpT">Editar: tipos de implementos</h2><button type="button" class="ghost" id="tpClose">Cerrar</button></div><div id="tpBody"></div><p id="tpMsg" class="admin-msg" role="alert"></p></section>';
+  document.body.appendChild(m);
+  const cerrar=()=>{m.hidden=true};
+  $("tpClose").onclick=cerrar;m.addEventListener("click",e=>{if(e.target===m)cerrar()});
+  addEventListener("keydown",e=>{if(e.key==="Escape"&&!m.hidden)cerrar()});
+  m.addEventListener("submit",async e=>{if(e.target.id!=="tpNew")return;e.preventDefault();
+   const nom=e.target.elements.nombre.value.trim();if(!nom)return;
+   if(tipos().some(t=>nq(t)===nq(nom))||nq(nom)==="sin tipo"){tpMsg("Ya existe un tipo con ese nombre.",1);return}
+   try{const r=await SB.from("tipos_implemento").insert({nombre:nom});if(r.error)throw r.error;tipX.push(nom);tpRender();tpMsg("Tipo «"+nom+"» creado.");aviso("Tipo «"+nom+"» creado.")}
+   catch(x){tpMsg(tpFalta(x)?"Falta crear la tabla tipos_implemento en Supabase (ejecuta tipos_implemento.sql).":(x.message||String(x)),1)}});
+  m.addEventListener("click",async e=>{const b=e.target.closest("[data-tren],[data-tdel]");if(!b||!esAdmin())return;
+   const row=b.closest("[data-tp]"),viejo=row.dataset.tp;tpMsg("");
+   try{
+    if(b.dataset.tren!==undefined){const nuevo=row.querySelector("[data-ren]").value.trim();if(!nuevo||nuevo===viejo)return;
+     if(nq(nuevo)==="sin tipo"||tipos().some(t=>nq(t)===nq(nuevo)&&t!==viejo)){tpMsg("Ya existe un tipo con ese nombre.",1);return}
+     await tpMover(viejo,nuevo);
+     await tpTabla(()=>SB.from("tipos_implemento").delete().eq("nombre",viejo));
+     if(!imp.some(m=>tipoDe(m)===viejo)||true)await tpTabla(()=>SB.from("tipos_implemento").upsert({nombre:nuevo}));
+     await tpLoad();tpMsg("Tipo renombrado a «"+nuevo+"».");aviso("Tipo renombrado a «"+nuevo+"».")}
+    else{const sel=row.querySelector("[data-tdst]"),dest=sel?sel.value:"",q=imp.filter(m=>tipoDe(m)===viejo).length;
+     if(!confirm(`¿Eliminar el tipo «${viejo}»?`+(q?`\n${q} unidad${q===1?"":"es"} pasar${q===1?"á":"án"} a ${dest||"«Sin tipo»"}.`:"")))return;
+     await tpMover(viejo,dest);
+     await tpTabla(()=>SB.from("tipos_implemento").delete().eq("nombre",viejo));
+     await tpLoad();tpMsg("Tipo «"+viejo+"» eliminado.");aviso("Tipo «"+viejo+"» eliminado.")}
+   }catch(x){tpMsg(x.message||String(x),1)}})}
+ tpMsg("");tpRender();m.hidden=false;const f=m.querySelector("input");if(f)f.focus()}
+document.addEventListener("click",e=>{if(!on||!e.target.closest("#adminBtn"))return;e.stopImmediatePropagation();e.preventDefault();if(esAdmin())tpOpen()},true);
 const codeNew=q=>{const ns=imp.map(x=>/^IMP-(\d+)$/i.exec(x.codigo)).filter(Boolean).map(x=>+x[1]),n=(ns.length?Math.max(...ns):0)+1;return Array.from({length:q},(_,k)=>"IMP-"+String(n+k).padStart(4,"0"))};
 const gkey=m=>nq(String(m.nombre).trim());
 const delPrio={perdido:0,retirado:1,en_reparacion:2,por_limpiar:3,disponible:4};
@@ -2316,8 +2402,10 @@ function build(){if(built)return;built=true;
   if(!confirm(`¿Eliminar ${pick.length} unidad${pick.length>1?"es":""}?\n${res}\nNo se puede deshacer.`))return;
   try{const r=await SB.from("implementos").delete().in("id",pick.map(i=>i.id)).select();if(r.error)throw r.error;if(!r.data||!r.data.length)throw new Error("No se pudo eliminar: sin permiso.");
    dsel.clear();cDel();await load();rAll();nUpd();aviso(r.data.length>1?r.data.length+" unidades eliminadas.":"Unidad eliminada.")}catch(x){$("pdelMsg").textContent=(x.message||String(x))+(/foreign|violates|referenc/i.test(x.message||"")?" (tiene préstamos registrados; márcalo como «Retirado» en lugar de eliminarlo)":"")}};
+ document.addEventListener("click",e=>{const b=e.target.closest("[data-tkn]");if(!b)return;const p=pre.find(x=>x.numero===b.dataset.tkn);if(p)ticketDlg(p,its.filter(i=>i.prestamo_id===p.id))});
  $("pv3").addEventListener("click",e=>{const b=e.target.closest("[data-tk]");if(!b)return;const p=pre.find(x=>x.id==b.dataset.tk);if(p)pdf(p,its.filter(i=>i.prestamo_id===p.id))});
 }
+const tkb=e=>e&&e.numero&&pre.some(x=>x.numero===e.numero)?`<button type="button" class="ghost tkbtn" data-tkn="${esc(e.numero)}" title="Ver, imprimir o compartir el ticket">Ticket</button>`:"";
 const hb=id=>esAdmin()&&id?`<button type="button" class="hdel" data-pdel="${id}" aria-label="Borrar este registro del historial" title="Borrar este registro">${ICON_TRASH}</button>`:"";
 function pgroups(){const m=new Map();imp.filter(i=>i.estado==="disponible").forEach(i=>{const k=gkey(i);if(!m.has(k))m.set(k,[]);m.get(k).push(i)});
  return[...m.entries()].map(([k,u])=>{const c=u.filter(i=>sel.has(String(i.id))).length;return{k,u,c,n:u[0].nombre,t:tipoDe(u[0]),acc:u[0].accesorios||"",rem:u.length-c}})}
@@ -2347,7 +2435,7 @@ function rPrestar(force){$("pwarn").hidden=ok;
  set("pMain",h,force);pFindUpd();
  $("psel").innerHTML=tot?`<b>${tot} seleccionado${tot===1?"":"s"}:</b> ${P.map(g=>g.c+"× "+esc(g.n)).join(", ")}`:"Ningún implemento seleccionado";
  const L=evs.filter(e=>e.tipo==="prestamo").slice(0,8);
- set("pult",L.map(e=>mvLi({t:"Préstamo",c:"dn",chip:esc(e.numero||""),s:esc(e.detalle),d:f(e.t)+(e.apodo?" · "+esc(e.apodo):""),h:hb(e.id)})).join("")||"<li>Sin préstamos todavía.</li>");
+ set("pult",L.map(e=>mvLi({t:"Préstamo",c:"dn",chip:esc(e.numero||""),s:esc(e.detalle),d:f(e.t)+(e.apodo?" · "+esc(e.apodo):""),h:tkb(e)+hb(e.id)})).join("")||"<li>Sin préstamos todavía.</li>");
 }
 function rDevolver(force){
  const pend=its.filter(i=>!i.devuelto),venc=pend.filter(late),L=imp.filter(i=>i.estado==="por_limpiar"),D=imp.filter(i=>i.estado==="disponible");
@@ -2357,9 +2445,9 @@ function rDevolver(force){
  if(dvc!=="*"&&!cats.includes(dvc))dvc="*";
  const k=nq(dq.trim()),hit=x=>!k||nq(x.i.nombre+" "+(x.c||"")+" "+(x.i.accesorios||"")).includes(k);
  const lista=base.filter(x=>(dvc==="*"||x.c===dvc)&&hit(x)),pl=n=>n+" implemento"+(n===1?"":"s");
- set("pdf1",[["todos","Inventario de implementos",imp.length],["disp","Disponibles",D.length],["pend","Por devolver",pend.length],["venc","Vencidos",venc.length],["lim","Por limpiar",L.length]].map(([k,t,n])=>`<button type="button" class="zone" data-pf="${k}" aria-pressed="${dvf===k}">${t}<small${k==="venc"&&n?' class="low"':""}>${pl(n)}</small></button>`).join(""),force);
+ set("pdf1",[["todos","Toda la cocina",imp.length],["disp","Disponibles",D.length],["pend","Por devolver",pend.length],["venc","Vencidos",venc.length],["lim","Por limpiar",L.length]].map(([k,t,n])=>`<button type="button" class="zone" data-pf="${k}" aria-pressed="${dvf===k}">${t}<small${k==="venc"&&n?' class="low"':""}>${pl(n)}</small></button>`).join(""),force);
  set("pdf2",[["*","Todos los tipos",base.length],...cats.map(c=>[c,c,base.filter(x=>x.c===c).length])].map(([k,t,n])=>`<button type="button" class="zone" data-pc="${esc(k)}" aria-pressed="${dvc===k}">${esc(t)}<small>${pl(n)}</small></button>`).join(""),force);
- set("pdf3",evs.filter(e=>e.tipo==="devolucion").slice(0,5).map(e=>mvLi({t:"Devolución",c:"up",chip:esc(e.numero||""),s:esc(e.detalle),d:f(e.t),h:hb(e.id)})).join("")||"<li>Aún no hay devoluciones.</li>",force);
+ set("pdf3",evs.filter(e=>e.tipo==="devolucion").slice(0,5).map(e=>mvLi({t:"Devolución",c:"up",chip:esc(e.numero||""),s:esc(e.detalle),d:f(e.t),h:tkb(e)+hb(e.id)})).join("")||"<li>Aún no hay devoluciones.</li>",force);
  const T=ESTL[dvf];
  let h=`<div class="sechead"><h2>${T}${dvc==="*"?"":" · "+esc(dvc)}</h2><span class="sub">${pl(lista.length)}</span></div>`;
  const nada=k||dvc!=="*";
@@ -2374,8 +2462,8 @@ function rDevolver(force){
  renderPF();nUpd()}
 function rCurso(){
  const a=pre.filter(p=>p.estado==="activo").map(p=>{const pe=its.filter(i=>i.prestamo_id===p.id&&!i.devuelto);return{p,pe,m:pe.reduce((x,i)=>Math.min(x,Date.parse(i.vence)),1e15)}}).sort((x,y)=>x.m-y.m);
- set("pcur",a.length?'<div class="cgrid pr-cards">'+a.map(({p,pe,m})=>{const v=pe.some(late);return`<div class="icard rcard${v?" ns":""}"><div class="rtop"><b>${esc(p.numero)}</b><span class="pchip ${v?"late":"on"}">${v?"Vencido":"Activo"}</span></div><div class="rwho"><b>${esc(p.nombre)}</b><span class="sku">${esc(p.documento)}${p.telefono?" · "+esc(p.telefono):""}</span></div><div class="rit"><span class="sku">Pendiente</span>${pe.map(i=>"<span>"+esc(i.nombre)+"</span>").join("")}</div><div class="rdue${v?" late":""}">Devolver antes de ${f(m)}</div><button type="button" class="ghost" data-tk="${p.id}">Ticket PDF</button></div>`}).join("")+"</div>":'<p class="sub">No hay préstamos en curso.</p>')}
-function rMov(){set("pev",evs.map(e=>mvLi({t:e.tipo==="prestamo"?"Préstamo":"Devolución",c:e.tipo==="prestamo"?"dn":"up",chip:esc(e.numero||""),s:esc(e.detalle),d:f(e.t)+(e.apodo?" · "+esc(e.apodo):""),h:hb(e.id)})).join("")||"<li>Sin movimientos todavía.</li>");
+ set("pcur",a.length?'<div class="tbl"><table class="pcurt"><thead><tr><th>Préstamo</th><th>Prestatario</th><th>Documento</th><th>Teléfono</th><th>Pendiente</th><th>Devolver antes de</th><th>Estado</th><th></th></tr></thead><tbody>'+a.map(({p,pe,m})=>{const v=pe.some(late);return`<tr class="${v?"ns u":""}"><td class="nm"><b>${esc(p.numero)}</b></td><td data-label="Prestatario">${esc(p.nombre)}</td><td data-label="Documento">${esc(p.documento)}</td><td data-label="Teléfono">${esc(p.telefono||"—")}</td><td data-label="Pendiente">${pe.map(i=>esc(i.nombre)).join(", ")}</td><td data-label="Devolver antes de"${v?' class="low"':""}>${f(m)}</td><td data-label="Estado"><span class="pchip ${v?"late":"on"}">${v?"Vencido":"Activo"}</span></td><td class="act" data-label=""><button type="button" class="ghost" data-tk="${p.id}">Ticket</button></td></tr>`}).join("")+'</tbody></table></div>':'<p class="sub">No hay préstamos en curso.</p>')}
+function rMov(){set("pev",evs.map(e=>mvLi({t:e.tipo==="prestamo"?"Préstamo":"Devolución",c:e.tipo==="prestamo"?"dn":"up",chip:esc(e.numero||""),s:esc(e.detalle),d:f(e.t)+(e.apodo?" · "+esc(e.apodo):""),h:tkb(e)+hb(e.id)})).join("")||"<li>Sin movimientos todavía.</li>");
  $("pHistAll").hidden=!(esAdmin()&&evs.length)}
 const pmov=()=>{const R=[],tk=i=>{const m=imp.find(x=>x.id===i.implemento_id);return m?tipoDe(m):"Sin tipo"};
  its.forEach(i=>{const p=pre.find(x=>x.id===i.prestamo_id)||{},t=Date.parse(p.salida),b={n:i.nombre,k:tk(i),w:p.nombre||"",num:p.numero||""};
