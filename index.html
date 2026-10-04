@@ -977,6 +977,12 @@ html{scrollbar-gutter:stable}
 .pev-t{display:flex;justify-content:space-between;align-items:center;gap:8px}
 .pev-s{overflow-wrap:anywhere}
 .pev time.pev-d{display:block;margin:0;font-weight:400;font-size:13px;color:var(--soft)}
+.pchip.up{background:var(--blue);color:var(--blue-t)}
+.pchip.dn{background:var(--alert);color:var(--alert-t)}
+.pev-t{flex-wrap:wrap}
+.pev-t b{min-width:0;overflow-wrap:anywhere}
+.pev-r{display:inline-flex;align-items:center;gap:6px;flex:none;margin-left:auto}
+.pev-r .hdel{align-self:center!important;margin:0!important}
 @media (max-width:860px){.pr-grid{grid-template-columns:1fr}}
 @media (max-width:760px){
 .pr-pg{grid-template-columns:1fr}
@@ -1029,7 +1035,7 @@ html{scrollbar-gutter:stable}
 </header>
 <nav class="views" id="views" aria-label="Secciones"><div class="vtabs" id="vtabs"></div><button type="button" class="mseg" id="modo" role="switch" aria-checked="false" aria-label="Cambiar entre alimentos y préstamos" title="Modo alimentos (clic para préstamos)"><span class="sg sg-a"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 7.5C10.2 6 6.6 6.2 5.2 9c-1.5 3-.3 7.6 2 10 1.1 1.1 2.6 1.1 3.8.3.6-.4 1.4-.4 2 0 1.2.8 2.7.8 3.8-.3 2.3-2.4 3.5-7 2-10-1.4-2.8-5-3-6.8-1.5z"/><path d="M12 7.5c0-2 .9-3.6 2.8-4.5"/></svg><b>Alimentos</b></span><span class="sg sg-p"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h15M15.5 4.5 19 8l-3.5 3.5"/><path d="M20 16H5M8.5 12.5 5 16l3.5 3.5"/></svg><b>Préstamos</b></span></button><button type="button" class="vtog" id="theme" role="switch" aria-checked="false" aria-label="Modo oscuro"><i class="knob"></i><span class="ico il" aria-hidden="true">☀</span><span class="ico ig" aria-hidden="true">🌙</span></button></nav>
 <div class="wrap" id="wrap">
-  <nav class="zones" aria-label="Zonas"><div class="zsel" id="zsel"></div><h2>Zonas</h2><div id="zones"></div><h2 class="ztit">Tipos de alimento</h2><div id="ztipos"></div><div class="zmov"><h2>Últimos movimientos</h2><ol class="mvl" id="imv"></ol></div></nav>
+  <nav class="zones" aria-label="Zonas"><div class="zsel" id="zsel"></div><h2>Zonas</h2><div id="zones"></div><h2 class="ztit">Tipos de alimento</h2><div id="ztipos"></div><div class="zmov"><h2>Últimos movimientos</h2><ol class="mvl pev" id="imv"></ol></div></nav>
   <main>
     <div class="purga" id="purgaAviso" role="alert" hidden><span id="purgaTxt"></span><span class="pb"><button type="button" class="ghost" id="purgaExp">Exportar ahora</button><button type="button" class="ghost" id="purgaOk">Entendido por hoy</button></span></div>
     <p id="msg" role="status" aria-live="polite"></p>
@@ -1041,7 +1047,7 @@ html{scrollbar-gutter:stable}
         <div id="qDest" role="group" aria-label="Tipo de salida"></div>
       </div>
       <h2 class="qh2">Últimas comidas</h2>
-      <ol class="mvl" id="cml"></ol>
+      <ol class="mvl pev" id="cml"></ol>
     </section>
     <section id="v1" hidden>
       <div class="sechead"><h2>Crear/Agregar alimento</h2><button type="button" class="ghost danger" id="delBtn"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12M9 7V4h6v3"/></svg>Eliminar alimentos</button></div>
@@ -1058,7 +1064,7 @@ html{scrollbar-gutter:stable}
         <button type="submit" id="aBtn">Crear alimento</button></div>
       </form>
       <div class="asug" id="aSug" aria-live="polite" hidden></div>
-      <section class="imv-m"><h2 class="qh2">Últimos movimientos</h2><ol class="mvl" id="imv2"></ol></section>
+      <section class="imv-m"><h2 class="qh2">Últimos movimientos</h2><ol class="mvl pev" id="imv2"></ol></section>
       <div class="itool">
         <div class="tabs" id="tabs"></div>
         <div class="irt"><div class="fwrap"><button type="button" class="ghost fbtn" id="fBtn" aria-haspopup="true" aria-expanded="false">Filtrar por</button><div class="fmenu" id="fMenu" hidden></div></div>
@@ -1082,7 +1088,7 @@ html{scrollbar-gutter:stable}
       <div class="gsum" id="gsum"></div>
       <div class="gbox" id="gc"></div>
       <h2>Últimos movimientos</h2>
-      <ol class="mvl" id="mvl"></ol>
+      <ol class="mvl pev" id="mvl"></ol>
     </section>
     <section id="v5" class="ledger" hidden>
       <div class="hhead"><h2>Movimientos</h2><button type="button" class="ghost danger" id="histAll" hidden>Borrar todo el historial</button></div>
@@ -1285,9 +1291,10 @@ function renderCats(){
   <button data-save="${i.sku}">Guardar</button></div>`).join("")+`</div></div>`}).join("")||`<p class="sub">No hay alimentos en esta vista.</p>`;
  {const v=$("aC").value;$("aC").innerHTML=opts(CATS);if(CATS.includes(v))$("aC").value=v}}
 const ICON_TRASH='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M6 6l1 14h10l1-14"/><path d="M10 10v6M14 10v6"/></svg>';
+const mvLi=o=>`<li class="${o.nw?"new":""}"><div class="pev-t"><b>${o.t}</b><span class="pev-r"><span class="pchip ${o.c}">${o.chip}</span>${o.h||""}</span></div>${o.s?`<div class="pev-s">${o.s}</div>`:""}<time class="pev-d">${o.d}</time></li>`;
 const hBtn=(t,id)=>esAdmin()&&id?`<button type="button" class="hdel" data-hdel="${t}" data-hid="${id}" aria-label="Borrar este registro del historial" title="Borrar este registro">${ICON_TRASH}</button>`:"";
 function renderInvMov(){const R=mov.filter(m=>m.d>0).sort((a,b)=>b.t-a.t).slice(0,10);
- const h=R.length?R.map(m=>`<li><span><time>${fechaHora(m.t)}</time>${esc(m.n)}<span class="sku"> ${esc(m.w||"")}${m.p?" · Por "+esc(m.p):""}</span></span><span class="up">Se puso +${fm(Math.abs(m.d))} ${esc(m.u)}</span>${hBtn("movimientos",m.id)}</li>`).join(""):"<li>Aún no hay entradas registradas. Aparecen cuando agregas stock.</li>";
+ const h=R.length?R.map(m=>mvLi({t:esc(m.n),c:"up",chip:"Se puso +"+fm(Math.abs(m.d))+" "+esc(m.u),s:esc(m.w||"")+(m.p?(m.w?" · ":"")+"Por "+esc(m.p):""),d:fechaHora(m.t),h:hBtn("movimientos",m.id)})).join(""):"<li>Aún no hay entradas registradas. Aparecen cuando agregas stock.</li>";
  $("imv").innerHTML=h;$("imv2").innerHTML=h}
 const stepU=i=>i.u==="unid."?1:0.5,enPlato=sku=>(plate.find(x=>x.sku===sku)||{q:0}).q;
 const qSub=i=>{const dv=dias(i.exp);return`${fm(r2(i.sys-enPlato(i.sku)))} ${i.u}${i.exp&&dv<=3?" · "+vence(dv):""}`};
@@ -1369,7 +1376,7 @@ function confirmarQuitar(){if(!sinNombre())return;if(!plate.length){msg.textCont
  const f=document.querySelector("#cml li");if(f)f.scrollIntoView({block:"nearest",behavior:"smooth"})}
 function renderComidas(){const L=comidas.slice(0,10);
  $("cml").innerHTML=L.length?L.map(c=>{const D=QDEST.find(x=>x.k===(c.k==="alimento"?"almuerzo":c.k))||{l:c.k},nn=c.it.length;
-  return`<li class="${c.n?"new":""}"><span><time>${fechaHora(c.t)}</time><b>${D.l}</b>${c.nom?" «"+esc(c.nom)+"»":""}<span class="sku"> ${c.it.map(x=>esc(x.n)+" "+fm(x.q)+" "+esc(x.u)+(x.m?" ("+esc(x.m.toLowerCase())+")":"")+(x.v?" · vence "+esc(x.v):"")).join(", ")} · Por ${esc(c.por)}</span></span><span class="dn">Se quitó ${nn} alimento${nn>1?"s":""}</span>${hBtn("comidas",c.id)}</li>`}).join(""):"<li>Aún no hay comidas registradas. Arma una en el plato y presiona «Quitar del stock».</li>";
+  return mvLi({nw:c.n,t:D.l+(c.nom?" «"+esc(c.nom)+"»":""),c:"dn",chip:"Se quitó "+nn+" alimento"+(nn>1?"s":""),s:c.it.map(x=>esc(x.n)+" "+fm(x.q)+" "+esc(x.u)+(x.m?" ("+esc(x.m.toLowerCase())+")":"")+(x.v?" · vence "+esc(x.v):"")).join(", ")+" · Por "+esc(c.por),d:fechaHora(c.t),h:hBtn("comidas",c.id)})}).join(""):"<li>Aún no hay comidas registradas. Arma una en el plato y presiona «Quitar del stock».</li>";
  comidas.forEach(c=>c.n=false)}
 function renderLog(){$("log").innerHTML=logData.map(e=>`<li class="${e.k} ${e.n?"new":""}"><time>${e.ts?fechaHora(e.ts):e.t}</time>${esc(e.x)}${hBtn("bitacora",e.id)}</li>`).join("");$("histAll").hidden=!esAdmin();logData.forEach(e=>e.n=false)}
 const VISTAS=[[0,"Comidas: Quitar","Quitar"],[1,"Inventario: Agregar","Agregar"],[3,"Pedido sugerido","Pedido"],[4,"Gráficos","Gráficos"],[5,"Movimientos","Movimientos"]];
@@ -1378,7 +1385,7 @@ function limpiarPantalla(){alOpen=false;scOpen=false;plate=[];qFindTxt="";sec=0;
  msg.textContent="";$("bellN").textContent="0";$("addForm").reset();$("scan").value="";pintarAl()}
 function renderAll(){
  if(!currentUser){limpiarPantalla();return}
- if(window.PRM){if(PRM.on()){PRM.render();return}PRM.hide()}
+ if(window.PRM){if(PRM.on()){renderAlertas();renderScanList();PRM.render();return}PRM.hide()}
  const vt=$("vtabs");if(!vt.firstChild)vt.innerHTML=VISTAS.map(([k,l,t])=>`<button class="tab" data-s="${k}" aria-pressed="false"><span class="l-lg">${l}</span><span class="l-sm">${t}</span></button>`).join("");
  vt.querySelectorAll(".tab").forEach(b=>b.setAttribute("aria-pressed",String(+b.dataset.s===sec)));
  $("v0").hidden=sec!==0;$("v1").hidden=sec!==1;$("v3").hidden=sec!==3;$("v4").hidden=sec!==4;$("v5").hidden=sec!==5;
@@ -1390,7 +1397,7 @@ function renderAll(){
  else if(sec===4){selMov();renderGraf()}
  else if(sec===5)renderLog();
  renderScanList();guardar()}
-function ir(sku){sec=1;zona="*";fTipo="*";vista="todos";alOpen=false;msg.textContent="";renderAll();const r=document.querySelector(`[data-e="${sku}"]`);if(r){r.classList.add("hit");r.scrollIntoView({block:"center"});const qf=r.querySelector("[data-q]");if(qf)qf.focus()}}
+function ir(sku){if(window.PRM&&PRM.on())PRM.off();sec=1;zona="*";fTipo="*";vista="todos";alOpen=false;msg.textContent="";renderAll();const r=document.querySelector(`[data-e="${sku}"]`);if(r){r.classList.add("hit");r.scrollIntoView({block:"center"});const qf=r.querySelector("[data-q]");if(qf)qf.focus()}}
 document.addEventListener("click",e=>{const b=e.target.closest("button"),D=b&&b.dataset;if(!b)return;
  if(D.asug){const i=items.find(a=>a.sku===D.asug);if(i){$("aN").value=i.n;actualizarAdd();$("aQ").focus()}}
  else if(D.qfs){agregarBusq(D.qfs)}
@@ -1692,6 +1699,7 @@ $("purgaExp").addEventListener("click",()=>{sec=5;renderAll();exportExcel()});
 function scanMatches(){const k=norm($("scan").value),rank=i=>{const n=norm(i.n);return n===k?0:n.startsWith(k)?1:2};
  return items.filter(i=>!k||norm(i.n).includes(k)||i.sku.toLowerCase().includes(k)).sort((a,b)=>(k?rank(a)-rank(b):0)||a.n.localeCompare(b.n,"es",{sensitivity:"base"}))}
 function renderScanList(){const b=$("scanList"),inp=$("scan");if(!b)return;
+ if(window.PRM&&PRM.on()){inp.placeholder="Buscar implemento";inp.setAttribute("aria-label","Buscar implemento");b.hidden=true;inp.setAttribute("aria-expanded","false");return}
  inp.placeholder=sec===0?"Buscar alimento para agregar":"Buscar en inventario";
  inp.setAttribute("aria-label",inp.placeholder);
  if(!scOpen||document.body.classList.contains("locked")){b.hidden=true;inp.setAttribute("aria-expanded","false");return}
@@ -1708,7 +1716,7 @@ $("scan").addEventListener("input",()=>{scOpen=true;renderScanList()});
 $("scanList").addEventListener("click",e=>{const b=e.target.closest("[data-sc]");if(!b||b.disabled)return;scanPick(b.dataset.sc)});
 document.addEventListener("click",e=>{if(scOpen&&e.target.isConnected&&!e.target.closest(".scan")){scOpen=false;renderScanList()}});
 addEventListener("keydown",e=>{if(e.key==="Escape"&&scOpen){scOpen=false;renderScanList()}});
-$("scanForm").addEventListener("submit",e=>{e.preventDefault();const txt=$("scan").value.trim();
+$("scanForm").addEventListener("submit",e=>{e.preventDefault();if(window.PRM&&PRM.on()){PRM.buscar($("scan").value);return}const txt=$("scan").value.trim();
  const l=scanMatches().filter(i=>sec!==0||r2(i.sys-enPlato(i.sku))>0);
  if(!l.length){msg.textContent=sec===0?`No hay alimentos con stock que coincidan con «${txt}».`:`No hay ningún alimento que coincida con «${txt}». Revisa el nombre o créalo en "Crear/Agregar alimento".`;scOpen=true;renderScanList();return}
  scanPick(l[0].sku)});
@@ -1908,7 +1916,7 @@ function renderGraf(){
   $("gsum").innerHTML=`<span class="chip">Se puso: +${fm(ti)}</span><span class="chip bad">Se quitó: −${fm(to)}</span><span class="chip">${M.length} movimientos</span>`+(gi==="*"?'<span class="sku">Con todos los alimentos se suman kg, L y unidades.</span>':"")+(gm==="t"&&gi==="*"?CATS.map(c=>{let a=0,o=0;M.forEach(m=>{if(catDe(m)===c){m.d>0?a+=m.d:o-=m.d}});return a||o?`<span class="chip">${esc(c)}: +${fm(a)} / −${fm(o)}</span>`:""}).join(""):"");
   $("live").textContent=`En vivo, actualizado ${hora()}`;
   const R=M.slice().sort((a,b)=>b.t-a.t).slice(0,10);
-  $("mvl").innerHTML=R.length?R.map(m=>{return`<li><span><time>${fechaHora(m.t)}</time>${esc(m.n)}<span class="sku"> ${esc(m.w||"")}</span></span><span class="${m.d>0?"up":"dn"}">${m.d>0?"Se puso +":"Se quitó −"}${fm(Math.abs(m.d))} ${m.u}</span>${hBtn("movimientos",m.id)}</li>`}).join(""):"<li>No hay movimientos en este período. Aparecen cuando agregas stock en Inventario: Agregar o quitas en Comidas: Quitar.</li>";
+  $("mvl").innerHTML=R.length?R.map(m=>mvLi({t:esc(m.n),c:m.d>0?"up":"dn",chip:(m.d>0?"Se puso +":"Se quitó −")+fm(Math.abs(m.d))+" "+esc(m.u),s:esc(m.w||""),d:fechaHora(m.t),h:hBtn("movimientos",m.id)})).join(""):"<li>No hay movimientos en este período. Aparecen cuando agregas stock en Inventario: Agregar o quitas en Comidas: Quitar.</li>";
 }
 $("gsel").addEventListener("change",renderGraf);
 setInterval(()=>{if(!document.hidden)renderGraf()},15000);addEventListener("resize",renderGraf);
@@ -2040,8 +2048,9 @@ pintarPush();
 window.PRM=(()=>{
 const KM="kokoa-modo",E={disponible:"Disponible",prestado:"Prestado",por_limpiar:"Por limpiar",en_reparacion:"En reparación",perdido:"Perdido",retirado:"Retirado"};
 const LB={0:["Prestar","Prestar"],1:["Devolver","Devolver"],3:["Préstamos en curso","En curso"],4:["Gráficos","Gráficos"],5:["Movimientos","Movimientos"]};
-let on=false,ok=true,imp=[],pre=[],its=[],evs=[],sel=new Set(),built=false,dvf="pend",dvc="*";
+let on=false,ok=true,imp=[],pre=[],its=[],evs=[],sel=new Set(),built=false,dvf="pend",dvc="*",dq="";
 try{on=localStorage.getItem(KM)==="1"}catch(_){}
+const nq=x=>String(x||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase();
 const f=d=>d?new Date(d).toLocaleString("es-CO",{dateStyle:"short",timeStyle:"short"}):"-";
 const late=i=>!i.devuelto&&Date.parse(i.vence)<Date.now();
 const busy=e=>e.contains(document.activeElement)&&/INPUT|SELECT|TEXTAREA/.test(document.activeElement.tagName);
@@ -2080,7 +2089,7 @@ function build(){if(built)return;built=true;
  <div class="pr-foot"><div id="psel" class="sub" aria-live="polite"></div><button type="submit">Prestar y generar ticket</button></div></form></div>
  <h2 class="qh2">Últimos préstamos</h2><ol class="mvl pev" id="pult"></ol>`);
  mk("pv1",`<h2>Préstamo: Devolver</h2>
- <div class="pr-pg"><aside class="pnl" aria-label="Filtros de devolución"><h2>Estado</h2><div id="pdf1"></div><h2 class="ztit">Categorías</h2><div id="pdf2"></div><h2 class="ztit">Últimas devoluciones</h2><ol class="mvl" id="pdf3"></ol></aside><div class="pr-main" id="pdev"></div></div>`);
+ <div class="pr-pg"><aside class="pnl" aria-label="Filtros de devolución"><h2>Estado</h2><div id="pdf1"></div><h2 class="ztit">Tipos de implementos</h2><div id="pdf2"></div><h2 class="ztit">Últimas devoluciones</h2><ol class="mvl pev" id="pdf3"></ol></aside><div class="pr-main" id="pdev"></div></div>`);
  mk("pv3",`<h2>Préstamos en curso</h2><div id="pcur"></div>`);
  mk("pv4",`<h2>Gráficos de préstamos</h2><div class="gsum" id="pgs"></div><div id="pgr"></div>`);
  mk("pv5",`<h2>Movimientos de préstamos</h2><ol class="mvl pev" id="pev"></ol>`);
@@ -2090,7 +2099,7 @@ function build(){if(built)return;built=true;
   try{const r=(await SB.rpc("crear_prestamo",{p_nombre:$("pn").value,p_documento:$("pd").value,p_telefono:$("pt").value,p_ids:ids,p_notas:$("po").value}));if(r.error)throw r.error;
    sel.clear();$("pf").reset();await load();rAll();pdf(r.data,its.filter(i=>i.prestamo_id===r.data.id));aviso("Préstamo "+r.data.numero+" registrado.")}catch(x){err(x)}};
  $("pv1").addEventListener("click",async e=>{
-  const fl=e.target.closest("[data-pf]");if(fl){dvf=fl.dataset.pf;dvc="*";rDevolver(true);return}
+  const fl=e.target.closest("[data-pf]");if(fl){dvf=fl.dataset.pf;rDevolver(true);return}
   const ct=e.target.closest("[data-pc]");if(ct){dvc=ct.dataset.pc;rDevolver(true);return}
   const b=e.target.closest("[data-rec],[data-lim]");if(!b)return;
   try{const r=b.dataset.rec?await SB.rpc("registrar_devolucion",{p_item:+b.dataset.rec,p_condicion:b.closest("[data-row]").querySelector(".pc").value,p_limpio:b.closest("[data-row]").querySelector(".pl").checked,p_novedad:b.closest("[data-row]").querySelector(".pn2").value}):await SB.rpc("marcar_limpio",{p_id:+b.dataset.lim});
@@ -2106,23 +2115,24 @@ function rPrestar(){$("pwarn").hidden=ok;const q=$("pq").value.trim().toLowerCas
  $("psel").innerHTML=n.length?`<b>${n.length} seleccionado${n.length===1?"":"s"}:</b> ${n.map(i=>esc(i.nombre)).join(", ")}`:"Ningún implemento seleccionado";
  set("pult",pre.slice(0,8).map(p=>`<li><div class="pev-t"><b>${esc(p.numero)}</b><span class="pchip${p.estado==="activo"?" on":""}">${p.estado==="activo"?"Activo":"Cerrado"}</span></div><div class="pev-s">${esc(p.nombre)}</div><time class="pev-d">${f(p.salida)}</time></li>`).join("")||"<li>Sin préstamos todavía.</li>")}
 function rDevolver(force){
- const pend=its.filter(i=>!i.devuelto),venc=pend.filter(late),L=imp.filter(i=>i.estado==="por_limpiar");
- const cI=m=>(m&&m.categoria)||"Sin categoría",cIt=i=>cI(imp.find(x=>x.id===i.implemento_id));
- const base={pend:pend.map(i=>({c:cIt(i),i})),venc:venc.map(i=>({c:cIt(i),i})),lim:L.map(m=>({c:cI(m),i:m})),todos:imp.map(m=>({c:cI(m),i:m}))}[dvf];
- const cats=[...new Set(base.map(x=>x.c))].sort((a,b)=>a.localeCompare(b,"es"));
+ const pend=its.filter(i=>!i.devuelto),venc=pend.filter(late),L=imp.filter(i=>i.estado==="por_limpiar"),D=imp.filter(i=>i.estado==="disponible");
+ const cI=m=>(m&&m.categoria)||"Sin tipo",cIt=i=>cI(imp.find(x=>x.id===i.implemento_id));
+ const base={todos:imp.map(m=>({c:cI(m),i:m})),disp:D.map(m=>({c:cI(m),i:m})),pend:pend.map(i=>({c:cIt(i),i})),venc:venc.map(i=>({c:cIt(i),i})),lim:L.map(m=>({c:cI(m),i:m}))}[dvf];
+ const cats=[...new Set(imp.map(cI))].sort((a,b)=>a.localeCompare(b,"es"));
  if(dvc!=="*"&&!cats.includes(dvc))dvc="*";
- const lista=base.filter(x=>dvc==="*"||x.c===dvc),pl=n=>n+" implemento"+(n===1?"":"s");
- set("pdf1",[["pend","Por devolver",pend.length],["venc","Vencidos",venc.length],["lim","Por limpiar",L.length],["todos","Inventario de implementos",imp.length]].map(([k,t,n])=>`<button type="button" class="zone" data-pf="${k}" aria-pressed="${dvf===k}">${t}<small${k==="venc"&&n?' class="low"':""}>${pl(n)}</small></button>`).join(""),force);
- set("pdf2",[["*","Todas las categorías",base.length],...cats.map(c=>[c,c,base.filter(x=>x.c===c).length])].map(([k,t,n])=>`<button type="button" class="zone" data-pc="${esc(k)}" aria-pressed="${dvc===k}">${esc(t)}<small>${pl(n)}</small></button>`).join(""),force);
- set("pdf3",evs.filter(e=>e.tipo==="devolucion").slice(0,5).map(e=>`<li><time>${f(e.t)}</time>${esc(e.detalle)}</li>`).join("")||"<li>Aún no hay devoluciones.</li>",force);
- const T={pend:"Por devolver",venc:"Vencidos",lim:"Por limpiar",todos:"Inventario de implementos"}[dvf];
+ const k=nq(dq.trim()),hit=x=>!k||nq(x.i.nombre+" "+x.i.codigo+" "+(x.c||"")+" "+(x.i.accesorios||"")).includes(k);
+ const lista=base.filter(x=>(dvc==="*"||x.c===dvc)&&hit(x)),pl=n=>n+" implemento"+(n===1?"":"s");
+ set("pdf1",[["todos","Inventario de implementos",imp.length],["disp","Disponibles",D.length],["pend","Por devolver",pend.length],["venc","Vencidos",venc.length],["lim","Por limpiar",L.length]].map(([k,t,n])=>`<button type="button" class="zone" data-pf="${k}" aria-pressed="${dvf===k}">${t}<small${k==="venc"&&n?' class="low"':""}>${pl(n)}</small></button>`).join(""),force);
+ set("pdf2",[["*","Todos los tipos",base.length],...cats.map(c=>[c,c,base.filter(x=>x.c===c).length])].map(([k,t,n])=>`<button type="button" class="zone" data-pc="${esc(k)}" aria-pressed="${dvc===k}">${esc(t)}<small>${pl(n)}</small></button>`).join(""),force);
+ set("pdf3",evs.filter(e=>e.tipo==="devolucion").slice(0,5).map(e=>`<li><div class="pev-t"><b class="up">Devolución</b><span class="pchip up">${esc(e.numero||"")}</span></div><div class="pev-s">${esc(e.detalle)}</div><time class="pev-d">${f(e.t)}</time></li>`).join("")||"<li>Aún no hay devoluciones.</li>",force);
+ const T={pend:"Por devolver",venc:"Vencidos",lim:"Por limpiar",disp:"Disponibles",todos:"Inventario de implementos"}[dvf];
  let h=`<div class="sechead"><h2>${T}${dvc==="*"?"":" · "+esc(dvc)}</h2><span class="sub">${pl(lista.length)}</span></div>`;
  if(dvf==="pend"||dvf==="venc")h+=lista.length?'<div class="cgrid pr-cards">'+lista.map(({i})=>{const r=pre.find(x=>x.id===i.prestamo_id)||{},v=late(i);
-  return`<div class="icard rcard${v?" ns":""}" data-row><div class="rtop"><b>${esc(i.nombre)}</b>${v?'<span class="pchip late">Vencido</span>':""}</div><span class="sku">${esc(i.codigo)} · ${esc(r.numero||"")}</span><div class="rwho"><b>${esc(r.nombre||"")}</b>${r.documento?`<span class="sku">${esc(r.documento)}${r.telefono?" · "+esc(r.telefono):""}</span>`:""}</div><div class="rdue${v?" late":""}">Devolver antes de ${f(i.vence)}</div><label class="fld">Estado al recibir<select class="pc" aria-label="Estado al recibir"><option value="bueno">Buen estado</option><option value="danado">Dañado</option><option value="perdido">Perdido</option></select></label><label class="fld">Novedad<input class="pn2" maxlength="120" placeholder="Opcional"></label><label class="pr-check"><input class="pl" type="checkbox" checked><span>Limpio y completo</span></label><button type="button" data-rec="${i.id}">Recibir</button></div>`}).join("")+"</div>":`<p class="sub">${dvf==="venc"?"No hay implementos vencidos.":"No hay implementos por devolver."}</p>`;
- else if(dvf==="lim")h+=lista.length?'<div class="cgrid pr-cards">'+lista.map(({i})=>`<div class="icard rcard"><div class="rtop"><b>${esc(i.nombre)}</b><span class="pchip">Por limpiar</span></div><span class="sku">${esc(i.codigo)}</span><button type="button" data-lim="${i.id}">Marcar limpio</button></div>`).join("")+"</div>":'<p class="sub">Nada pendiente de limpieza.</p>';
+  return`<div class="icard rcard${v?" ns":""}" data-row><div class="rtop"><b>${esc(i.nombre)}</b>${v?'<span class="pchip late">Vencido</span>':""}</div><span class="sku">${esc(i.codigo)} · ${esc(r.numero||"")}</span><div class="rwho"><b>${esc(r.nombre||"")}</b>${r.documento?`<span class="sku">${esc(r.documento)}${r.telefono?" · "+esc(r.telefono):""}</span>`:""}</div><div class="rdue${v?" late":""}">Devolver antes de ${f(i.vence)}</div><label class="fld">Estado al recibir<select class="pc" aria-label="Estado al recibir"><option value="bueno">Buen estado</option><option value="danado">Dañado</option><option value="perdido">Perdido</option></select></label><label class="fld">Novedad<input class="pn2" maxlength="120" placeholder="Opcional"></label><label class="pr-check"><input class="pl" type="checkbox" checked><span>Limpio y completo</span></label><button type="button" data-rec="${i.id}">Recibir</button></div>`}).join("")+"</div>":`<p class="sub">${k||dvc!=="*"?"Ningún implemento coincide con el filtro.":dvf==="venc"?"No hay implementos vencidos.":"No hay implementos por devolver."}</p>`;
+ else if(dvf==="lim")h+=lista.length?'<div class="cgrid pr-cards">'+lista.map(({i})=>`<div class="icard rcard"><div class="rtop"><b>${esc(i.nombre)}</b><span class="pchip">Por limpiar</span></div><span class="sku">${esc(i.codigo)}</span><button type="button" data-lim="${i.id}">Marcar limpio</button></div>`).join("")+"</div>":'<p class="sub">${k||dvc!=="*"?"Ningún implemento coincide con el filtro.":"Nada pendiente de limpieza."}</p>';
  else{
-  if(esAdmin())h+=`<h3 class="pr-h">Nuevo implemento</h3><form class="add pr-new" id="nf" autocomplete="off"><label>Código<input id="nc" required maxlength="20" placeholder="OLLA-001"></label><label class="aname">Nombre<input id="nm" required maxlength="60"></label><label>Categoría<input id="ng" maxlength="40"></label><label>Accesorios<input id="na" maxlength="80" placeholder="tapa, asas…"></label><label>Valor de reposición<input id="nv" type="number" min="0" step="any" value="0"></label><label>Plazo (días)<input id="np" type="number" min="1" max="60" value="3"></label><div class="abtns"><button type="submit">Crear implemento</button></div></form><h3 class="pr-h pr-gap">Implementos</h3>`;
-  h+=lista.length?`<div class="tbl"><table style="min-width:560px"><thead><tr><th>Código</th><th>Implemento</th><th>Categoría</th><th>Plazo</th><th>Valor</th><th>Estado</th></tr></thead><tbody>`+lista.map(({i})=>`<tr><td data-label="Código">${esc(i.codigo)}</td><td class="nm"><b>${esc(i.nombre)}</b>${i.accesorios?`<div class="sku">${esc(i.accesorios)}</div>`:""}</td><td data-label="Categoría">${esc(cI(i))}</td><td data-label="Plazo">${i.dias_plazo} d</td><td data-label="Valor">${money(i.valor)}</td><td data-label="Estado">${E[i.estado]||i.estado}</td></tr>`).join("")+"</tbody></table></div>":'<p class="sub">Aún no hay implementos.'+(esAdmin()?"":" Un admin puede crearlos.")+"</p>"}
+  if(esAdmin()&&dvf==="todos")h+=`<h3 class="pr-h">Nuevo implemento</h3><form class="add pr-new" id="nf" autocomplete="off"><label>Código<input id="nc" required maxlength="20" placeholder="OLLA-001"></label><label class="aname">Nombre<input id="nm" required maxlength="60"></label><label>Tipo de implemento<input id="ng" maxlength="40"></label><label>Accesorios<input id="na" maxlength="80" placeholder="tapa, asas…"></label><label>Valor de reposición<input id="nv" type="number" min="0" step="any" value="0"></label><label>Plazo (días)<input id="np" type="number" min="1" max="60" value="3"></label><div class="abtns"><button type="submit">Crear implemento</button></div></form><h3 class="pr-h pr-gap">Implementos</h3>`;
+  h+=lista.length?`<div class="tbl"><table style="min-width:560px"><thead><tr><th>Código</th><th>Implemento</th><th>Tipo</th><th>Plazo</th><th>Valor</th><th>Estado</th></tr></thead><tbody>`+lista.map(({i})=>`<tr><td data-label="Código">${esc(i.codigo)}</td><td class="nm"><b>${esc(i.nombre)}</b>${i.accesorios?`<div class="sku">${esc(i.accesorios)}</div>`:""}</td><td data-label="Tipo">${esc(cI(i))}</td><td data-label="Plazo">${i.dias_plazo} d</td><td data-label="Valor">${money(i.valor)}</td><td data-label="Estado">${E[i.estado]||i.estado}</td></tr>`).join("")+"</tbody></table></div>":'<p class="sub">'+(k||dvc!=="*"||dvf!=="todos"?"Ningún implemento coincide con el filtro.":"Aún no hay implementos."+(esAdmin()?"":" Un admin puede crearlos."))+"</p>"}
  set("pdev",h,force)}
 function rCurso(){
  const a=pre.filter(p=>p.estado==="activo").map(p=>{const pe=its.filter(i=>i.prestamo_id===p.id&&!i.devuelto);return{p,pe,m:pe.reduce((x,i)=>Math.min(x,Date.parse(i.vence)),1e15)}}).sort((x,y)=>x.m-y.m);
@@ -2130,8 +2140,13 @@ function rCurso(){
 function rGraf(){const c={};its.forEach(i=>c[i.nombre]=(c[i.nombre]||0)+1);const t=Object.entries(c).sort((a,b)=>b[1]-a[1]).slice(0,10),mx=t.length?t[0][1]:1,ac=its.filter(i=>!i.devuelto);
  set("pgs",`Disponibles <b>${imp.filter(i=>i.estado==="disponible").length}</b> · Prestados <b>${ac.length}</b> · Vencidos <b>${ac.filter(late).length}</b> · Por limpiar <b>${imp.filter(i=>i.estado==="por_limpiar").length}</b>`);
  set("pgr",t.length?"<h3>Más prestados</h3>"+t.map(([n,v])=>`<div style="display:flex;gap:8px;align-items:center;margin:4px 0"><span style="width:140px">${esc(n)}</span><i style="display:block;height:14px;border-radius:7px;background:var(--blue-t);width:${Math.round(v/mx*60)}%;min-width:4px"></i><b>${v}</b></div>`).join(""):'<p class="sub">Aún no hay préstamos.</p>')}
-function rMov(){set("pev",evs.map(e=>`<li><div class="pev-t"><b>${e.tipo==="prestamo"?"Préstamo":"Devolución"}</b><span class="pchip${e.tipo==="prestamo"?" on":""}">${esc(e.numero||"")}</span></div><div class="pev-s">${esc(e.detalle)}</div><time class="pev-d">${f(e.t)}${e.apodo?" · "+esc(e.apodo):""}</time></li>`).join("")||"<li>Sin movimientos todavía.</li>")}
+function rMov(){set("pev",evs.map(e=>{const c=e.tipo==="prestamo"?"dn":"up";return`<li><div class="pev-t"><b class="${c}">${e.tipo==="prestamo"?"Préstamo":"Devolución"}</b><span class="pchip ${c}">${esc(e.numero||"")}</span></div><div class="pev-s">${esc(e.detalle)}</div><time class="pev-d">${f(e.t)}${e.apodo?" · "+esc(e.apodo):""}</time></li>`}).join("")||"<li>Sin movimientos todavía.</li>")}
 function rAll(){if(on)render()}
+function buscar(v){dq=v||"";if(!built)return;
+ if(sec===0){$("pq").value=dq;rPrestar();return}
+ if(sec!==1){if(!dq.trim())return;sec=1;dvf="todos";dvc="*";render();return}
+ rDevolver(true)}
+function off(){on=false;try{localStorage.setItem(KM,"0")}catch(_){}dq="";$("scan").value="";pintar()}
 function render(){build();const s=sec;
  if(!$("vtabs").firstChild)$("vtabs").innerHTML=VISTAS.map(([k,l,t])=>`<button class="tab" data-s="${k}" aria-pressed="false"><span class="l-lg">${l}</span><span class="l-sm">${t}</span></button>`).join("");
  [0,1,3,4,5].forEach(k=>{$("v"+k).hidden=true;$("pv"+k).hidden=k!==s});
@@ -2139,9 +2154,10 @@ function render(){build();const s=sec;
  document.querySelectorAll("#vtabs .tab").forEach(b=>b.setAttribute("aria-pressed",String(+b.dataset.s===s)));
  ({0:rPrestar,1:rDevolver,3:rCurso,4:rGraf,5:rMov})[s]()}
 function hide(){if(built)[0,1,3,4,5].forEach(k=>$("pv"+k).hidden=true);if($("vtabs").firstChild)lab(false)}
-$("modo").addEventListener("click",()=>{on=!on;try{localStorage.setItem(KM,on?"1":"0")}catch(_){}pintar();sec=0;msg.textContent="";if(currentUser)renderAll()});
+$("scan").addEventListener("input",()=>{if(on)buscar($("scan").value)});
+$("modo").addEventListener("click",()=>{on=!on;dq="";$("scan").value="";try{localStorage.setItem(KM,on?"1":"0")}catch(_){}pintar();sec=0;msg.textContent="";if(currentUser)renderAll()});
 pintar();
-return{on:()=>on,render,hide,load};
+return{on:()=>on,off,buscar,render,hide,load};
 })();
 </script>
 </body>
