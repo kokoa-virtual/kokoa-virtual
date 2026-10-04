@@ -1,4 +1,4 @@
-const V = "kokoa-v3";
+const V = "kokoa-v4";
 const SHELL = ["./", "./index.html", "./manifest.webmanifest", "./vendor/supabase.js", "./vendor/jspdf.min.js", "./icons/icon-192.png"];
 
 self.addEventListener("install", e => {
