@@ -6053,7 +6053,13 @@ body {
 #modo .sg-c svg{width:20px;height:20px;flex:none}
 @media (max-width:760px){#modo[data-m="c"] .sg-a,#modo[data-m="c"] .sg-p{display:none}#modo:not([data-m="c"]) .sg-c{display:none}}
 body.cnt-on #vtabs,body.cnt-on #vtabs2{display:none}
-body.cnt-on nav.views{display:flex;gap:10px;align-items:center;justify-content:space-between}
+body.cnt-on nav.views{align-items:center}
+@media (max-width:760px){body.cnt-on nav.views{display:flex;gap:10px;justify-content:space-between}}
+@media (min-width:761px){body.cnt-on nav.views{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);column-gap:12px;justify-content:normal}}
+nav.views #cntL,nav.views #cntR{display:none}
+@media (min-width:761px){body.cnt-on nav.views #cntL{display:flex}body.cnt-on nav.views #cntR{display:contents}#cnt>.tabs[role=tablist]{display:none}}
+@media (min-width:1000px) and (max-width:1599px){body.cnt-on nav.views #cntL,body.cnt-on nav.views #cntR{display:grid;grid-template-columns:repeat(2,max-content);gap:6px}}
+@media (max-width:760px){nav.views #cntL,nav.views #cntR{display:none!important}}
 #cnt[hidden]{display:none}
 #cnt .tabs{margin:0 0 14px;flex-wrap:wrap}
 #cnt label{display:flex;flex-direction:column;gap:4px;font-size:14px;color:var(--soft);min-width:0}
@@ -6101,7 +6107,7 @@ body.cnt-on nav.views{display:flex;gap:10px;align-items:center;justify-content:s
     <button type="button" class="ghost" id="usersBtn" hidden>Usuarios</button>
   </div>
 </header>
-<nav class="views" id="views" aria-label="Secciones"><div class="vgl" id="vtabs"></div><button type="button" class="mseg" id="modo" role="switch" aria-checked="false" aria-label="Cambiar entre alimentos y préstamos" title="Modo alimentos (clic para préstamos)"><span class="sg sg-a"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 7.5C10.2 6 6.6 6.2 5.2 9c-1.5 3-.3 7.6 2 10 1.1 1.1 2.6 1.1 3.8.3.6-.4 1.4-.4 2 0 1.2.8 2.7.8 3.8-.3 2.3-2.4 3.5-7 2-10-1.4-2.8-5-3-6.8-1.5z"/><path d="M12 7.5c0-2 .9-3.6 2.8-4.5"/></svg><b>Alimentos</b></span><span class="sg sg-p"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h15M15.5 4.5 19 8l-3.5 3.5"/><path d="M20 16H5M8.5 12.5 5 16l3.5 3.5"/></svg><b>Préstamos</b></span><span class="sg sg-c" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M8.5 7.5h7M8.5 12h.01M12 12h.01M15.5 12h.01M8.5 16h.01M12 16h.01M15.5 16h.01"/></svg><b>Contabilidad</b></span></button><div class="vgr"><div class="vgr2" id="vtabs2"></div><button type="button" class="vtog" id="theme" role="switch" aria-checked="false" aria-label="Modo oscuro"><i class="knob"></i><span class="ico il" aria-hidden="true">☀</span><span class="ico ig" aria-hidden="true">🌙</span></button></div></nav>
+<nav class="views" id="views" aria-label="Secciones"><div class="vgl" id="vtabs"></div><div class="vgl" id="cntL"></div><button type="button" class="mseg" id="modo" role="switch" aria-checked="false" aria-label="Cambiar entre alimentos y préstamos" title="Modo alimentos (clic para préstamos)"><span class="sg sg-a"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 7.5C10.2 6 6.6 6.2 5.2 9c-1.5 3-.3 7.6 2 10 1.1 1.1 2.6 1.1 3.8.3.6-.4 1.4-.4 2 0 1.2.8 2.7.8 3.8-.3 2.3-2.4 3.5-7 2-10-1.4-2.8-5-3-6.8-1.5z"/><path d="M12 7.5c0-2 .9-3.6 2.8-4.5"/></svg><b>Alimentos</b></span><span class="sg sg-p"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h15M15.5 4.5 19 8l-3.5 3.5"/><path d="M20 16H5M8.5 12.5 5 16l3.5 3.5"/></svg><b>Préstamos</b></span><span class="sg sg-c" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M8.5 7.5h7M8.5 12h.01M12 12h.01M15.5 12h.01M8.5 16h.01M12 16h.01M15.5 16h.01"/></svg><b>Contabilidad</b></span></button><div class="vgr"><div class="vgr2" id="vtabs2"></div><div class="vgr2" id="cntR"></div><button type="button" class="vtog" id="theme" role="switch" aria-checked="false" aria-label="Modo oscuro"><i class="knob"></i><span class="ico il" aria-hidden="true">☀</span><span class="ico ig" aria-hidden="true">🌙</span></button></div></nav>
 <div class="wrap" id="wrap">
   <nav class="zones" aria-label="Zonas"><div class="zsel" id="zsel"></div><h2>Zonas</h2><div id="zones"></div><h2 class="ztit">Tipos de alimento</h2><div id="ztipos"></div><div class="zmov"><h2>Últimos movimientos</h2><ol class="mvl pev" id="imv"></ol></div></nav>
   <main>
@@ -6461,7 +6467,7 @@ function renderAll(){
  if(window.CNT&&CNT.on()){if(window.PRM)PRM.hide();renderAlertas();renderScanList();CNT.render();return}if(window.CNT)CNT.hide();
  if(window.PRM){if(PRM.on()){renderAlertas();renderScanList();PRM.render();return}PRM.hide()}
  montarTabs();
- document.querySelectorAll("#views .tab").forEach(b=>b.setAttribute("aria-pressed",String(+b.dataset.s===sec)));
+ document.querySelectorAll("#views .tab[data-s]").forEach(b=>b.setAttribute("aria-pressed",String(+b.dataset.s===sec)));
  $("v0").hidden=sec!==0;$("v1").hidden=sec!==1;$("v3").hidden=sec!==3;$("v4").hidden=sec!==4;$("v5").hidden=sec!==5;
  const zv=sec===1;document.querySelector(".zones").hidden=!zv;$("wrap").classList.toggle("solo",!zv);
  renderAlertas();renderPurga();
@@ -7159,7 +7165,7 @@ async function load(){
  estSync();
  if(ok){imp=r[0].data.sort((a,b)=>String(a.nombre).localeCompare(String(b.nombre),"es")||((a.condicion||"bueno")==="bueno"?0:1)-((b.condicion||"bueno")==="bueno"?0:1)||a.id-b.id);pre=r[1].data;its=r[2].data;evs=r[3].data}
 }
-function lab(p){document.querySelectorAll("#views .tab").forEach(b=>{const k=+b.dataset.s,v=VISTAS.find(x=>x[0]===k),t=p?LB[k]:v.slice(1);b.querySelector(".l-lg").textContent=t[0];b.querySelector(".l-sm").textContent=t[1]})}
+function lab(p){document.querySelectorAll("#views .tab[data-s]").forEach(b=>{const k=+b.dataset.s,v=VISTAS.find(x=>x[0]===k),t=p?LB[k]:v.slice(1);b.querySelector(".l-lg").textContent=t[0];b.querySelector(".l-sm").textContent=t[1]})}
 function pintar(){const b=$("modo");b.classList.toggle("grid",on);b.setAttribute("aria-checked",String(on));b.title=on?"Modo préstamos (clic para volver a alimentos)":"Modo alimentos (clic para ir a préstamos)"}
 const plazoDe=(p,rows)=>{const t=Date.parse(p.salida),v=Math.max(0,...rows.map(i=>Date.parse(i.vence)||0));return t&&v?Math.max(1,Math.round((v-t)/864e5)):0};
 const condPdf=c=>({bueno:"Buena",danado:"Mala",perdido:"Perdido"})[c]||(c?String(c).charAt(0).toUpperCase()+String(c).slice(1):"-");
@@ -7750,7 +7756,7 @@ function render(){build();const s=sec;
  montarTabs();
  [0,1,3,4,5].forEach(k=>{$("v"+k).hidden=true;$("pv"+k).hidden=k!==s});
  document.querySelector(".zones").hidden=true;$("wrap").classList.add("solo");lab(true);
- document.querySelectorAll("#views .tab").forEach(b=>b.setAttribute("aria-pressed",String(+b.dataset.s===s)));
+ document.querySelectorAll("#views .tab[data-s]").forEach(b=>b.setAttribute("aria-pressed",String(+b.dataset.s===s)));
  ({0:rPrestar,1:rDevolver,3:rCurso,4:rGraf,5:rMov})[s]();const tm=$("tpModal");if(tm&&!tm.hidden&&!(ordDrag&&ordDrag.on)&&!busy($("tpBody")))tpRender()}
 function hide(){if(built)[0,1,3,4,5].forEach(k=>$("pv"+k).hidden=true);if($("vtabs").firstChild)lab(false)}
 {let _bt=0;$("scan").addEventListener("input",()=>{clearTimeout(_bt);_bt=setTimeout(()=>{if(on)buscar($("scan").value)},130)})}
@@ -7764,7 +7770,7 @@ window.CNT=(()=>{
 const KM="kokoa-modo",DB={A:1,G:1,C:1},
  TD={ingreso:"Comprobante de ingreso",egreso:"Comprobante de egreso",ajuste:"Ajuste",apertura:"Apertura"},
  SO={doc_soporte:"Documento soporte",factura:"Factura electrónica",pos:"Tiquete POS",nomina:"Nómina electrónica",otro:"Otro soporte"},
- TABS=[["reg","Registrar"],["dia","Libro diario"],["don","Donaciones"],["inf","Informes"],["ter","Terceros"],["pre","Presupuesto"],["ban","Bancos"],["ctl","Control"]],
+ TABS=[["reg","Registrar"],["dia","Libro diario"],["don","Donaciones"],["ter","Terceros"],["inf","Informes"],["pre","Presupuesto"],["ban","Bancos"],["ctl","Control"]],
  PL={don:["Donación en dinero",v=>[["1110",v,0],["4105",0,v]],{don:1},"ingreso"],
   dcn:["Donación condicionada (fondo con destinación)",v=>[["1110",v,0],["3310",0,v]],{don:1,cd:1},"ingreso"],
   esp:["Donación en especie (alimentos)",v=>[["1435",v,0],["4106",0,v]],{don:1,es:1},"ingreso"],
@@ -7924,18 +7930,19 @@ async function sub(e){e.preventDefault();
  if(e.target.id==="cF")return guardar();
  if(e.target.id==="cTf")try{ck(await SB.from("cnt_terceros").insert({nombre:$("tN").value.trim(),documento:$("tD").value.trim()||null,tipo:$("tT").value,relacionado:$("tR").checked,no_obligado:$("tO").checked}));await load();render(true);aviso("Tercero guardado.")}catch(x){err(x)}}
 function build(){if(built)return;built=true;const s=document.createElement("section");s.id="cnt";s.hidden=true;$("v5").after(s);
- s.addEventListener("click",click);s.addEventListener("change",chg);s.addEventListener("input",e=>{const t=e.target;if(t.dataset.r!==undefined){rows[+t.dataset.r][t.dataset.k]=t.value;tot()}else if(t.dataset.bd!==undefined)bd[t.dataset.bd]=t.value;else if(t.id==="bTx")bt=t.value;else if(t.id==="bSl")bs=t.value});s.addEventListener("submit",sub)}
+ s.addEventListener("click",click);["cntL","cntR"].forEach(id=>$(id).addEventListener("click",click));s.addEventListener("change",chg);s.addEventListener("input",e=>{const t=e.target;if(t.dataset.r!==undefined){rows[+t.dataset.r][t.dataset.k]=t.value;tot()}else if(t.dataset.bd!==undefined)bd[t.dataset.bd]=t.value;else if(t.id==="bTx")bt=t.value;else if(t.id==="bSl")bs=t.value});s.addEventListener("submit",sub)}
+function pintarNav(){const t=([k,l])=>`<button type="button" class="tab" data-c="tab" data-t="${k}" aria-pressed="${tab===k}">${l}</button>`;$("cntL").innerHTML=TABS.slice(0,4).map(t).join("");$("cntR").innerHTML=TABS.slice(4).map(t).join("")}
 function pintarModo(){const b=$("modo"),a=esAdmin(),mo=on&&a?"c":window.PRM&&PRM.on()?"p":"a";b.dataset.m=mo;b.querySelector(".sg-c").hidden=!a;b.setAttribute("aria-checked",String(mo!=="a"));
  b.setAttribute("aria-label","Cambiar entre alimentos, préstamos"+(a?" y contabilidad":""));b.title=({a:"Modo alimentos",p:"Modo préstamos",c:"Modo contabilidad"})[mo]+" (clic para cambiar)"}
 function render(force){build();
  [0,1,3,4,5].forEach(k=>{$("v"+k).hidden=true;const p=$("pv"+k);if(p)p.hidden=true});
  document.querySelector(".zones").hidden=true;$("wrap").classList.add("solo");document.body.classList.add("cnt-on");
- const s=$("cnt");s.hidden=false;pintarModo();
+ const s=$("cnt");s.hidden=false;pintarModo();pintarNav();
  if(!force&&s.contains(document.activeElement)&&/INPUT|SELECT|TEXTAREA/.test(document.activeElement.tagName))return;
  if(!loaded){s.innerHTML='<p class="sub">Cargando contabilidad…</p>';load().then(()=>render(true)).catch(()=>{loaded=true;ok=false;render(true)});return}
  s.innerHTML=(ok?"":`<p class="sub cn-bad">No se pudo leer la contabilidad${le?": "+esc(le):""}. Revisa que supabase/contabilidad.sql se ejecutó y que las tablas tienen permisos.</p>`)+`<div class="tabs" role="tablist">${TABS.map(([k,l])=>`<button type="button" class="tab" data-c="tab" data-t="${k}" aria-pressed="${tab===k}">${l}</button>`).join("")}</div>`+({reg:vReg,dia:vDia,don:vDon,inf:vInf,ter:vTer,pre:vPre,ban:vBan,ctl:vCtl})[tab]();
  if(tab==="reg")tot()}
-function hide(){const s=$("cnt");if(s)s.hidden=true;document.body.classList.remove("cnt-on");pintarModo()}
+function hide(){const s=$("cnt");if(s)s.hidden=true;document.body.classList.remove("cnt-on");$("cntL").innerHTML="";$("cntR").innerHTML="";pintarModo()}
 function setOn(v){on=!!v;q="";try{localStorage.setItem(KM,on?"2":"0")}catch(_){}}
 function off(){setOn(false);pintarModo()}
 function buscar(v){q=v||"";tab="dia";render(true)}
