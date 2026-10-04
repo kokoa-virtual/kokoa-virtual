@@ -6048,18 +6048,40 @@ body {
 }
 
 /* ---- Contabilidad ---- */
-#modo:not(.grid)[data-m="c"] .sg-a{background:none;color:var(--soft)}
+#modo:not(.grid)[data-m="c"] .sg-a{background:var(--mint);color:var(--soft)}
 #modo[data-m="c"] .sg-c{background:var(--blue-t);color:var(--sheet)}
 #modo .sg-c svg{width:20px;height:20px;flex:none}
 @media (max-width:760px){#modo[data-m="c"] .sg-a,#modo[data-m="c"] .sg-p{display:none}#modo:not([data-m="c"]) .sg-c{display:none}}
 body.cnt-on #vtabs,body.cnt-on #vtabs2{display:none}
 body.cnt-on nav.views{align-items:center}
 @media (max-width:760px){body.cnt-on nav.views{display:flex;gap:10px;justify-content:space-between}}
-@media (min-width:761px){body.cnt-on nav.views{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);column-gap:12px;justify-content:normal}}
 nav.views #cntL,nav.views #cntR{display:none}
-@media (min-width:761px){body.cnt-on nav.views #cntL{display:flex}body.cnt-on nav.views #cntR{display:contents}#cnt>.tabs[role=tablist]{display:none}}
-@media (min-width:1000px) and (max-width:1599px){body.cnt-on nav.views #cntL,body.cnt-on nav.views #cntR{display:grid;grid-template-columns:repeat(2,max-content);gap:6px}}
-@media (max-width:760px){nav.views #cntL,nav.views #cntR{display:none!important}}
+.tab .cs{display:none}
+/* Escritorio: las 8 pestañas van en UNA sola fila, 4 a cada lado del selector de modo (igual que Alimentos) */
+@media (min-width:761px){
+ body.cnt-on nav.views{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);column-gap:10px;justify-content:normal}
+ body.cnt-on nav.views #cntL,body.cnt-on nav.views #cntR{display:flex;flex-wrap:nowrap;gap:4px;min-width:0;overflow-x:auto;scrollbar-width:none;padding:2px}
+ body.cnt-on nav.views #cntL::-webkit-scrollbar,body.cnt-on nav.views #cntR::-webkit-scrollbar{display:none}
+ body.cnt-on nav.views #cntL{grid-column:1;grid-row:1;justify-self:stretch}
+ body.cnt-on nav.views .vgr{flex-wrap:nowrap;min-width:0;justify-self:stretch;gap:6px}
+ body.cnt-on nav.views #cntR{flex:1 1 auto;justify-content:flex-end}
+ body.cnt-on nav.views #cntL .tab,body.cnt-on nav.views #cntR .tab{flex:none;white-space:nowrap;justify-content:center;padding:5px clamp(6px,.85vw,14px);font-size:clamp(12px,1.05vw,15px)}
+ #cnt>.tabs[role=tablist]{display:none}
+}
+/* Pantallas medianas: el selector de modo muestra solo los iconos de Alimentos y Préstamos */
+@media (min-width:761px) and (max-width:1199px){
+ #modo[data-m="c"] .sg-a b,#modo[data-m="c"] .sg-p b{display:none}
+ #modo[data-m="c"] .sg-a,#modo[data-m="c"] .sg-p{padding:0 10px}
+}
+/* Pantallas angostas: etiquetas cortas */
+@media (min-width:761px) and (max-width:939px){body.cnt-on nav.views .tab .cl{display:none}body.cnt-on nav.views .tab .cs{display:inline}}
+/* Celular: las pestañas van en una sola fila con desplazamiento horizontal */
+@media (max-width:760px){
+ nav.views #cntL,nav.views #cntR{display:none!important}
+ #cnt>.tabs[role=tablist]{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;gap:6px;padding-bottom:2px}
+ #cnt>.tabs[role=tablist]::-webkit-scrollbar{display:none}
+ #cnt>.tabs[role=tablist] .tab{flex:none;white-space:nowrap}
+}
 #cnt[hidden]{display:none}
 #cnt .tabs{margin:0 0 14px;flex-wrap:wrap}
 #cnt label{display:flex;flex-direction:column;gap:4px;font-size:14px;color:var(--soft);min-width:0}
@@ -7770,7 +7792,7 @@ window.CNT=(()=>{
 const KM="kokoa-modo",DB={A:1,G:1,C:1},
  TD={ingreso:"Comprobante de ingreso",egreso:"Comprobante de egreso",ajuste:"Ajuste",apertura:"Apertura"},
  SO={doc_soporte:"Documento soporte",factura:"Factura electrónica",pos:"Tiquete POS",nomina:"Nómina electrónica",otro:"Otro soporte"},
- TABS=[["reg","Registrar"],["dia","Libro diario"],["don","Donaciones"],["ter","Terceros"],["inf","Informes"],["pre","Presupuesto"],["ban","Bancos"],["ctl","Control"]],
+ TABS=[["reg","Registrar","Registrar"],["dia","Libro diario","Diario"],["don","Donaciones","Donac."],["ter","Terceros","Terceros"],["inf","Informes","Informes"],["pre","Presupuesto","Presup."],["ban","Bancos","Bancos"],["ctl","Control","Control"]],
  PL={don:["Donación en dinero",v=>[["1110",v,0],["4105",0,v]],{don:1},"ingreso"],
   dcn:["Donación condicionada (fondo con destinación)",v=>[["1110",v,0],["3310",0,v]],{don:1,cd:1},"ingreso"],
   esp:["Donación en especie (alimentos)",v=>[["1435",v,0],["4106",0,v]],{don:1,es:1},"ingreso"],
@@ -7905,7 +7927,7 @@ async function guardar(){
  cab={fecha:$("cFe").value,tipo:$("cTp").value,tercero_id:+$("cTe").value||null,concepto:$("cCo").value.trim(),soporte_tipo:$("cSo").value||null,soporte_num:$("cSn").value.trim()||null,donacion:$("cDn").checked,condicionada:$("cCd").checked,especie:$("cEs").checked};
  try{const r=ck(await SB.rpc("cnt_crear_asiento",{p_cab:cab,p_lineas:L}));rows=[{c:"",d:"",h:""},{c:"",d:"",h:""}];await load();render(true);aviso("Asiento "+r.data+" guardado.")}catch(x){err(x)}}
 async function click(e){const b=e.target.closest("[data-c]");if(!b)return;const c=b.dataset.c,i=b.dataset.i;
- if(c==="tab"){tab=b.dataset.t;render(true);return}
+ if(c==="tab"){tab=b.dataset.t;render(true);const a=document.querySelector("#cnt>.tabs .tab[aria-pressed=true]");if(a&&a.offsetParent&&a.scrollIntoView)a.scrollIntoView({inline:"center",block:"nearest"});return}
  if(c==="aplicar"){aplicar();return}
  if(c==="fila"){rows.push({c:"",d:"",h:""});$("cLin").innerHTML=lin();tot();return}
  if(c==="quitar"){if(rows.length>2){rows.splice(+i,1);$("cLin").innerHTML=lin();tot()}return}
@@ -7931,7 +7953,8 @@ async function sub(e){e.preventDefault();
  if(e.target.id==="cTf")try{ck(await SB.from("cnt_terceros").insert({nombre:$("tN").value.trim(),documento:$("tD").value.trim()||null,tipo:$("tT").value,relacionado:$("tR").checked,no_obligado:$("tO").checked}));await load();render(true);aviso("Tercero guardado.")}catch(x){err(x)}}
 function build(){if(built)return;built=true;const s=document.createElement("section");s.id="cnt";s.hidden=true;$("v5").after(s);
  s.addEventListener("click",click);["cntL","cntR"].forEach(id=>$(id).addEventListener("click",click));s.addEventListener("change",chg);s.addEventListener("input",e=>{const t=e.target;if(t.dataset.r!==undefined){rows[+t.dataset.r][t.dataset.k]=t.value;tot()}else if(t.dataset.bd!==undefined)bd[t.dataset.bd]=t.value;else if(t.id==="bTx")bt=t.value;else if(t.id==="bSl")bs=t.value});s.addEventListener("submit",sub)}
-function pintarNav(){const t=([k,l])=>`<button type="button" class="tab" data-c="tab" data-t="${k}" aria-pressed="${tab===k}">${l}</button>`;$("cntL").innerHTML=TABS.slice(0,4).map(t).join("");$("cntR").innerHTML=TABS.slice(4).map(t).join("")}
+const tb=([k,l,c])=>`<button type="button" class="tab" data-c="tab" data-t="${k}" aria-pressed="${tab===k}" title="${l}"><span class="cl">${l}</span><span class="cs">${c||l}</span></button>`;
+function pintarNav(){$("cntL").innerHTML=TABS.slice(0,4).map(tb).join("");$("cntR").innerHTML=TABS.slice(4).map(tb).join("")}
 function pintarModo(){const b=$("modo"),a=esAdmin(),mo=on&&a?"c":window.PRM&&PRM.on()?"p":"a";b.dataset.m=mo;b.querySelector(".sg-c").hidden=!a;b.setAttribute("aria-checked",String(mo!=="a"));
  b.setAttribute("aria-label","Cambiar entre alimentos, préstamos"+(a?" y contabilidad":""));b.title=({a:"Modo alimentos",p:"Modo préstamos",c:"Modo contabilidad"})[mo]+" (clic para cambiar)"}
 function render(force){build();
@@ -7940,7 +7963,7 @@ function render(force){build();
  const s=$("cnt");s.hidden=false;pintarModo();pintarNav();
  if(!force&&s.contains(document.activeElement)&&/INPUT|SELECT|TEXTAREA/.test(document.activeElement.tagName))return;
  if(!loaded){s.innerHTML='<p class="sub">Cargando contabilidad…</p>';load().then(()=>render(true)).catch(()=>{loaded=true;ok=false;render(true)});return}
- s.innerHTML=(ok?"":`<p class="sub cn-bad">No se pudo leer la contabilidad${le?": "+esc(le):""}. Revisa que supabase/contabilidad.sql se ejecutó y que las tablas tienen permisos.</p>`)+`<div class="tabs" role="tablist">${TABS.map(([k,l])=>`<button type="button" class="tab" data-c="tab" data-t="${k}" aria-pressed="${tab===k}">${l}</button>`).join("")}</div>`+({reg:vReg,dia:vDia,don:vDon,inf:vInf,ter:vTer,pre:vPre,ban:vBan,ctl:vCtl})[tab]();
+ s.innerHTML=(ok?"":`<p class="sub cn-bad">No se pudo leer la contabilidad${le?": "+esc(le):""}. Revisa que supabase/contabilidad.sql se ejecutó y que las tablas tienen permisos.</p>`)+`<div class="tabs" role="tablist">${TABS.map(tb).join("")}</div>`+({reg:vReg,dia:vDia,don:vDon,inf:vInf,ter:vTer,pre:vPre,ban:vBan,ctl:vCtl})[tab]();
  if(tab==="reg")tot()}
 function hide(){const s=$("cnt");if(s)s.hidden=true;document.body.classList.remove("cnt-on");$("cntL").innerHTML="";$("cntR").innerHTML="";pintarModo()}
 function setOn(v){on=!!v;q="";try{localStorage.setItem(KM,on?"2":"0")}catch(_){}}
