@@ -7783,7 +7783,7 @@ const m=v=>(v<0?"−":"")+"$"+Math.round(Math.abs(v||0)).toLocaleString("es-CO")
  opt=(L,v)=>L.map(([k,l])=>`<option value="${esc(k)}"${k===v?" selected":""}>${esc(l)}</option>`).join(""),
  sop=a=>a.soporte_tipo?SO[a.soporte_tipo]+(a.soporte_num?" "+a.soporte_num:""):"";
 
-let pr=[],ex=[],cc=[],okN=true,pm=hoy().slice(0,7),bd={},bt="",cor=hoy(),bs=null;
+let le="",pr=[],ex=[],cc=[],okN=true,pm=hoy().slice(0,7),bd={},bt="",cor=hoy(),bs=null;
 const BK="1110",dd=(a,b)=>Math.abs(Date.parse(a)-Date.parse(b))/864e5,
  ym=p=>{const[y,k]=p.split("-");return[p+"-01",p+"-"+String(new Date(+y,+k,0).getDate()).padStart(2,"0")]},
  ejec=(a,z)=>{const o={};saldos(a,z).forEach(x=>o[x.codigo]=x.s);return o},
@@ -7847,8 +7847,8 @@ function ctlN(){const p=hoy().slice(0,7),[a,z]=ym(p),e=ejec(a,z),B=bnd(),P=cu.fi
  return`<div class="cn-card"><h3>Presupuesto del mes</h3>${P.length?P.map(c=>`<div class="cn-bad">${esc(c.nombre)}: gastado ${m(e[c.codigo])} de ${m(pAv(p,c.codigo))}</div>`).join(""):'<p class="sub">Ninguna cuenta superó su presupuesto.</p>'}</div><div class="cn-card"><h3>Bancos</h3><p class="${B.pend.length||B.libres.length?"cn-bad":"sub"}">${B.pend.length} movimientos del extracto y ${B.libres.length} del libro sin conciliar.</p></div>`}
 async function load(){
  if(!esAdmin())return;
- const r=await Promise.all([SB.from("cnt_cuentas").select("*").order("codigo"),traerTodo("cnt_terceros","id"),traerTodo("cnt_asientos","id"),traerTodo("cnt_lineas","id"),SB.from("cnt_cierres").select("periodo")]).catch(()=>null);
- ok=!!r&&!r[0].error&&!r[4].error;if(ok){cu=r[0].data;te=r[1];as=r[2];li=r[3];ci=new Set(r[4].data.map(x=>x.periodo))}await loadN();loaded=true}
+ const r=await Promise.all([SB.from("cnt_cuentas").select("*").order("codigo"),traerTodo("cnt_terceros","id"),traerTodo("cnt_asientos","id"),traerTodo("cnt_lineas","id"),SB.from("cnt_cierres").select("periodo")]).catch(x=>{le=x.message||String(x);return null});
+ ok=!!r&&!r[0].error&&!r[4].error;if(r&&!ok)le=(r[0].error||r[4].error).message;if(ok){cu=r[0].data;te=r[1];as=r[2];li=r[3];ci=new Set(r[4].data.map(x=>x.periodo))}await loadN();loaded=true}
 function saldos(a1,a2){const A=new Map(as.map(a=>[a.id,a])),S={};
  li.forEach(l=>{const a=A.get(l.asiento_id);if(!a||a.estado==="anulado"||(a1&&a.fecha<a1)||(a2&&a.fecha>a2))return;const s=S[l.cuenta]||(S[l.cuenta]={d:0,c:0});s.d+=n(l.debito);s.c+=n(l.credito)});
  return cu.filter(c=>S[c.codigo]).map(c=>{const s=S[c.codigo];return{...c,d:s.d,c:s.c,s:DB[c.tipo]?s.d-s.c:s.c-s.d}})}
@@ -7933,7 +7933,7 @@ function render(force){build();
  const s=$("cnt");s.hidden=false;pintarModo();
  if(!force&&s.contains(document.activeElement)&&/INPUT|SELECT|TEXTAREA/.test(document.activeElement.tagName))return;
  if(!loaded){s.innerHTML='<p class="sub">Cargando contabilidad…</p>';load().then(()=>render(true)).catch(()=>{loaded=true;ok=false;render(true)});return}
- s.innerHTML=(ok?"":'<p class="sub cn-bad">Falta ejecutar supabase/contabilidad.sql en Supabase.</p>')+`<div class="tabs" role="tablist">${TABS.map(([k,l])=>`<button type="button" class="tab" data-c="tab" data-t="${k}" aria-pressed="${tab===k}">${l}</button>`).join("")}</div>`+({reg:vReg,dia:vDia,don:vDon,inf:vInf,ter:vTer,pre:vPre,ban:vBan,ctl:vCtl})[tab]();
+ s.innerHTML=(ok?"":`<p class="sub cn-bad">No se pudo leer la contabilidad${le?": "+esc(le):""}. Revisa que supabase/contabilidad.sql se ejecutó y que las tablas tienen permisos.</p>`)+`<div class="tabs" role="tablist">${TABS.map(([k,l])=>`<button type="button" class="tab" data-c="tab" data-t="${k}" aria-pressed="${tab===k}">${l}</button>`).join("")}</div>`+({reg:vReg,dia:vDia,don:vDon,inf:vInf,ter:vTer,pre:vPre,ban:vBan,ctl:vCtl})[tab]();
  if(tab==="reg")tot()}
 function hide(){const s=$("cnt");if(s)s.hidden=true;document.body.classList.remove("cnt-on");pintarModo()}
 function setOn(v){on=!!v;q="";try{localStorage.setItem(KM,on?"2":"0")}catch(_){}}
