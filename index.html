@@ -1084,6 +1084,18 @@ nav.views .vgr{grid-column:3;grid-row:1;justify-self:end}
 @media (max-width:380px){#tpBody .pick-grid{grid-template-columns:1fr}}
 .arow .csel{width:auto;flex:0 1 210px;min-width:130px}
 .arow>button{flex:none}
+
+/* Listas largas con deslizador: ~6 elementos visibles y el resto con scroll */
+.mvl.pev,#log{max-height:25rem;overflow-y:auto;overscroll-behavior:contain;align-content:start;padding-right:4px;scrollbar-width:thin}
+.zones .mvl.pev,.pnl .mvl.pev{max-height:29rem}
+#log{max-height:30rem}
+@media (min-width:901px){
+ #qList,#pl{max-height:21rem;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin;align-content:start}
+}
+.pend{display:grid;gap:4px}
+.pendr{display:flex;align-items:baseline;flex-wrap:wrap;gap:4px 8px}
+.pendr b{font-variant-numeric:tabular-nums}
+.pendr .pchip{font-size:12px;padding:1px 8px}
 </style>
 </head>
 <body>
@@ -2171,8 +2183,12 @@ function pdfDoc(p,rows){
  d.text("Documento: "+p.documento,10,y);d.text("Teléfono: "+(p.telefono||"-"),58,y);
  d.text(`Plazo: ${plazoDe(p,rows)||"-"} día${plazoDe(p,rows)===1?"":"s"}`,104,y);
  y+=12;
- d.setFont("helvetica","bold");d.text("IMPLEMENTOS",10,y);y+=5;d.text("Implemento",10,y);d.text("Estado al salir",64,y);d.text("Devolver antes de",94,y);d.setFont("helvetica","normal");y+=5;
- rows.forEach(i=>{if(y>175){d.addPage();y=14}d.text(d.splitTextToSize(String(i.nombre||""),50),10,y);d.text(cap(i.cond_salida),64,y);d.text(f(i.vence),94,y);
+ d.setFont("helvetica","bold");d.text("IMPLEMENTOS",10,y);y+=5;d.text("Implemento",10,y);d.text("Cantidad",58,y);d.text("Estado al salir",76,y);d.text("Devolver antes de",104,y);d.setFont("helvetica","normal");y+=5;
+ const grp=[],gm=new Map();
+ rows.forEach(i=>{const k=[String(i.nombre||"").trim().toLowerCase(),i.cond_salida||"",Math.floor((Date.parse(i.vence)||0)/6e4),i.devuelto?"d|"+(i.cond_regreso||"")+"|"+(i.limpio?1:0)+"|"+(i.novedad||""):"p"].join("¦");
+  if(!gm.has(k)){const g={i,n:0};gm.set(k,g);grp.push(g)}gm.get(k).n++});
+ grp.forEach(({i,n})=>{if(y>175){d.addPage();y=14}const nl=d.splitTextToSize(String(i.nombre||""),44);
+  d.text(nl,10,y);d.text(String(n),58,y);d.text(cap(i.cond_salida),76,y);d.text(f(i.vence),104,y);y+=(nl.length-1)*4.2;
   if(i.devuelto){y+=4;d.setFontSize(8);d.text(`Devuelto ${f(i.devuelto)} · ${cap(i.cond_regreso)}${i.limpio?"":" · sin limpiar"}${i.novedad?" · "+i.novedad:""}`,10,y);d.setFontSize(9)}y+=6});
  if(p.notas){if(y>175){d.addPage();y=14}const nl=d.splitTextToSize("Notas: "+p.notas,W-20);d.setFontSize(9);d.text(nl,10,y);y+=nl.length*4.5+2}
  y=Math.max(y+6,150);if(y>190){d.addPage();y=20}
@@ -2483,7 +2499,7 @@ function build(){if(built)return;built=true;
  const dm=document.createElement("div");dm.id="pdelModal";dm.className="modal-backdrop";dm.hidden=true;
  dm.innerHTML='<section class="modal" role="dialog" aria-modal="true" aria-labelledby="pdelTitle" style="width:min(640px,100%)"><div class="modal-head"><h2 id="pdelTitle">Eliminar implementos</h2><button type="button" class="ghost" id="pcloseDel">Cerrar</button></div><p class="small-note">Indica cuántas unidades de cada implemento quieres borrar. No se puede deshacer. Las prestadas no se pueden eliminar.</p><input id="pdelFind" type="search" placeholder="Buscar implemento" aria-label="Buscar implemento" autocomplete="off" style="width:100%;margin:10px 0 12px"><div id="pdelList" class="dlist"></div><p id="pdelMsg" class="admin-msg" role="alert"></p><div class="editor-actions" style="justify-content:space-between;align-items:center"><span class="small-note" id="pdelCount"></span><button type="button" class="danger" id="pdelOk" disabled>Eliminar seleccionados</button></div></section>';
  document.body.appendChild(dm);
- const dGrp=()=>{const m=new Map();imp.forEach(i=>{const k=gkey(i);if(!m.has(k))m.set(k,{k,n:i.nombre,u:[]});m.get(k).u.push(i)});return[...m.values()].map(g=>({...g,ok:g.u.filter(x=>x.estado!=="prestado").length})).sort((a,b)=>a.n.localeCompare(b.n,"es",{sensitivity:"base"}))};
+ const conHist=x=>its.some(t=>t.implemento_id===x.id),dGrp=()=>{const m=new Map();imp.forEach(i=>{const k=gkey(i);if(!m.has(k))m.set(k,{k,n:i.nombre,u:[]});m.get(k).u.push(i)});return[...m.values()].map(g=>({...g,ok:g.u.filter(x=>x.estado!=="prestado"&&!(x.estado==="retirado"&&conHist(x))).length})).sort((a,b)=>a.n.localeCompare(b.n,"es",{sensitivity:"base"}))};
  const rDel=()=>{const k=nq($("pdelFind").value),l=dGrp().filter(g=>!k||nq(g.n).includes(k));
   $("pdelList").innerHTML=l.length?l.map(g=>`<div class="dli" style="cursor:default"><span class="dtx" style="flex:1 1 auto;min-width:0"><b>${esc(g.n)}</b><small>${g.u.length} unidad${g.u.length===1?"":"es"}${g.u.length-g.ok?" · "+(g.u.length-g.ok)+" prestada"+(g.u.length-g.ok>1?"s":""):""}</small></span><label class="fld" style="flex:none;gap:2px;align-items:flex-end">Eliminar<input type="number" min="0" max="${g.ok}" step="1" data-pdg="${encodeURIComponent(g.k)}" value="${dsel.get(g.k)||0}" ${g.ok?"":"disabled "}style="width:76px;height:auto;min-height:36px;padding:4px 8px" aria-label="Unidades de ${esc(g.n)} a eliminar"></label></div>`).join(""):'<p class="small-note">No hay implementos que coincidan.</p>';updDel()};
  const updDel=()=>{const n=[...dsel.values()].reduce((a,b)=>a+b,0);$("pdelCount").textContent=n?`${n} unidad${n>1?"es":""} a eliminar`:"Nada seleccionado";$("pdelOk").disabled=!n};
@@ -2492,12 +2508,29 @@ function build(){if(built)return;built=true;
  $("pcloseDel").onclick=cDel;bdClose(dm,cDel);addEventListener("keydown",e=>{if(e.key==="Escape"&&!dm.hidden)cDel()});
  $("pdelFind").oninput=rDel;
  $("pdelList").addEventListener("input",e=>{const c=e.target.closest("[data-pdg]");if(!c)return;const k=decodeURIComponent(c.dataset.pdg),mx=+c.max||0,v=Math.max(0,Math.min(mx,Math.floor(+c.value)||0));v?dsel.set(k,v):dsel.delete(k);updDel()});
- $("pdelOk").onclick=async()=>{const G=dGrp(),pick=[];G.forEach(g=>{const n=dsel.get(g.k)||0;if(n)pick.push(...g.u.filter(x=>x.estado!=="prestado").sort((a,b)=>(delPrio[a.estado]??9)-(delPrio[b.estado]??9)||b.id-a.id).slice(0,n))});
+ $("pdelOk").onclick=async()=>{const G=dGrp(),pick=[];G.forEach(g=>{const n=dsel.get(g.k)||0;if(n)pick.push(...g.u.filter(x=>x.estado!=="prestado"&&!(x.estado==="retirado"&&conHist(x))).sort((a,b)=>(delPrio[a.estado]??9)-(delPrio[b.estado]??9)||b.id-a.id).slice(0,n))});
   if(!pick.length)return;
   const res=G.filter(g=>dsel.get(g.k)).map(g=>dsel.get(g.k)+"× "+g.n).join(", ");
-  if(!confirm(`¿Eliminar ${pick.length} unidad${pick.length>1?"es":""}?\n${res}\nNo se puede deshacer.`))return;
-  try{const r=await SB.from("implementos").delete().in("id",pick.map(i=>i.id)).select();if(r.error)throw r.error;if(!r.data||!r.data.length)throw new Error("No se pudo eliminar: sin permiso.");
-   dsel.clear();cDel();await load();rAll();nUpd();aviso(r.data.length>1?r.data.length+" unidades eliminadas.":"Unidad eliminada.")}catch(x){$("pdelMsg").textContent=(x.message||String(x))+(/foreign|violates|referenc/i.test(x.message||"")?" (tiene préstamos registrados; márcalo como «Retirado» en lugar de eliminarlo)":"")}};
+  const conH=pick.filter(conHist),libres=pick.filter(x=>!conHist(x));
+   if(!confirm(`¿Eliminar ${pick.length} unidad${pick.length>1?"es":""}?\n${res}`+(conH.length?`\n\n${conH.length} ya ${conH.length>1?"tienen":"tiene"} préstamos registrados: ${conH.length>1?"se marcarán":"se marcará"} como «Retirado» y no se borrar${conH.length>1?"án":"á"}, para conservar el historial.`:"")+(libres.length?"\n\nLas demás se borran y no se puede deshacer.":"")))return;
+   let borr=0,ret=0;
+   try{
+    let porRetirar=conH.slice();
+    if(libres.length){
+     const r=await SB.from("implementos").delete().in("id",libres.map(i=>i.id)).select("id");
+     if(!r.error){borr=(r.data||[]).length;if(!borr&&!porRetirar.length)throw new Error("No se pudo eliminar: sin permiso.")}
+     else if(/foreign|violates|referenc/i.test(r.error.message||"")){
+      for(const u of libres){const d=await SB.from("implementos").delete().eq("id",u.id).select("id");
+       if(!d.error&&d.data&&d.data.length)borr++;else if(d.error&&/foreign|violates|referenc/i.test(d.error.message||""))porRetirar.push(u);else if(d.error)throw d.error}
+     }else throw r.error;
+    }
+    if(porRetirar.length){
+     const q=await SB.from("implementos").update({estado:"retirado"}).in("id",porRetirar.map(i=>i.id)).select("id");
+     if(q.error)throw q.error;ret=(q.data||[]).length;if(ret<porRetirar.length)throw new Error("No se pudo marcar como retirado: sin permiso.");
+    }
+    dsel.clear();cDel();await load();rAll();nUpd();
+    aviso([borr?borr+" unidad"+(borr>1?"es":"")+" eliminada"+(borr>1?"s":""):"",ret?ret+" marcada"+(ret>1?"s":"")+" como Retirado (tenían préstamos)":""].filter(Boolean).join(" · ")+".")
+   }catch(x){$("pdelMsg").textContent=x.message||String(x);if(borr||ret){await load();rAll();nUpd()}}};
  document.addEventListener("click",e=>{const b=e.target.closest("[data-tkn]");if(!b)return;const p=pre.find(x=>x.numero===b.dataset.tkn);if(p)ticketDlg(p,its.filter(i=>i.prestamo_id===p.id))});
  $("pv3").addEventListener("click",e=>{const r=e.target.closest("[data-rcv]");if(r){rcOpen(r.dataset.rcv);return}const b=e.target.closest("[data-tk]");if(!b)return;const p=pre.find(x=>x.id==b.dataset.tk);if(p)pdf(p,its.filter(i=>i.prestamo_id===p.id))});
 }
@@ -2588,9 +2621,15 @@ function rcOpen(pid){
  $("rcT").textContent="Recibir devolución · "+p.numero;
  $("rcB").innerHTML=`<p class="small-note">${esc(p.nombre)}${p.documento?" · "+esc(p.documento):""}. Marca lo que devuelve ahora.</p>`+pe.map(i=>`<div class="arow" data-ri="${i.id}"><label class="pr-check" style="flex:1 1 180px"><input class="rk" type="checkbox" checked><span><b>${esc(i.nombre)}</b><br><small class="sku">Devolver antes de ${f(i.vence)}</small></span></label><select class="rc" aria-label="Estado al recibir"><option value="bueno">Buen estado</option><option value="danado">Dañado</option><option value="perdido">Perdido</option></select><label class="pr-check"><input class="rl" type="checkbox" checked><span>Limpio</span></label><input class="rn" maxlength="120" placeholder="Novedad" aria-label="Novedad" style="flex:1 1 160px"></div>`).join("");
  $("rcM").textContent="";m.hidden=false}
+const condTxt=c=>({bueno:"Buen estado",danado:"Dañado",perdido:"Perdido"})[c]||(c?String(c).charAt(0).toUpperCase()+String(c).slice(1):"");
+function pendH(pe){const g=[],m=new Map();
+ pe.forEach(i=>{const k=String(i.nombre||"").trim().toLowerCase()+"¦"+(i.cond_salida||"");if(!m.has(k)){const o={i,n:0};m.set(k,o);g.push(o)}m.get(k).n++});
+ const rep=new Map();g.forEach(o=>{const k=String(o.i.nombre||"").trim().toLowerCase();rep.set(k,(rep.get(k)||0)+1)});
+ return'<div class="pend">'+g.map(({i,n})=>{const k=String(i.nombre||"").trim().toLowerCase(),c=i.cond_salida||"";
+  return`<div class="pendr"><span>${esc(i.nombre)}</span><b>× ${n}</b>${c&&(c!=="bueno"||rep.get(k)>1)?`<small class="pchip${c==="bueno"?"":" late"}">${esc(condTxt(c))}</small>`:""}</div>`}).join("")+"</div>"}
 function rCurso(){
  const a=pre.filter(p=>p.estado==="activo").map(p=>{const pe=its.filter(i=>i.prestamo_id===p.id&&!i.devuelto);return{p,pe,m:pe.reduce((x,i)=>Math.min(x,Date.parse(i.vence)),1e15)}}).sort((x,y)=>x.m-y.m);
- set("pcur",a.length?'<div class="tbl"><table class="pcurt"><thead><tr><th>Préstamo</th><th>Prestatario</th><th>Documento</th><th>Teléfono</th><th>Pendiente</th><th>Devolver antes de</th><th>Estado</th><th></th></tr></thead><tbody>'+a.map(({p,pe,m})=>{const v=pe.some(late);return`<tr class="${v?"ns u":""}"><td class="nm"><b>${esc(p.numero)}</b></td><td data-label="Prestatario">${esc(p.nombre)}</td><td data-label="Documento">${esc(p.documento)}</td><td data-label="Teléfono">${esc(p.telefono||"—")}</td><td data-label="Pendiente">${pe.map(i=>esc(i.nombre)).join(", ")}</td><td data-label="Devolver antes de"${v?' class="low"':""}>${f(m)}</td><td data-label="Estado"><span class="pchip ${v?"late":"on"}">${v?"Vencido":"Activo"}</span></td><td class="act" data-label=""><button type="button" data-rcv="${p.id}">Recibir</button> <button type="button" class="ghost" data-tk="${p.id}">Ticket</button></td></tr>`}).join("")+'</tbody></table></div>':'<p class="sub">No hay préstamos en curso.</p>')}
+ set("pcur",a.length?'<div class="tbl"><table class="pcurt"><thead><tr><th>Préstamo</th><th>Prestatario</th><th>Documento</th><th>Teléfono</th><th>Pendiente</th><th>Devolver antes de</th><th>Estado</th><th></th></tr></thead><tbody>'+a.map(({p,pe,m})=>{const v=pe.some(late);return`<tr class="${v?"ns u":""}"><td class="nm"><b>${esc(p.numero)}</b></td><td data-label="Prestatario">${esc(p.nombre)}</td><td data-label="Documento">${esc(p.documento)}</td><td data-label="Teléfono">${esc(p.telefono||"—")}</td><td data-label="Pendiente">${pendH(pe)}</td><td data-label="Devolver antes de"${v?' class="low"':""}>${f(m)}</td><td data-label="Estado"><span class="pchip ${v?"late":"on"}">${v?"Vencido":"Activo"}</span></td><td class="act" data-label=""><button type="button" data-rcv="${p.id}">Recibir</button> <button type="button" class="ghost" data-tk="${p.id}">Ticket</button></td></tr>`}).join("")+'</tbody></table></div>':'<p class="sub">No hay préstamos en curso.</p>')}
 function rMov(){
  const row=e=>mvLi({t:e.tipo==="prestamo"?"Préstamo":e.tipo==="edicion"?"Edición":"Devolución",c:e.tipo==="prestamo"?"dn":e.tipo==="edicion"?"":"up",chip:e.tipo==="edicion"?"Editar":esc(e.numero||""),s:esc(e.detalle),d:f(e.t)+(e.apodo?" · "+esc(e.apodo):""),h:tkb(e)+hb(e.id)});
  set("pevg",evs.filter(e=>e.tipo==="edicion").map(row).join("")||"<li>Sin movimientos generales todavía.</li>");
