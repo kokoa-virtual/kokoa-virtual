@@ -6163,7 +6163,7 @@ nav.views #cntL,nav.views #cntR{display:none}
       <input id="scan" placeholder="Buscar alimento" aria-label="Buscar alimento" autocomplete="off">
       <button type="submit" aria-label="Buscar"><span class="l-lg">Buscar</span><span class="l-sm">🔍</span></button>
     </form>
-    <button type="button" class="ghost" id="exp" title="Exportar a Excel lo que hay en pantalla">Exportar</button>
+    <button type="button" class="ghost" id="exp" hidden title="Exportar a Excel lo que hay en pantalla">Exportar</button>
     <button type="button" class="ghost" id="adminBtn">Editar</button>
     <button type="button" class="ghost" id="usersBtn" hidden>Usuarios</button>
   </div>
@@ -6834,12 +6834,12 @@ document.addEventListener("click",e=>{const b=e.target.closest("[data-hdel],#his
 const hoyClave=()=>new Date().toLocaleDateString("sv-SE");
 function renderPurga(){const a=$("purgaAviso");if(!a)return;
  const n=new Date(),en=n.getMonth()===3&&n.getDate()>=24;let visto="";try{visto=localStorage.getItem("kokoa-purga-visto")||""}catch(_){}
- if(!en||!currentUser||visto===hoyClave()){a.hidden=true;return}
+ if(!en||!currentUser||!esAdmin()||visto===hoyClave()){a.hidden=true;return}
  const d=31-n.getDate();
  $("purgaTxt").innerHTML=`<b>Aviso:</b> el 1 de mayo se borrará automáticamente todo el historial de alimentos (movimientos, comidas y bitácora) y de préstamos (préstamos cerrados, devoluciones y movimientos). El inventario y los préstamos en curso no se tocan. ${d===1?"Es <b>mañana</b>.":"Faltan <b>"+d+" días</b>."} Exporta los datos antes: pulsa «Exportar ahora».`;
  a.hidden=false}
 $("purgaOk").addEventListener("click",()=>{try{localStorage.setItem("kokoa-purga-visto",hoyClave())}catch(_){}renderPurga()});
-$("purgaExp").addEventListener("click",()=>{sec=5;renderAll();exportExcel(true)});
+$("purgaExp").addEventListener("click",()=>{if(!esAdmin())return;sec=5;renderAll();exportExcel(true)});
 
 function renderScanList(){const inp=$("scan");if(!inp)return;
  if(window.CNT&&CNT.on()){inp.placeholder="Buscar asiento";inp.setAttribute("aria-label","Buscar asiento");return}
@@ -6893,7 +6893,7 @@ function enterUser(u){currentUser=u;$("loggedUser").textContent=u.apodo||u.nombr
 /*salir-v2*/var salida=null,saliendo=false;
 function logout(){
   listo=false;if(canal){SB.removeChannel(canal);canal=null}salida=quitarPushServidor().finally(()=>SB.auth.signOut());
-  currentUser=null;datosAl=false;disT={};gone=[];DKEY="";users=[];[items,mov,comidas,logData].forEach(a=>a.splice(0));known=new Set();fp={};
+  currentUser=null;$("exp").hidden=true;$("adminBtn").hidden=true;$("usersBtn").hidden=true;datosAl=false;disT={};gone=[];DKEY="";users=[];[items,mov,comidas,logData].forEach(a=>a.splice(0));known=new Set();fp={};
   $("loginUser").value="";$("loginKey").value="";$("loginError").textContent="";
   $("meModal").hidden=true;$("adminModal").hidden=true;$("delModal").hidden=true;["tpModal","pdelModal","tkModal","rcModal","rtModal"].forEach(id=>{const e=$(id);if(e)e.hidden=true});$("adminBody").innerHTML="";
   showAuth();renderAll()}

@@ -1,4 +1,4 @@
-const V = "kokoa-v7";
+const V = "kokoa-v8";
 const SHELL = ["./", "./index.html", "./manifest.webmanifest", "./vendor/supabase.js", "./vendor/jspdf.min.js", "./icons/icon-192.png", "./icons/apple-touch-icon.png"];
 const ESPERA_RED = 3000;
 
