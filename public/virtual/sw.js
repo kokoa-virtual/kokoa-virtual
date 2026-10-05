@@ -1,5 +1,5 @@
-const V = "kokoa-v11";
-const SHELL = ["./", "./index.html", "./estilos.css", "./app.js", "./prestamos.js", "./contabilidad.js", "./manifest.webmanifest", "../fonts/fuentes.css", "../fonts/figtree.woff", "../fonts/noto-emoji.woff", "./vendor/supabase.js", "./vendor/jspdf.min.js", "./icons/icon-192.png", "./icons/apple-touch-icon.png"];
+const V = "kokoa-v13";
+const SHELL = ["./", "./index.html", "./estilos.css", "./app.js", "./prestamos.js", "./contabilidad.js", "./movil.css", "./movil.js", "./manifest.webmanifest", "../fonts/fuentes.css", "../fonts/figtree.woff", "../fonts/noto-emoji.woff", "./vendor/supabase.js", "./vendor/jspdf.min.js", "./icons/icon-192.png", "./icons/apple-touch-icon.png"];
 const ESPERA_RED = 3000;
 
 self.addEventListener("install", e => {

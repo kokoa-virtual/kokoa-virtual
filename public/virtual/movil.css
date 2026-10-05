@@ -1,0 +1,238 @@
+/* ==========================================================================
+   movil.css — ajustes móviles de Kokoa Virtual (revisión puntos 2 a 5)
+   Se carga DESPUÉS de estilos.css. Para deshacer todo: quitar el <link> en
+   index.html. Alto de toque único: --toque (44 px).
+   ========================================================================== */
+
+:root { --toque: 44px; }
+
+/* --------------------------------------------------------------------------
+   3. Alturas de casillas y botones: un solo alto (44 px) en móvil.
+   Solo se usa min-height (nunca height) para no romper filas flex/grid.
+   -------------------------------------------------------------------------- */
+@media (max-width: 760px) {
+  html body :is(
+    input:not([type=checkbox]):not([type=radio]):not([type=hidden]):not([type=range]),
+    select:not(.cs-src),
+    textarea,
+    .csel,
+    .dsel,
+    header #bell,
+    header .htools #exp,
+    header .htools #adminBtn,
+    header .htools #usersBtn,
+    header .htools .scan input,
+    header .htools .scan button,
+    #sessionUser #meBtn,
+    #sessionUser #logoutBtn,
+    .arrow,
+    .fbtn,
+    .irt .vtog,
+    .add button,
+    .abtns button,
+    #v1 table.inv button[data-save],
+    .cgrid .icard > button,
+    .gst button,
+    .gst input,
+    .gst select
+  ) {
+    min-height: var(--toque) !important;
+  }
+  /* Excepción deliberada del diseño original: el selector del nombre en las tarjetas del inventario es compacto */
+  html body #v1 table.inv td.nm .csel { min-height: 28px !important; }
+}
+
+/* --------------------------------------------------------------------------
+   4. Caneca de movimientos: el dibujo no cambia, pero el área que responde
+   al dedo pasa a 44 x 44 px (antes ~30 x 26) y da respuesta al tocar.
+   -------------------------------------------------------------------------- */
+.hdel { position: relative; touch-action: manipulation; }
+
+@media (max-width: 760px), (pointer: coarse) {
+  .hdel::after {
+    content: "";
+    position: absolute;
+    top: -9px;
+    bottom: -9px;
+    left: -7px;
+    right: -7px;
+  }
+  .hdel:active {
+    color: var(--alert-t);
+    background: color-mix(in srgb, var(--alert) 22%, transparent);
+  }
+}
+
+/* --------------------------------------------------------------------------
+   5. Campana del estudiante (móvil): fila 1 = marca | campana | usuario,
+   fila 2 = buscador a todo el ancho. El administrador conserva su layout.
+   -------------------------------------------------------------------------- */
+@media (max-width: 760px) {
+  header:not(:has(#adminBtn:not([hidden]))) {
+    grid-template-columns: minmax(0, 1fr) auto auto;
+  }
+  header:not(:has(#adminBtn:not([hidden]))) #bell {
+    grid-column: 2;
+    grid-row: 1;
+    justify-self: end;
+    width: auto;
+    padding: 0 10px;
+  }
+  header:not(:has(#adminBtn:not([hidden]))) #sessionUser {
+    grid-column: 3;
+    grid-row: 1;
+  }
+  header:not(:has(#adminBtn:not([hidden]))) .htools .scan {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    width: 100%;
+  }
+  header:not(:has(#adminBtn:not([hidden]))) #loggedUser { max-width: 8ch; }
+}
+
+/* Pantallas medianas (390–429): nombre más corto para que la marca respire */
+@media (max-width: 429px) {
+  header:not(:has(#adminBtn:not([hidden]))) #loggedUser { max-width: 5ch; }
+}
+
+/* Pantallas pequeñas (hasta 389): solo el emoji del usuario; el nombre queda
+   disponible para lectores de pantalla y en "Mis datos". */
+@media (max-width: 389px) {
+  header:not(:has(#adminBtn:not([hidden]))) #loggedUser {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    max-width: none;
+    margin: -1px;
+    padding: 0;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+}
+
+/* Panel de alertas (campana) en móvil */
+@media (max-width: 760px) {
+  #alertPanel {
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+    padding-left: max(12px, env(safe-area-inset-left, 0px));
+    padding-right: max(12px, env(safe-area-inset-right, 0px));
+    padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+  }
+  /* En columna, flex-basis:220px se vuelve ALTO: se anula */
+  #alertPanel .alerts li > div { flex: 0 0 auto; width: 100%; }
+  #alertPanel .alerts li .ab {
+    display: flex;
+    gap: 8px;
+    width: 100%;
+  }
+  #alertPanel .alerts li .ab button {
+    flex: 1 1 0;
+    min-width: 0;
+    min-height: var(--toque);
+  }
+}
+
+/* --------------------------------------------------------------------------
+   2. Contabilidad: fila de botones deslizable con aviso visual de que hay más
+   a un lado (clases ov-l / ov-r puestas por movil.js) y toque de 44 px.
+   -------------------------------------------------------------------------- */
+@media (max-width: 760px) {
+  #cnt > .tabs[role=tablist] {
+    scroll-snap-type: x proximity;
+    scroll-padding-inline: 12px;
+    overscroll-behavior-x: contain;
+    -webkit-overflow-scrolling: touch;
+  }
+  #cnt > .tabs[role=tablist] .tab {
+    flex: none;
+    min-height: var(--toque);
+    white-space: nowrap;
+    scroll-snap-align: start;
+  }
+  #cnt > .tabs[role=tablist].ov-r {
+    -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 36px), transparent);
+            mask-image: linear-gradient(to right, #000 calc(100% - 36px), transparent);
+  }
+  #cnt > .tabs[role=tablist].ov-l {
+    -webkit-mask-image: linear-gradient(to left, #000 calc(100% - 36px), transparent);
+            mask-image: linear-gradient(to left, #000 calc(100% - 36px), transparent);
+  }
+  #cnt > .tabs[role=tablist].ov-l.ov-r {
+    -webkit-mask-image: linear-gradient(to right, transparent, #000 36px, #000 calc(100% - 36px), transparent);
+            mask-image: linear-gradient(to right, transparent, #000 36px, #000 calc(100% - 36px), transparent);
+  }
+}
+
+/* --------------------------------------------------------------------------
+   8. Letra de 16 px en campos de escritura (iPhone hace zoom si es menor).
+   Solo input/textarea/select: .csel y .dsel son botones y no provocan zoom.
+   -------------------------------------------------------------------------- */
+@media (max-width: 760px) {
+  html body :is(
+    input:not([type=checkbox]):not([type=radio]):not([type=hidden]):not([type=range]),
+    textarea,
+    select:not(.cs-src)
+  ) {
+    font-size: 16px !important;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   6. Espacio bajo el contenido = alto real de la barra inferior (la mide
+   movil.js y lo guarda en --barra-h). Antes eran 62 px fijos y la barra mide
+   más con la barra de gestos del iPhone.
+   -------------------------------------------------------------------------- */
+@media (max-width: 760px) {
+  html { scroll-padding-bottom: calc(var(--barra-h, 62px) + 12px); }
+  html body { padding-bottom: calc(var(--barra-h, 62px) + 12px); }
+}
+
+/* --------------------------------------------------------------------------
+   9. Cinco niveles de pantalla. Ya no se añaden cortes sueltos: cada nivel
+   fija unas pocas medidas (variables) y las reglas las usan.
+     XS  hasta 359 px   (iPhone SE, Android pequeños)
+     S   360 a 389 px   (la mayoría de Android)
+     M   390 a 429 px   (iPhone 12 a 16)
+     L   430 a 760 px   (Pro Max, plegables, tablet vertical)
+     D   desde 761 px   (escritorio/tablet: sin cambios)
+   -------------------------------------------------------------------------- */
+:root { --px: 16px; --fs-h1: 22px; --fs-tab: 12px; --pad-btn: 10px; }
+@media (max-width: 359px) {
+  :root { --px: 8px;  --fs-h1: 19px; --fs-tab: 10.5px; --pad-btn: 7px; }
+}
+@media (min-width: 360px) and (max-width: 389px) {
+  :root { --px: 10px; --fs-h1: 20px; --fs-tab: 11.5px; --pad-btn: 8px; }
+}
+@media (min-width: 390px) and (max-width: 429px) {
+  :root { --px: 12px; --fs-h1: 20px; --fs-tab: 12px;   --pad-btn: 10px; }
+}
+@media (min-width: 430px) and (max-width: 760px) {
+  :root { --px: 16px; --fs-h1: 22px; --fs-tab: 12px;   --pad-btn: 10px; }
+}
+@media (max-width: 760px) {
+  html body header { padding-left: var(--px); padding-right: var(--px); }
+  html body header .brand h1 { font-size: var(--fs-h1); }
+  html body main { padding-left: var(--px); padding-right: var(--px); }
+  html body nav.views .tab { font-size: var(--fs-tab); }
+  html body #sessionUser #meBtn,
+  html body #sessionUser #logoutBtn { padding-left: var(--pad-btn); padding-right: var(--pad-btn); }
+  html body header #bell { padding-left: var(--pad-btn); padding-right: var(--pad-btn); }
+}
+
+/* --------------------------------------------------------------------------
+   7. Alturas con dvh (Safari/Chrome móvil no descuentan la barra del navegador
+   con vh). Bloque generado desde los vh de estilos.css, con la misma media query.
+   -------------------------------------------------------------------------- */
+@supports (height: 1dvh) {
+  .slist { max-height: min(60dvh,380px); }
+  .modal { max-height: min(88dvh,900px); }
+  .zones .mvl { max-height: min(46dvh,380px); }
+  .dlist { max-height: min(46dvh,420px); }
+  .pk { max-height: 80dvh; }
+  .pr-list { max-height: min(52dvh,440px); }
+  .rtl { max-height: min(50dvh,420px); }
+  .mwb .mvl { max-height: 60dvh; }
+}
