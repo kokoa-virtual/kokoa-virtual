@@ -6890,14 +6890,15 @@ $("addForm").addEventListener("submit",e=>{e.preventDefault();if(!sinNombre())re
 const bloquear=v=>["header","views","wrap"].forEach(id=>{const e=id==="header"?document.querySelector("header"):$(id);if(e)e.inert=v});
 function showAuth(){document.body.classList.add("locked");bloquear(true);$("authGate").hidden=false;$("loginUser").focus()}
 function enterUser(u){currentUser=u;$("loggedUser").textContent=u.apodo||u.nombre;$("meEmoji").textContent=u.animal||"👤";$("authGate").hidden=true;document.body.classList.remove("locked");bloquear(false);$("loginKey").value="";$("adminBtn").hidden=u.rol!=="admin";$("usersBtn").hidden=u.rol!=="admin";renderAll()}
+let salida=null;
 function logout(){
-  listo=false;if(canal){SB.removeChannel(canal);canal=null}quitarPushServidor().finally(()=>SB.auth.signOut());
+  listo=false;if(canal){SB.removeChannel(canal);canal=null}salida=quitarPushServidor().finally(()=>SB.auth.signOut());
   currentUser=null;datosAl=false;disT={};gone=[];DKEY="";users=[];[items,mov,comidas,logData].forEach(a=>a.splice(0));known=new Set();fp={};
   $("loginUser").value="";$("loginKey").value="";$("loginError").textContent="";
   $("meModal").hidden=true;$("adminModal").hidden=true;$("delModal").hidden=true;["tpModal","pdelModal","tkModal","rcModal","rtModal"].forEach(id=>{const e=$(id);if(e)e.hidden=true});$("adminBody").innerHTML="";
   showAuth();renderAll()}
 const igual=(a,b)=>String(a??"").trim().localeCompare(String(b??"").trim(),"es",{sensitivity:"accent"})===0;
-$("logoutBtn").addEventListener("click",()=>logout());
+$("logoutBtn").addEventListener("click",()=>{logout();Promise.race([Promise.resolve(salida).catch(()=>{}),new Promise(r=>setTimeout(r,2500))]).finally(()=>location.replace("../"))});
 const meF=$("meForm"),meMsg=t=>{$("meMsg").textContent=t||""};
 function closeMe(){$("meModal").hidden=true}
 $("meBtn").addEventListener("click",()=>{const u=currentUser;if(!u)return;$("meAnimal").innerHTML=animalPicker(u.animal||"");
