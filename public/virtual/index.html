@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; script-src 'self' 'unsafe-inline'; connect-src 'self' https://wqpwqiwkvwdfcvywatmc.supabase.co wss://wqpwqiwkvwdfcvywatmc.supabase.co; frame-src 'none'; form-action 'none'; base-uri 'none'; object-src 'none'">
+<meta http-equiv="Content-Security-Policy" content="style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: blob:; script-src 'self' 'unsafe-inline'; connect-src 'self' https://wqpwqiwkvwdfcvywatmc.supabase.co wss://wqpwqiwkvwdfcvywatmc.supabase.co; frame-src 'none'; form-action 'none'; base-uri 'none'; object-src 'none'">
 <meta name="referrer" content="no-referrer">
 <meta name="color-scheme" content="light dark">
 <link rel="manifest" href="manifest.webmanifest">
@@ -15,10 +15,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Kokoa Virtual</title>
 <script>var _t="light";try{if(localStorage.getItem("cocina-central-tema")==="dark")_t="dark"}catch(e){}document.documentElement.setAttribute("data-theme",_t)</script>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400..800&family=Noto+Emoji:wght@300..700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
-<noscript><link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400..800&family=Noto+Emoji:wght@300..700&display=swap" rel="stylesheet"></noscript>
+<link rel="preload" href="../fonts/figtree.woff" as="font" type="font/woff" crossorigin>
+<link rel="preload" href="../fonts/noto-emoji.woff" as="font" type="font/woff" crossorigin>
+<link rel="stylesheet" href="../fonts/fuentes.css">
 <link rel="stylesheet" href="estilos.css">
 </head>
 <body>
@@ -37,7 +36,7 @@
   <p class="pie">Con fraternal afecto de: Joaquín L. Cortés</p>
 </div>
 <header>
-  <div class="brand"><h1>Kokoa Virtual</h1></div>
+  <div class="brand"><h1 id="brandBtn" role="button" tabindex="0" title="Ir a Comidas: Quitar">Kokoa Virtual</h1></div>
   <div class="hright">
     <button type="button" class="ghost" id="bell" aria-haspopup="dialog" aria-expanded="false" aria-controls="alertPanel" aria-label="Alertas"><span aria-hidden="true">🔔</span><b id="bellN">0</b></button>
     <div id="sessionUser" aria-live="polite"><button type="button" class="ghost" id="meBtn" title="Ver y editar mis datos"><span id="meEmoji" aria-hidden="true">👤</span><b id="loggedUser">Sin sesión</b></button><button type="button" class="ghost" id="logoutBtn" title="Cerrar sesión">Salir</button></div>

@@ -1,6 +1,3 @@
--- Contabilidad de Kokoa. Ejecutar una vez en el editor SQL de Supabase.
--- Solo los usuarios con rol 'admin' pueden ver o modificar estas tablas.
-
 create or replace function cnt_admin() returns boolean
 language sql stable security definer set search_path=public as
 $$ select exists(select 1 from perfiles where id=auth.uid() and rol='admin') $$;
@@ -43,14 +40,12 @@ alter table cnt_asientos enable row level security;
 alter table cnt_lineas enable row level security;
 alter table cnt_cierres enable row level security;
 
--- Cuentas, terceros y cierres: el admin lee y escribe.
 drop policy if exists cnt_cuentas_all on cnt_cuentas;
 create policy cnt_cuentas_all on cnt_cuentas for all using(cnt_admin()) with check(cnt_admin());
 drop policy if exists cnt_terceros_all on cnt_terceros;
 create policy cnt_terceros_all on cnt_terceros for all using(cnt_admin()) with check(cnt_admin());
 drop policy if exists cnt_cierres_all on cnt_cierres;
 create policy cnt_cierres_all on cnt_cierres for all using(cnt_admin()) with check(cnt_admin());
--- Asientos y líneas: el admin solo lee. Se escriben únicamente con las funciones de abajo, y nunca se borran.
 drop policy if exists cnt_asientos_sel on cnt_asientos;
 create policy cnt_asientos_sel on cnt_asientos for select using(cnt_admin());
 drop policy if exists cnt_lineas_sel on cnt_lineas;
@@ -99,7 +94,6 @@ end $$;
 grant execute on function cnt_crear_asiento(jsonb,jsonb) to authenticated;
 grant execute on function cnt_anular(bigint,text) to authenticated;
 
--- Plan de cuentas inicial (editable en la tabla cnt_cuentas).
 insert into cnt_cuentas(codigo,nombre,tipo) values
  ('1105','Caja','A'),('1110','Bancos','A'),('1305','Cuentas por cobrar','A'),('1435','Inventario de alimentos','A'),
  ('2205','Proveedores','P'),('2365','Retención en la fuente','P'),('2408','Impuesto nacional al consumo','P'),('2505','Nómina por pagar','P'),

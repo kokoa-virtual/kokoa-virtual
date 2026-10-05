@@ -1,33 +1,14 @@
-/* Construye los archivos publicables de Kokoa Virtual a partir de las fuentes legibles.
- *
- *   node construir.cjs <carpeta-fuentes> <carpeta-salida>
- *
- * - estilos.css: se consolida (se juntan los @media iguales y las reglas con el mismo selector)
- *   SOLO cuando el orden de la cascada no cambia, se quitan los !important que se puede
- *   demostrar que sobran, y se minifica.
- * - app.js, prestamos.js, contabilidad.js: se minifican (los nombres globales se conservan
- *   porque los tres archivos comparten el mismo ámbito global).
- */
 const fs = require("fs");
 const path = require("path");
 
-function cargar(nombre, rutas) {
-  for (const r of rutas) { try { return require(path.join(r, nombre)); } catch (_) {} }
-  return require(nombre);
-}
-const NM = "/home/claude/.npm-global/lib/node_modules";
-const postcss = cargar("postcss", [NM + "/@mermaid-js/mermaid-cli/node_modules"]);
-const esbuild = cargar("esbuild", [NM + "/tsx/node_modules"]);
+const postcss = require("postcss");
+const esbuild = require("esbuild");
 
-/* ---------- especificidad ---------- */
 function especificidad(sel) {
-  // devuelve a*10000 + b*100 + c
   let s = sel.replace(/\\./g, "x");
   s = s.replace(/"[^"]*"|'[^']*'/g, '""');
   let a = 0, b = 0, c = 0;
-  // :where(...) -> 0
   s = s.replace(/:where\((?:[^()]|\([^()]*\))*\)/g, "");
-  // :not/:is/:has(...) -> especificidad del argumento más específico
   let extra = 0;
   s = s.replace(/:(not|is|has|matches)\(((?:[^()]|\([^()]*\))*)\)/g, (_, _n, arg) => {
     let m = 0;
@@ -56,7 +37,6 @@ function splitTop(sel) {
   return out;
 }
 
-/* ---------- familias de propiedades (shorthand <-> longhand) ---------- */
 function fam(p) {
   p = p.toLowerCase();
   if (p.startsWith("--") || p.startsWith("-webkit-") || p.startsWith("-moz-")) return p;
@@ -74,7 +54,6 @@ function fam(p) {
   return p;
 }
 
-/* ---------- lectura del CSS como "átomos" (una regla + su contexto @media) ---------- */
 function leer(css) {
   const root = postcss.parse(css);
   const atoms = [];
@@ -107,21 +86,19 @@ function leer(css) {
   return atoms;
 }
 
-/* dos átomos "interactúan" si el orden entre ellos podría cambiar qué declaración gana */
 function interactuan(A, B) {
   if (A.fixed || B.fixed) return false;
   const sa = new Set(A.specs);
   const iguales = B.specs.some(s => sa.has(s));
-  if (!iguales) return false; // la especificidad decide, el orden no importa
+  if (!iguales) return false;
   for (const da of A.decls) for (const db of B.decls) {
     if (fam(da.prop) !== fam(db.prop)) continue;
-    if (da.important !== db.important) continue; // importante siempre gana a normal
+    if (da.important !== db.important) continue;
     return true;
   }
   return false;
 }
 
-/* ---------- consolidación ---------- */
 function consolidar(atoms, stats) {
   let cambio = true, pasadas = 0;
   while (cambio && pasadas++ < 8) {
@@ -140,7 +117,6 @@ function consolidar(atoms, stats) {
       cambio = true;
     }
   }
-  // juntar átomos consecutivos con el mismo contexto y el mismo selector
   const out = [];
   for (const a of atoms) {
     const p = out[out.length - 1];
@@ -149,7 +125,6 @@ function consolidar(atoms, stats) {
       stats.reglasFusionadas++;
     } else out.push(a);
   }
-  // quitar declaraciones idénticas repetidas dentro de una misma regla (conservando la última)
   for (const a of out) {
     if (a.fixed) continue;
     const L = a.decls;
@@ -168,7 +143,6 @@ function consolidar(atoms, stats) {
   return out;
 }
 
-/* ---------- !important que se puede demostrar que sobra ---------- */
 function propsEnLineas(html, js) {
   const s = new Set();
   const add = p => { p = (p || "").trim(); if (p) s.add(fam(p.replace(/[A-Z]/g, c => "-" + c.toLowerCase()))); };
@@ -182,7 +156,6 @@ function propsEnLineas(html, js) {
 }
 
 function quitarImportantes(atoms, inline, animadas, stats, detalle) {
-  // orden global de cada declaración
   const todas = [];
   atoms.forEach((a, ai) => a.decls.forEach((d, di) => todas.push({ a, d, ai, di, f: fam(d.prop) })));
   const porFam = new Map();
@@ -208,12 +181,9 @@ function quitarImportantes(atoms, inline, animadas, stats, detalle) {
     }
     if (ok) aQuitar.push(t); else motivo(why);
   }
-  // quitar de a uno comprobando de nuevo contra el estado actual no hace falta: la prueba compara contra
-  // TODAS las demás declaraciones y ningún otro !important, así que quitar varias a la vez es seguro
   for (const t of aQuitar) { t.d.important = false; stats.importantesQuitados++; detalle.push({ sel: t.a.selectors.join(", "), ctx: t.a.ctx, prop: t.d.prop, motivo: "QUITADO" }); }
 }
 
-/* ---------- salida ---------- */
 function escribir(atoms) {
   const partes = [];
   let ctx = null, buf = [];

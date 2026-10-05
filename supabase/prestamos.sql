@@ -1,4 +1,3 @@
--- Módulo de préstamos. Ejecutar una vez en el SQL Editor de Supabase.
 create table implementos(
   id bigint generated always as identity primary key,
   codigo text not null unique, nombre text not null, categoria text default '',

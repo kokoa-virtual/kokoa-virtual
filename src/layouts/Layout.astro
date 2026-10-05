@@ -5,7 +5,7 @@ const anio = new Date().getFullYear();
 const { title, description = SITE.descripcion } = Astro.props;
 const full = title ? `${title} · ${SITE.nombre}` : `${SITE.nombre} · ${SITE.largo}`;
 const canon = new URL(Astro.url.pathname, Astro.site);
-const ld = { '@context': 'https://schema.org', '@type': 'FoodEstablishment', name: SITE.largo, url: Astro.site, description: SITE.descripcion, address: { '@type': 'PostalAddress', streetAddress: SITE.direccion, addressLocality: 'Bogotá', addressCountry: 'CO' }, sameAs: [SITE.instagram] }; // TODO: agregar openingHoursSpecification cuando se confirmen los horarios
+const ld = { '@context': 'https://schema.org', '@type': 'FoodEstablishment', name: SITE.largo, url: Astro.site, description: SITE.descripcion, address: { '@type': 'PostalAddress', streetAddress: SITE.direccion, addressLocality: 'Bogotá', addressCountry: 'CO' }, sameAs: [SITE.instagram] };
 const here = Astro.url.pathname.replace(/\/$/, '');
 ---
 <!doctype html>
@@ -16,9 +16,8 @@ const here = Astro.url.pathname.replace(/\/$/, '');
   <meta property="og:title" content={full} /><meta property="og:description" content={description} /><meta property="og:type" content="website" /><meta property="og:locale" content="es_CO" />
   <meta name="theme-color" content="#214d2c" />
   <link rel="icon" href={u('/logo.png')} type="image/png" /><link rel="apple-touch-icon" href={u('/logo.png')} />
-  <link rel="preconnect" href="https://fonts.googleapis.com" /><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400..800&family=Noto+Emoji:wght@300..700&display=swap" rel="stylesheet" media="print" onload="this.media='all'" />
-  <noscript><link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400..800&family=Noto+Emoji:wght@300..700&display=swap" rel="stylesheet" /></noscript>
+  <link rel="preload" href={u('/fonts/figtree.woff')} as="font" type="font/woff" crossorigin />
+  <link rel="stylesheet" href={u('/fonts/fuentes.css')} />
   <script is:inline>try{var t=localStorage.getItem('cocina-central-tema');if(t)document.documentElement.dataset.theme=t}catch(e){}</script>
   <script type="application/ld+json" set:html={JSON.stringify(ld)} />
 </head>

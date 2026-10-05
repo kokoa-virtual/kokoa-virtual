@@ -5,5 +5,4 @@ import { SITE, DIAS } from '../lib/site';
 <Layout title="Horarios">
   <header class="page-head reveal"><p class="eyebrow">Cuándo encontrarnos</p><h1>Horarios</h1><p class="lead">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p></header>
   <div class="tabla reveal"><table><tbody>{DIAS.map((n, i) => <tr><th>{n}</th><td>{SITE.horarios[i] ? SITE.horarios[i].join(" – ") : "Cerrado"}</td></tr>)}</tbody></table></div>
-  {/* Por confirmar con el colectivo. */}
 </Layout>

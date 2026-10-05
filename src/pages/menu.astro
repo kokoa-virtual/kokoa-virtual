@@ -6,5 +6,4 @@ const platos = ['Lorem ipsum dolor', 'Sit amet consectetur', 'Adipiscing elit se
 <Layout title="Menú">
   <header class="page-head reveal"><p class="eyebrow">Semana en curso</p><h1>Menú</h1><p class="lead">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p></header>
   <div class="tabla reveal"><table><thead><tr><th>Día</th><th>Plato</th></tr></thead><tbody>{[1,2,3,4,5].map(d => <tr><th>{DIAS[d]}</th><td>{platos[d - 1]}</td></tr>)}</tbody></table></div>
-  {/* Por definir: el menú se editará desde el sistema. */}
 </Layout>

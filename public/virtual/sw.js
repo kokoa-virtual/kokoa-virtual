@@ -1,5 +1,5 @@
-const V = "kokoa-v9";
-const SHELL = ["./", "./index.html", "./estilos.css", "./app.js", "./prestamos.js", "./contabilidad.js", "./manifest.webmanifest", "./vendor/supabase.js", "./vendor/jspdf.min.js", "./icons/icon-192.png", "./icons/apple-touch-icon.png"];
+const V = "kokoa-v10";
+const SHELL = ["./", "./index.html", "./estilos.css", "./app.js", "./prestamos.js", "./contabilidad.js", "./manifest.webmanifest", "../fonts/fuentes.css", "../fonts/figtree.woff", "../fonts/noto-emoji.woff", "./vendor/supabase.js", "./vendor/jspdf.min.js", "./icons/icon-192.png", "./icons/apple-touch-icon.png"];
 const ESPERA_RED = 3000;
 
 self.addEventListener("install", e => {
@@ -33,9 +33,8 @@ self.addEventListener("fetch", e => {
   const q = e.request;
   if (q.method !== "GET") return;
   const u = new URL(q.url);
-  const fuente = u.hostname === "fonts.googleapis.com" || u.hostname === "fonts.gstatic.com";
-  if (u.origin !== location.origin && !fuente) return;
-  if (fuente || /\/(vendor|icons)\//.test(u.pathname)) e.respondWith(rapido(e));
+  if (u.origin !== location.origin) return;
+  if (/\/(vendor|icons|fonts)\//.test(u.pathname)) e.respondWith(rapido(e));
   else e.respondWith(conRed(e));
 });
 
