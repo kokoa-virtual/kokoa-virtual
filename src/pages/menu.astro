@@ -1,0 +1,9 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { SITE, DIAS } from '../lib/site';
+---
+<Layout title="Menú">
+  <h1 class="reveal">Menú</h1>
+  <p class="nota">Por definir: el menú se editará desde el sistema.</p>
+  <table><thead><tr><th>Día</th><th>Plato</th></tr></thead><tbody>{[1,2,3,4,5].map(d => <tr><td>{DIAS[d]}</td><td class="muted">Por definir</td></tr>)}</tbody></table>
+</Layout>
