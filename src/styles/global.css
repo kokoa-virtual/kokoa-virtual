@@ -109,7 +109,7 @@ tbody th{font-family:var(--serif);font-weight:600;width:42%}
 /* Pie de página */
 .foot{margin-top:2rem;color:rgba(255,255,255,.86);background:linear-gradient(100deg,var(--hd1),var(--hd2));font-family:var(--font);font-size:.97rem;line-height:1.6}
 .foot a{color:#fff}
-.foot-in{width:min(70rem,100% - 2*var(--gut));margin-inline:auto;padding-block:2.5rem 1.5rem;display:grid;gap:2rem 3rem;grid-template-columns:1.4fr 1fr 1.2fr}
+.foot-in{width:min(70rem,100% - 2*var(--gut));margin-inline:auto;padding-block:2.5rem 1.5rem;display:grid;gap:2rem 3rem;grid-template-columns:1.2fr 1.3fr 1.2fr}
 .foot h2{font-family:var(--font);font-size:.8rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--gold);margin:0 0 .75rem}
 .foot .logo{margin-bottom:.75rem}.foot p{margin:0;max-width:34ch}
 .foot ul{list-style:none;margin:0;padding:0;display:grid;gap:.15rem}
@@ -137,3 +137,4 @@ tbody th{font-family:var(--serif);font-weight:600;width:42%}
   @supports(animation-timeline:view()){.reveal{animation:rev both linear;animation-timeline:view();animation-range:entry 0% entry 35%}}}
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
 .page-head .eyebrow{color:var(--btn)}
+.foot nav ul{grid-auto-flow:column;grid-template-rows:repeat(4,auto);grid-template-columns:1fr 1fr;column-gap:2.5rem}
