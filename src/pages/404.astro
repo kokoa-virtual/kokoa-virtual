@@ -2,4 +2,7 @@
 import Layout from '../layouts/Layout.astro';
 import { u } from '../lib/site';
 ---
-<Layout title="No encontrada"><h1>No encontramos esa página</h1><p><a class="btn" href={u('/')}>Volver al inicio</a></p></Layout>
+<Layout title="No encontrada">
+  <header class="page-head"><p class="eyebrow">Error 404</p><h1>No encontramos esa página</h1></header>
+  <a class="btn" href={u('/')}>Volver al inicio</a>
+</Layout>

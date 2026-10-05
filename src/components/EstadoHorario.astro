@@ -1,7 +1,7 @@
 ---
 import { SITE, DIAS } from '../lib/site';
 ---
-<p id="estado" class="estado glass" data-h={JSON.stringify(SITE.horarios)} data-z={SITE.zona} data-d={JSON.stringify(DIAS)}>Calculando horario…</p>
+<p id="estado" class="estado" data-h={JSON.stringify(SITE.horarios)} data-z={SITE.zona} data-d={JSON.stringify(DIAS)}>Calculando horario…</p>
 <script>
   const el = document.getElementById('estado');
   if (el) {
@@ -16,7 +16,7 @@ import { SITE, DIAS } from '../lib/site';
         for (let k = 0; k < 8; k++) { const d = (dia + k) % 7, h = H[d]; if (!h || (k === 0 && ahora >= mins(h[0]))) continue; txt = `Cerrado · abre ${k === 0 ? 'hoy' : k === 1 ? 'mañana' : 'el ' + D[d].toLowerCase()} a las ${h[0]}`; break; }
         txt ||= 'Cerrado por ahora';
       }
-      el.textContent = txt; el.className = `estado glass ${cls}`;
+      el.textContent = txt; el.className = `estado ${cls}`;
     };
     pintar(); setInterval(pintar, 30000);
   }

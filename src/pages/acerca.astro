@@ -1,10 +1,16 @@
 ---
 import Layout from '../layouts/Layout.astro';
-import { SITE, DIAS } from '../lib/site';
 ---
 <Layout title="Acerca">
-  <h1 class="reveal">Acerca</h1>
-  <p class="nota">Borrador: reemplazar con el texto del colectivo.</p>
-  <p>KoKoA es un proceso estudiantil autónomo de soberanía alimentaria en el campus de la Universidad Nacional, sede Bogotá. Fue retomada y renombrada el 16 de mayo de 2024, a 40 años del asesinato de Jesús "Chucho" León Patiño (9 de mayo de 1984).</p>
-  <p>Hacemos ollas comunitarias, talleres (manipulación de alimentos, tofu, pan, tejido) y encuentros culturales, con autogestión y aportes voluntarios.</p>
+  <header class="page-head reveal"><p class="eyebrow">Quiénes somos</p><h1>Acerca</h1><p class="lead">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p></header>
+  <section class="prose reveal">
+    <p>Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.</p>
+    <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.</p>
+  </section>
+  <section class="grid">
+    <div class="card reveal"><h3>Lorem ipsum</h3><p>Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.</p></div>
+    <div class="card reveal"><h3>Dolor sit amet</h3><p>Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.</p></div>
+    <div class="card reveal"><h3>Consectetur</h3><p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p></div>
+  </section>
+  {/* Pendiente: reemplazar con el texto del colectivo. */}
 </Layout>

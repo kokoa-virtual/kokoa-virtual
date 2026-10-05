@@ -1,9 +1,10 @@
 ---
 import Layout from '../layouts/Layout.astro';
-import { SITE, DIAS } from '../lib/site';
+import { DIAS } from '../lib/site';
+const platos = ['Lorem ipsum dolor', 'Sit amet consectetur', 'Adipiscing elit sed', 'Eiusmod tempor', 'Incididunt ut labore'];
 ---
 <Layout title="Menú">
-  <h1 class="reveal">Menú</h1>
-  <p class="nota">Por definir: el menú se editará desde el sistema.</p>
-  <table><thead><tr><th>Día</th><th>Plato</th></tr></thead><tbody>{[1,2,3,4,5].map(d => <tr><td>{DIAS[d]}</td><td class="muted">Por definir</td></tr>)}</tbody></table>
+  <header class="page-head reveal"><p class="eyebrow">Semana en curso</p><h1>Menú</h1><p class="lead">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p></header>
+  <div class="tabla reveal"><table><thead><tr><th>Día</th><th>Plato</th></tr></thead><tbody>{[1,2,3,4,5].map(d => <tr><th>{DIAS[d]}</th><td>{platos[d - 1]}</td></tr>)}</tbody></table></div>
+  {/* Por definir: el menú se editará desde el sistema. */}
 </Layout>

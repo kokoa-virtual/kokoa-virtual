@@ -1,9 +1,13 @@
 ---
 import Layout from '../layouts/Layout.astro';
-import { SITE, DIAS } from '../lib/site';
+import { SITE } from '../lib/site';
 ---
 <Layout title="Contacto">
-  <h1 class="reveal">Contacto</h1>
-  <ul><li>Dirección: {SITE.direccion} · <a href={SITE.mapa}>Ver en el mapa</a></li><li>Instagram: <a href={SITE.instagram}>@kokoa_chucholeon</a></li>{SITE.whatsapp && <li><a href={`https://wa.me/${SITE.whatsapp}`}>WhatsApp</a></li>}</ul>
-  <p class="nota">Pendiente: teléfono, WhatsApp y punto exacto del mapa.</p>
+  <header class="page-head reveal"><p class="eyebrow">Escríbenos o visítanos</p><h1>Contacto</h1><p class="lead">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p></header>
+  <ul class="datos reveal">
+    <li><b>Dirección</b><span>{SITE.direccion} · <a href={SITE.mapa}>Ver en el mapa</a></span></li>
+    <li><b>Instagram</b><a href={SITE.instagram}>@kokoa_chucholeon</a></li>
+    {SITE.whatsapp && <li><b>WhatsApp</b><a href={`https://wa.me/${SITE.whatsapp}`}>Escribir por WhatsApp</a></li>}
+  </ul>
+  {/* Pendiente: teléfono, WhatsApp y punto exacto del mapa. */}
 </Layout>

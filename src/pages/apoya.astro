@@ -1,9 +1,13 @@
 ---
 import Layout from '../layouts/Layout.astro';
-import { SITE, DIAS } from '../lib/site';
 ---
 <Layout title="Apoya">
-  <h1 class="reveal">Apoya</h1>
-  <p>La kocina se sostiene con aportes voluntarios. Aquí irán el enlace de la campaña y el código QR para aportar.</p>
-  <p class="nota">Pendiente: enlace de Vaki y QR de pagos (no publicamos números en texto).</p>
+  <header class="page-head reveal"><p class="eyebrow">Aportes voluntarios</p><h1>Apoya</h1><p class="lead">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p></header>
+  <section class="prose reveal"><p>Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.</p></section>
+  <section class="panel dashed reveal">
+    <div class="qr" aria-hidden="true">QR</div>
+    <h2>Lorem ipsum dolor</h2>
+    <p style="margin-inline:auto">Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.</p>
+  </section>
+  {/* Pendiente: enlace de Vaki y QR de pagos (no publicamos números en texto). */}
 </Layout>

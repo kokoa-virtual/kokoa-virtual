@@ -4,16 +4,17 @@ import EstadoHorario from '../components/EstadoHorario.astro';
 import { SITE, u } from '../lib/site';
 ---
 <Layout>
-  <section class="reveal">
-    <p class="muted">Universidad Nacional de Colombia · Sede Bogotá</p>
-    <h1>{SITE.largo}</h1>
-    <p>Soberanía alimentaria, cooperación y comunidad, cocinadas entre estudiantes.</p>
+  <section class="hero reveal">
+    <p class="eyebrow">Universidad Nacional de Colombia · Sede Bogotá</p>
+    <h1>{SITE.nombre}</h1>
+    <p class="sig">{SITE.largo}</p>
+    <p class="lead">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>
     <EstadoHorario />
-    <p><a class="btn" href={u('/menu/')}>Ver el menú</a> <a class="btn ghost" href={SITE.mapa}>Cómo llegar</a></p>
+    <div class="cta"><a class="btn gold" href={u('/menu/')}>Ver el menú</a><a class="btn ghost" href={SITE.mapa}>Cómo llegar</a></div>
   </section>
   <section class="grid">
-    <a class="card glass reveal" href={u('/acerca/')}><h2>Quiénes somos</h2><p>Nuestra historia y lo que hacemos.</p></a>
-    <a class="card glass reveal" href={u('/menu/')}><h2>Menú de la semana</h2><p>Qué se cocina cada día.</p></a>
-    <a class="card glass reveal" href={u('/apoya/')}><h2>Apoya la kocina</h2><p>Aportes voluntarios y cómo ayudar.</p></a>
+    <a class="card reveal" href={u('/acerca/')}><h2>Lorem ipsum</h2><p>Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.</p><span class="go">Conocer más →</span></a>
+    <a class="card reveal" href={u('/menu/')}><h2>Dolor sit amet</h2><p>Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.</p><span class="go">Ver el menú →</span></a>
+    <a class="card reveal" href={u('/apoya/')}><h2>Consectetur</h2><p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p><span class="go">Cómo apoyar →</span></a>
   </section>
 </Layout>

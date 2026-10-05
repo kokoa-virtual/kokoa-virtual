@@ -1,6 +1,7 @@
 ---
 import '../styles/global.css';
 import { SITE, NAV, u } from '../lib/site';
+const anio = new Date().getFullYear();
 const { title, description = SITE.descripcion } = Astro.props;
 const full = title ? `${title} · ${SITE.nombre}` : `${SITE.nombre} · ${SITE.largo}`;
 const canon = new URL(Astro.url.pathname, Astro.site);
@@ -13,19 +14,46 @@ const here = Astro.url.pathname.replace(/\/$/, '');
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>{full}</title><meta name="description" content={description} /><link rel="canonical" href={canon} />
   <meta property="og:title" content={full} /><meta property="og:description" content={description} /><meta property="og:type" content="website" /><meta property="og:locale" content="es_CO" />
+  <meta name="theme-color" content="#214d2c" />
   <link rel="icon" href={u('/favicon.svg')} type="image/svg+xml" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" /><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400..800&family=Noto+Emoji:wght@300..700&family=EB+Garamond:wght@400..800&display=swap" rel="stylesheet" media="print" onload="this.media='all'" />
+  <noscript><link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400..800&family=Noto+Emoji:wght@300..700&family=EB+Garamond:wght@400..800&display=swap" rel="stylesheet" /></noscript>
   <script is:inline>try{var t=localStorage.getItem('cocina-central-tema');if(t)document.documentElement.dataset.theme=t}catch(e){}</script>
   <script type="application/ld+json" set:html={JSON.stringify(ld)} />
 </head>
-<body>
-  <header class="glass">
-    <a class="logo" href={u('/')}>KoKoA</a>
+<body id="top">
+  <header class="top">
+    <a class="logo" href={u('/')}><span class="mark" aria-hidden="true">K</span><span>La Kokoa</span></a>
     <nav aria-label="Principal">{NAV.map(([p, l]) => <a href={u(p)} aria-current={here === u(p).replace(/\/$/, '') ? 'page' : undefined}>{l}</a>)}</nav>
-    <button id="tema" class="btn ghost" type="button" aria-label="Cambiar entre modo claro y oscuro">◐</button>
-    <a class="btn" href={u('/app/')}>Iniciar sesión</a>
+    <div class="acts">
+      <button id="tema" class="btn ghost" type="button" aria-label="Cambiar entre modo claro y oscuro"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 0 0 0 18z" fill="currentColor"/></svg></button>
+      <a class="btn gold" href={u('/app/')}>Iniciar sesión</a>
+    </div>
   </header>
   <main><slot /></main>
-  <footer>{SITE.largo} · <a href={SITE.instagram}>Instagram</a></footer>
+  <footer class="foot">
+    <div class="foot-in">
+      <div>
+        <a class="logo" href={u('/')}><span class="mark" aria-hidden="true">K</span><span>La Kokoa</span></a>
+        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore.</p>
+      </div>
+      <nav aria-label="Pie de página">
+        <h2>Explora</h2>
+        <ul>{NAV.map(([p, l]) => <li><a href={u(p)}>{l}</a></li>)}<li><a href={u('/app/')}>Iniciar sesión</a></li></ul>
+      </nav>
+      <div>
+        <h2>Encuéntranos</h2>
+        <ul>
+          <li>{SITE.direccion}</li>
+          <li><a href={SITE.mapa}>Cómo llegar</a></li>
+          <li><a href={SITE.instagram}>Instagram · @kokoa_chucholeon</a></li>
+          {SITE.whatsapp && <li><a href={`https://wa.me/${SITE.whatsapp}`}>WhatsApp</a></li>}
+        </ul>
+      </div>
+    </div>
+    <div class="foot-bar"><span>© {anio} {SITE.largo}</span><a href="#top">Volver arriba ↑</a></div>
+  </footer>
   <script>
     const r = document.documentElement;
     document.getElementById('tema')?.addEventListener('click', () => {
