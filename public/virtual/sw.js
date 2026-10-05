@@ -1,5 +1,5 @@
-const V = "kokoa-v6";
-const SHELL = ["./", "./index.html", "./manifest.webmanifest", "./vendor/supabase.js", "./vendor/jspdf.min.js", "./icons/icon-192.png", "./icons/apple-touch-icon.png"];
+const V = "kokoa-v9";
+const SHELL = ["./", "./index.html", "./estilos.css", "./app.js", "./prestamos.js", "./contabilidad.js", "./manifest.webmanifest", "./vendor/supabase.js", "./vendor/jspdf.min.js", "./icons/icon-192.png", "./icons/apple-touch-icon.png"];
 const ESPERA_RED = 3000;
 
 self.addEventListener("install", e => {
@@ -19,7 +19,7 @@ async function rapido(e) {
 async function conRed(e) {
   const q = e.request, c = await caches.open(V);
   let t;
-  const red = fetch(q).then(r => { clearTimeout(t); if (r.ok) c.put(q, r.clone()); return r; });
+  const red = fetch(q, { cache: "no-cache" }).then(r => { clearTimeout(t); if (r.ok) c.put(q, r.clone()); return r; });
   try {
     const r = await Promise.race([red, new Promise(ok => { t = setTimeout(() => ok(null), ESPERA_RED); })]);
     if (r) return r;
