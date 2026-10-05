@@ -1,0 +1,9 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { SITE, DIAS } from '../lib/site';
+---
+<Layout title="Horarios">
+  <h1 class="reveal">Horarios</h1>
+  <p class="nota">Por confirmar con el colectivo.</p>
+  <table><tbody>{DIAS.map((n, i) => <tr><th>{n}</th><td>{SITE.horarios[i] ? SITE.horarios[i].join(" – ") : "Cerrado"}</td></tr>)}</tbody></table>
+</Layout>

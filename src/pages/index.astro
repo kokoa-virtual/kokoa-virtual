@@ -1,17 +1,19 @@
 ---
-
+import Layout from '../layouts/Layout.astro';
+import EstadoHorario from '../components/EstadoHorario.astro';
+import { SITE, u } from '../lib/site';
 ---
-
-<html lang="en">
-	<head>
-		<meta charset="utf-8" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<link rel="icon" href="/favicon.ico" />
-		<meta name="viewport" content="width=device-width" />
-		<meta name="generator" content={Astro.generator} />
-		<title>Astro</title>
-	</head>
-	<body>
-		<h1>Astro</h1>
-	</body>
-</html>
+<Layout>
+  <section class="reveal">
+    <p class="muted">Universidad Nacional de Colombia · Sede Bogotá</p>
+    <h1>{SITE.largo}</h1>
+    <p>Soberanía alimentaria, cooperación y comunidad, cocinadas entre estudiantes.</p>
+    <EstadoHorario />
+    <p><a class="btn" href={u('/menu/')}>Ver el menú</a> <a class="btn ghost" href={SITE.mapa}>Cómo llegar</a></p>
+  </section>
+  <section class="grid">
+    <a class="card glass reveal" href={u('/acerca/')}><h2>Quiénes somos</h2><p>Nuestra historia y lo que hacemos.</p></a>
+    <a class="card glass reveal" href={u('/menu/')}><h2>Menú de la semana</h2><p>Qué se cocina cada día.</p></a>
+    <a class="card glass reveal" href={u('/apoya/')}><h2>Apoya la kocina</h2><p>Aportes voluntarios y cómo ayudar.</p></a>
+  </section>
+</Layout>

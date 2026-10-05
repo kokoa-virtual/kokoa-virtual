@@ -1,0 +1,38 @@
+---
+import '../styles/global.css';
+import { SITE, NAV, u } from '../lib/site';
+const { title, description = SITE.descripcion } = Astro.props;
+const full = title ? `${title} · ${SITE.nombre}` : `${SITE.nombre} · ${SITE.largo}`;
+const canon = new URL(Astro.url.pathname, Astro.site);
+const ld = { '@context': 'https://schema.org', '@type': 'FoodEstablishment', name: SITE.largo, url: Astro.site, description: SITE.descripcion, address: { '@type': 'PostalAddress', streetAddress: SITE.direccion, addressLocality: 'Bogotá', addressCountry: 'CO' }, sameAs: [SITE.instagram] }; // TODO: agregar openingHoursSpecification cuando se confirmen los horarios
+const here = Astro.url.pathname.replace(/\/$/, '');
+---
+<!doctype html>
+<html lang="es-CO">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>{full}</title><meta name="description" content={description} /><link rel="canonical" href={canon} />
+  <meta property="og:title" content={full} /><meta property="og:description" content={description} /><meta property="og:type" content="website" /><meta property="og:locale" content="es_CO" />
+  <link rel="icon" href={u('/favicon.svg')} type="image/svg+xml" />
+  <script is:inline>try{var t=localStorage.getItem('cocina-central-tema');if(t)document.documentElement.dataset.theme=t}catch(e){}</script>
+  <script type="application/ld+json" set:html={JSON.stringify(ld)} />
+</head>
+<body>
+  <header class="glass">
+    <a class="logo" href={u('/')}>KoKoA</a>
+    <nav aria-label="Principal">{NAV.map(([p, l]) => <a href={u(p)} aria-current={here === u(p).replace(/\/$/, '') ? 'page' : undefined}>{l}</a>)}</nav>
+    <button id="tema" class="btn ghost" type="button" aria-label="Cambiar entre modo claro y oscuro">◐</button>
+    <a class="btn" href={u('/app/')}>Iniciar sesión</a>
+  </header>
+  <main><slot /></main>
+  <footer>{SITE.largo} · <a href={SITE.instagram}>Instagram</a></footer>
+  <script>
+    const r = document.documentElement;
+    document.getElementById('tema')?.addEventListener('click', () => {
+      const cur = r.dataset.theme || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+      const n = cur === 'dark' ? 'light' : 'dark'; r.dataset.theme = n;
+      try { localStorage.setItem('cocina-central-tema', n); } catch (e) {}
+    });
+  </script>
+</body>
+</html>
