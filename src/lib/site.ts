@@ -1,5 +1,5 @@
 export const SITE = {
-  nombre: 'KoKoA Chucho León',
+  nombre: 'La KoKoA',
   largo: 'Kocina Komunitaria Amplia · Chucho León Patiño',
   descripcion: 'Proceso estudiantil autónomo de soberanía alimentaria en la Universidad Nacional de Colombia, sede Bogotá.',
   direccion: 'Ave Cra 30 #45-03, Bogotá', // POR CONFIRMAR
