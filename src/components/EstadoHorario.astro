@@ -1,0 +1,23 @@
+---
+import { SITE, DIAS } from '../lib/site';
+---
+<p id="estado" class="estado glass" data-h={JSON.stringify(SITE.horarios)} data-z={SITE.zona} data-d={JSON.stringify(DIAS)}>Calculando horario…</p>
+<script>
+  const el = document.getElementById('estado');
+  if (el) {
+    const H = JSON.parse(el.dataset.h!), D = JSON.parse(el.dataset.d!), Z = el.dataset.z!;
+    const mins = (s: string) => +s.slice(0, 2) * 60 + +s.slice(3);
+    const pintar = () => {
+      const p = Object.fromEntries(new Intl.DateTimeFormat('en-US', { timeZone: Z, weekday: 'short', hour: '2-digit', minute: '2-digit', hour12: false }).formatToParts(new Date()).map(x => [x.type, x.value]));
+      const dia = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].indexOf(p.weekday), ahora = (+p.hour % 24) * 60 + +p.minute, hoy = H[dia];
+      let txt = '', cls = 'cerrado';
+      if (hoy && ahora >= mins(hoy[0]) && ahora < mins(hoy[1])) { cls = 'abierto'; txt = `Abierto ahora · cierra a las ${hoy[1]}`; }
+      else {
+        for (let k = 0; k < 8; k++) { const d = (dia + k) % 7, h = H[d]; if (!h || (k === 0 && ahora >= mins(h[0]))) continue; txt = `Cerrado · abre ${k === 0 ? 'hoy' : k === 1 ? 'mañana' : 'el ' + D[d].toLowerCase()} a las ${h[0]}`; break; }
+        txt ||= 'Cerrado por ahora';
+      }
+      el.textContent = txt; el.className = `estado glass ${cls}`;
+    };
+    pintar(); setInterval(pintar, 30000);
+  }
+</script>
