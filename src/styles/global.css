@@ -42,7 +42,7 @@ main{flex:1;width:min(70rem,100% - 2*var(--gut));margin-inline:auto;padding-bloc
   padding:max(.55rem,env(safe-area-inset-top)) var(--gut) .55rem;color:var(--on-hd);
   background:linear-gradient(100deg,var(--hd1),var(--hd2));box-shadow:0 6px 24px -14px rgba(0,0,0,.55)}
 .logo{display:flex;align-items:center;gap:.55rem;color:var(--on-hd);text-decoration:none;font-family:var(--serif);font-weight:700;font-size:1.3rem;letter-spacing:.01em}
-.mark{display:grid;place-items:center;width:2.2rem;height:2.2rem;border-radius:50%;background:var(--gold);color:var(--on-gold);font-size:1.15rem}
+.mark{display:block;width:2.5rem;height:2.5rem;border-radius:.65rem;object-fit:cover}
 .top nav{display:flex;gap:.2rem;overflow-x:auto;scrollbar-width:none;scroll-snap-type:x proximity;min-width:0}
 .top nav::-webkit-scrollbar{display:none}
 .top nav a{font-family:var(--font);flex:none;scroll-snap-align:start;display:inline-flex;align-items:center;min-height:2.5rem;padding:0 .85rem;border-radius:999px;color:rgba(255,255,255,.86);text-decoration:none;font-weight:600;font-size:.97rem;transition:background .2s}
