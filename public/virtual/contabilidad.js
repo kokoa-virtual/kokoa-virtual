@@ -74,9 +74,10 @@ body.cnt-on #cntL,body.cnt-on #cntR,#cnt>.cn-main{display:none!important}
 #cnt .cn-gm[aria-pressed=true]{color:var(--cn-in)}
 }
 @media(min-width:900px){
-#cnt .cn-caja.cnq{grid-template-columns:minmax(260px,340px) minmax(0,860px);justify-content:start;align-items:stretch;column-gap:16px}
-#cnt .cn-caja.cnq>aside{order:-1;align-self:stretch;margin:0 0 -16px calc(-1*var(--cnq-edge,12px));min-height:calc(100dvh - 300px);border-left:0;border-radius:0 var(--r-lg) var(--r-lg) 0}
-#cnt .cn-caja.cnq>form{align-self:start}
+#cnt .cn-strip{display:grid;grid-template-columns:repeat(3,minmax(0,1fr))}
+#cnt .cn-caja.cnq{grid-template-columns:repeat(3,minmax(0,1fr));column-gap:10px;align-items:stretch}
+#cnt .cn-caja.cnq>aside{order:-1;grid-column:1/3;align-self:stretch;margin:0;min-height:calc(100dvh - 300px)}
+#cnt .cn-caja.cnq>form{grid-column:3;align-self:start}
 #cnt .cnq-rail .cn-sc{max-height:calc(100dvh - 340px)}
 }
 #cnt .cnq-form{display:grid;gap:14px;margin:0}
