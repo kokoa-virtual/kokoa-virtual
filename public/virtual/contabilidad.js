@@ -198,7 +198,7 @@ const sRes=cx=>{const{a,b,et,act,per,fin,mFin}=cx,ing=tot(per,"I"),cos=tot(per,"
  [Bd("Efectivo, banco e inventario al corte")],["Efectivo (1105)",Mn(sl("1105"))],["Banco (1110)",Mn(sl("1110"))],["Inventario de alimentos (1435)",Mn(sl("1435"))],[],
  [Bd("Donaciones recibidas en el per\u00EDodo")],["Total",Mn(sv(()=>1))],["En dinero",Mn(sv(t=>!t.especie))],["En especie",Mn(sv(t=>t.especie))],["Condicionadas",Mn(sv(t=>t.condicionada))],["N.\u00BA de donaciones",don.length],["N.\u00BA de donantes",new Set(don.map(t=>t.tercero_id).filter(Boolean)).size],[],
  [Bd("Pendientes a la fecha (revisar antes de entregar)")],["Partidas bancarias sin conciliar (extracto y libros)",pn.b],["Documentos soporte por generar",pn.d],["Cuotas sin n.\u00BA de documento",pn.q],[],
- [Bd("Per\u00EDodos cerrados dentro del rango")],[cer.length?cer.join(", "):"Ninguno"],[],[No("Las dem\u00E1s hojas y las notas est\u00E1n en las pesta\u00F1as de abajo.")]])};
+ [Bd("Per\u00EDodos cerrados dentro del rango")],[cer.length?cer.join(", "):"Ninguno"],[],[No("Las notas est\u00E1n en la primera hoja y el detalle, en las hojas siguientes.")]])};
 const sAct=cx=>{const{b,per,ytd,mPer,mYtd}=cx,blk=(tp,ti)=>{const r=[[Bd(ti)]];P.filter(c=>c.tipo===tp&&(mPer[c.codigo]||mYtd[c.codigo])).forEach(c=>r.push([c.codigo,c.nombre,Mn(rd(g0(mPer,c.codigo,"s"))),Mn(rd(g0(mYtd,c.codigo,"s")))]));r.push([Bd("Total "+ti.toLowerCase()),"",Bm(rd(tot(per,tp))),Bm(rd(tot(ytd,tp)))]);r.push([]);return r},
  e1=tot(per,"I")-tot(per,"C")-tot(per,"G"),e2=tot(ytd,"I")-tot(ytd,"C")-tot(ytd,"G");
  return mk("Estado de actividades",[12,46,18,24],1,[Hd("C\u00F3digo","Cuenta","Per\u00EDodo","Acumulado del a\u00F1o al "+b),...blk("I","Ingresos"),...blk("C","Costos"),...blk("G","Gastos"),[Bd("Excedente (d\u00E9ficit)"),"",Bm(rd(e1)),Bm(rd(e2))]])};
@@ -228,7 +228,7 @@ const sDD=cx=>{const mpd=new Map(),r=[Hd("Donante","Documento / NIT","N.\u00BA d
 const sTer=cx=>{const ac=new Map(),r=[Hd("Nombre","Documento / NIT","Tipo","Relacionado","No obligado a facturar","Donaciones recibidas","Otros ingresos","Pagos y compras")];
  cx.act.forEach(t=>{if(!t.tercero_id)return;let o=ac.get(t.tercero_id);if(!o)ac.set(t.tercero_id,o={d:0,i:0,p:0});const v=l(t.valor);if(t.tipo==="ingreso"){if(t.donacion)o.d+=v;else o.i+=v}else if(t.tipo==="egreso")o.p+=v});
  let d=0,i=0,p=0;N.slice().sort((u1,u2)=>String(u1.nombre).localeCompare(u2.nombre,"es")).forEach(t=>{const o=ac.get(t.id)||{d:0,i:0,p:0};d+=o.d;i+=o.i;p+=o.p;r.push([t.nombre,t.documento||"",t.tipo,sn(t.relacionado),sn(t.no_obligado),Mn(rd(o.d)),Mn(rd(o.i)),Mn(rd(o.p))])});
- r.push([Bd("Total"),"","","","",Bm(rd(d)),Bm(rd(i)),Bm(rd(p))]);r.push([]);r.push([No("Base para preparar la informaci\u00F3n ex\u00F3gena y revisar las operaciones con relacionados. Confirma formatos y topes con tu contador.")]);
+ r.push([Bd("Total"),"","","","",Bm(rd(d)),Bm(rd(i)),Bm(rd(p))]);r.push([]);r.push([No("Base para preparar la informaci\u00F3n ex\u00F3gena y revisar las operaciones con relacionados. Confirmar formatos y topes con contador.")]);
  return mk("Terceros",[34,18,14,12,16,18,16,18],1,r)};
 const sEgr=cx=>{const r=[Hd("N\u00FAmero","Fecha","Tercero","Documento / NIT","Relacionado","No obligado a facturar","Concepto","Valor","Soporte","Estado del soporte")];let s=0;
  cx.act.filter(t=>t.tipo==="egreso").forEach(t=>{const o=M(t.tercero_id),f=o.no_obligado&&t.soporte_tipo!=="doc_soporte"&&t.soporte_tipo!=="factura";s+=l(t.valor);
@@ -255,6 +255,9 @@ const sInv=cx=>{const{a,b}=cx,it=ht().filter(z=>z.inv).sort((p,k)=>String(p.k||"
  r.push([]);r.push([Ti("Compras con precio del per\u00EDodo")]);r.push(Hd("Fecha","Producto","Tercero","Cantidad","Unidad","Valor","Precio unitario"));let sc=0;
  fe.filter(z=>!an.has(z.asiento_id)&&z.fecha>=a&&z.fecha<=b).sort((p,k)=>String(p.fecha).localeCompare(k.fecha)||p.id-k.id).forEach(z=>{sc+=l(z.valor);r.push([z.fecha,z.nombre,M(z.tercero_id).nombre||"",l(z.cantidad)||"",z.unidad||"",Mn(rd(z.valor)),l(z.cantidad)?Mn(rd(z.valor/z.cantidad)):""])});
  r.push([Bd("Total comprado"),"","","","",Bm(rd(sc))]);
+ r.push([]);r.push([Ti("Movimientos de inventario en libros (cuenta 1435)")]);r.push(Hd("Fecha","N\u00FAmero","Concepto","Tercero","D\u00E9bito (entra)","Cr\u00E9dito (sale)"));let se=0,ss=0;
+ cx.act.forEach(t=>(cx.byA.get(t.id)||[]).filter(h=>h.cuenta==="1435").forEach(h=>{se+=l(h.debito);ss+=l(h.credito);r.push([t.fecha,t.numero,t.concepto,M(t.tercero_id).nombre||"",l(h.debito)?Mn(rd(h.debito)):null,l(h.credito)?Mn(rd(h.credito)):null])}));
+ r.push([Bd("Totales"),"","","",Bm(rd(se)),Bm(rd(ss))]);
  return mk("Inventario y compras",[36,26,28,12,12,18,18],0,r)};
 const sAnu=cx=>{const r=[Hd("N\u00FAmero","Fecha","Tipo","Concepto","Valor","Motivo de la anulaci\u00F3n")];
  x.filter(t=>t.estado==="anulado"&&t.fecha>=cx.a&&t.fecha<=cx.b).sort((p,k)=>String(p.fecha).localeCompare(k.fecha)).forEach(t=>r.push([t.numero,t.fecha,Ce[t.tipo]||t.tipo,t.concepto,Mn(rd(t.valor)),t.motivo_anulacion||""]));
@@ -268,14 +271,14 @@ const sNot=()=>mk("Notas",[130],0,[[Ti("Notas para el contador")],[],[Bd("Qu\u00
  ["En el Balance de prueba, el saldo anterior y el saldo al corte son acumulados desde el primer asiento. El Estado de actividades muestra el per\u00EDodo y el acumulado del a\u00F1o."],
  ["El inventario de la hoja Inventario y compras es el de hoy, no el de la fecha de corte."],[],[Bd("Lo que este archivo no calcula")],
  ["No calcula el impuesto, el beneficio neto o excedente fiscal ni los formularios de la declaraci\u00F3n: eso lo define el contador."],[],
- [Bd("Documentos que suele pedir el contador y no est\u00E1n aqu\u00ED (conf\u00EDrmalo con \u00E9l)")],
+ [Bd("Documentos que suele pedir el contador y no est\u00E1n aqu\u00ED (confirmar con contador)")],
  ["Extractos bancarios del per\u00EDodo, facturas y documentos soporte, certificados de retenciones, n\u00F3mina y seguridad social, RUT, actas y estatutos, informe de gesti\u00F3n y soportes de la actividad meritoria, certificados de donaci\u00F3n emitidos."]]);
 const datos=(a,b,modo,val)=>{const act=ee().filter(t=>t.fecha>=a&&t.fecha<=b).sort((p,k)=>String(p.fecha).localeCompare(k.fecha)||p.id-k.id),byA=new Map();
  H.forEach(h=>{let z=byA.get(h.asiento_id);if(!z)byA.set(h.asiento_id,z=[]);z.push(h)});
  const mp=rs=>{const o={};rs.forEach(z=>o[z.codigo]=z);return o},per=Le(a,b),fin=Le("",b),ytd=Le(b.slice(0,4)+"-01-01",b),an=Le("",ant(a));
  let et=modo==="y"?"A\u00F1o "+val:new Date(val+"-01T12:00:00").toLocaleDateString("es-CO",{month:"long",year:"numeric"});et=et.charAt(0).toUpperCase()+et.slice(1);
  const cx={a,b,modo,val,et,act,byA,per,fin,ytd,mPer:mp(per),mFin:mp(fin),mYtd:mp(ytd),mAnt:mp(an)};
- return[sRes,sAct,sSit,sBal,sDia,sMay,sDon,sDD,sTer,sEgr,sBan,sPre,sInv,sAnu,sNot].map(f=>f(cx))};
+ return[sNot,sRes,sAct,sSit,sBal,sDia,sMay,sDon,sDD,sTer,sEgr,sBan,sPre,sInv,sAnu].map(f=>f(cx))};
 const bajar=(blob,nom)=>{const z=document.createElement("a");z.href=URL.createObjectURL(blob);z.download=nom;document.body.appendChild(z);z.click();setTimeout(()=>{URL.revokeObjectURL(z.href);z.remove()},2000)};
 const abrir=()=>{if(!P.length){aviso("Todav\u00EDa no hay datos de contabilidad cargados.","err");return}
  const o=document.getElementById("xlD");o&&o.remove();
@@ -285,8 +288,8 @@ const abrir=()=>{if(!P.length){aviso("Todav\u00EDa no hay datos de contabilidad 
  d.addEventListener("click",ev=>{if(ev.target===d){d.close();return}const b2=ev.target.closest("[data-xl]");if(!b2)return;const z=b2.dataset.xl;if(z==="x"){d.close();return}
   modo=z;d.querySelectorAll(".xl-seg button").forEach(b3=>b3.setAttribute("aria-pressed",String(b3.dataset.xl===modo)));d.querySelector("#xlLm").hidden=modo!=="m";d.querySelector("#xlLy").hidden=modo!=="y"});
  d.addEventListener("close",()=>d.remove());
- d.querySelector("#xlF").addEventListener("submit",ev=>{ev.preventDefault();const val=modo==="m"?d.querySelector("#xlMes").value:d.querySelector("#xlAnio").value;if(!val){aviso("Elige el per\u00EDodo.","err");return}
-  try{const[a,b]=modo==="y"?[val+"-01-01",val+"-12-31"]:Te(val),nom="contabilidad-"+val+".xlsx";bajar(libro(datos(a,b,modo,val)),nom);d.close();aviso("Excel descargado: "+nom)}catch(er){re(er)}});
+ d.querySelector("#xlF").addEventListener("submit",async ev=>{ev.preventDefault();const val=modo==="m"?d.querySelector("#xlMes").value:d.querySelector("#xlAnio").value;if(!val){aviso("Elige el per\u00EDodo.","err");return}
+  try{await I();const[a,b]=modo==="y"?[val+"-01-01",val+"-12-31"]:Te(val),nom="contabilidad-"+val+".xlsx";bajar(libro(datos(a,b,modo,val)),nom);d.close();aviso("Excel descargado: "+nom)}catch(er){re(er)}});
  d.showModal()};
 return{abrir,datos,libro}})();
 return window.cambiarModo=e=>{const n=esAdmin(),t=n?["a","p","c"]:["a","p"],a=$("modo"),o=a.dataset.m||"a";let i;if(n&&e&&matchMedia("(min-width:761px)").matches){const s=[...a.querySelectorAll(".sg")].findIndex(p=>{const c=p.getBoundingClientRect();return e.clientX>=c.left&&e.clientX<=c.right});i=s>=0?t[s]:t[(t.indexOf(o)+1)%t.length]}else i=t[(t.indexOf(o)+1)%t.length];PRM.setOn(i==="p"),Re(i==="c"),$("scan").value="",sec=0,_e(),currentUser&&renderAll()},{on:()=>Y&&esAdmin()&&!!currentUser,off:xt,setOn:Re,buscar:Bt,render:v,hide:Nt,load:I,datosExport:qt}})();
