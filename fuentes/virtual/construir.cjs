@@ -1,5 +1,5 @@
-const fs = require("fs");
-const path = require("path");
+const fs = require("node:fs");
+const path = require("node:path");
 
 const postcss = require("postcss");
 const esbuild = require("esbuild");
@@ -10,7 +10,7 @@ function especificidad(sel) {
   let a = 0, b = 0, c = 0;
   s = s.replace(/:where\((?:[^()]|\([^()]*\))*\)/g, "");
   let extra = 0;
-  s = s.replace(/:(not|is|has|matches)\(((?:[^()]|\([^()]*\))*)\)/g, (_, _n, arg) => {
+  s = s.replace(/:(not|is|has|matches)\(((?:[^()]|\([^()]*\))*)\)/g, (_, __, arg) => {
     let m = 0;
     for (const p of splitTop(arg)) m = Math.max(m, especificidad(p));
     extra += m; return "";
@@ -235,4 +235,11 @@ function main() {
   console.log(JSON.stringify({ ...stats, bloquesMedia: bloques, atomos: atoms.length }));
   if (opt === "--informe") fs.writeFileSync(path.join(out, "_importantes.json"), JSON.stringify(detalle, null, 1));
 }
-main();
+if (require.main === module) {
+  try {
+    main();
+  } catch (e) {
+    console.error(e.message);
+    process.exit(1);
+  }
+}
