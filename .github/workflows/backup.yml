@@ -1,7 +1,4 @@
 name: backup
-# Respaldo semanal de la base de Supabase (domingo 03:00 en Bogotá).
-# El archivo se CIFRA antes de subirlo: los artefactos de un repositorio público
-# pueden descargarlos otras personas, y el respaldo contiene datos personales.
 on:
   schedule: [{cron: '0 8 * * 0'}]
   workflow_dispatch:
@@ -12,6 +9,7 @@ permissions:
 jobs:
   dump:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     steps:
       - name: Instalar cliente de PostgreSQL 17
         run: |
@@ -25,18 +23,16 @@ jobs:
           DB_URL: ${{ secrets.SUPABASE_DB_URL }}
         run: |
           set -euo pipefail
-          # Quita espacios, saltos de línea y comillas que se cuelan al pegar el secret
           DB_URL="$(printf '%s' "$DB_URL" | tr -d '[:space:]"'"'")"
           case "$DB_URL" in
             postgresql://*|postgres://*) ;;
             *) echo "::error::El secret SUPABASE_DB_URL no es una dirección válida: tiene ${#DB_URL} caracteres y empieza por '${DB_URL:0:6}'. Debe empezar por postgresql://"; exit 1 ;;
           esac
-          echo "Conectando a: ${DB_URL##*@}"   # solo servidor, puerto y base; sin usuario ni clave
+          echo "Conectando a: ${DB_URL##*@}"
           PGDUMP=/usr/lib/postgresql/17/bin/pg_dump
           $PGDUMP "$DB_URL" --no-owner --no-privileges --schema=public -Fc -f public.dump
           $PGDUMP "$DB_URL" --no-owner --no-privileges --data-only \
             --table=auth.users --table=auth.identities -Fc -f auth.dump
-          # Comprobar que el volcado se puede leer y no está vacío
           test "$(stat -c %s public.dump)" -gt 10000
           /usr/lib/postgresql/17/bin/pg_restore --list public.dump > /dev/null
           /usr/lib/postgresql/17/bin/pg_restore --list auth.dump > /dev/null
@@ -53,7 +49,7 @@ jobs:
               --passphrase "$PASS" -o kokoa-respaldo.tar.gz.gpg kokoa-respaldo.tar.gz
           rm kokoa-respaldo.tar.gz
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
           name: kokoa-respaldo-${{ github.run_number }}
           path: kokoa-respaldo.tar.gz.gpg

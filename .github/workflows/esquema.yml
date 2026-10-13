@@ -1,0 +1,36 @@
+name: esquema
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  volcar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+      - name: Instalar cliente de PostgreSQL 17
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq postgresql-common
+          sudo /usr/share/postgresql-common/pgdg/apt.postgresql.org.sh -y
+          sudo apt-get install -y -qq postgresql-client-17
+      - name: Volcar el esquema público
+        env:
+          DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+        run: |
+          set -euo pipefail
+          DB_URL="$(printf '%s' "$DB_URL" | tr -d '[:space:]"'"'")"
+          /usr/lib/postgresql/17/bin/pg_dump "$DB_URL" --schema-only --no-owner --schema=public \
+            | sed -E '/^--/d' | cat -s > supabase/esquema-actual.sql
+          test "$(wc -l < supabase/esquema-actual.sql)" -gt 100
+      - name: Guardar cambios
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add supabase/esquema-actual.sql
+          git diff --cached --quiet && echo "Sin cambios" && exit 0
+          git commit -m "Actualizar esquema desde Supabase"
+          git push
