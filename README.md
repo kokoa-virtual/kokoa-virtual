@@ -1,1 +1,1 @@
-## La Kokoka te saluda 👋
+## La Kokoka te saluda
