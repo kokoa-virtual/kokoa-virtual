@@ -1,47 +1,86 @@
 ---
 import Layout from '../layouts/Layout.astro';
-import { DIAS } from '../lib/site';
-// El menú real vive en la tabla menu_semanal de Supabase (lectura pública de la semana
-// actual y la siguiente). Si no se puede leer, la página muestra los días con "Por confirmar".
-const SB_URL = 'https://wqpwqiwkvwdfcvywatmc.supabase.co';
-const SB_KEY = 'sb_publishable_16usfkk9hH5DyHxY7KGS_Q_YDqcmdXD';
-const COMIDAS = [['desayuno', 'Desayuno'], ['almuerzo', 'Almuerzo'], ['cena', 'Cena']];
+import { DIAS, SUPABASE } from '../lib/site';
+
+const COMIDAS = [['desayuno', 'Desayuno'], ['almuerzo', 'Almuerzo'], ['cena', 'Cena']] as const;
 ---
 <Layout title="Menú">
-  <header class="page-head reveal"><p class="eyebrow" id="menuSemana">Semana en curso</p><h1>Menú</h1><p class="lead">Lo que se cocina esta semana en La Kokoa: desayuno, almuerzo y cena.</p></header>
+  <header class="page-head reveal">
+    <p class="eyebrow" id="menuSemana">Semana en curso</p>
+    <h1>Menú</h1>
+    <p class="lead">Lo que se cocina esta semana en La Kokoa: desayuno, almuerzo y cena.</p>
+  </header>
   <div class="tabla reveal">
-    <table id="menu" data-u={SB_URL} data-k={SB_KEY} data-d={JSON.stringify(DIAS)}>
-      <thead><tr><th>Día</th>{COMIDAS.map(([, l]) => <th>{l}</th>)}</tr></thead>
-      <tbody>{[1, 2, 3, 4, 5, 6].map(d => <tr><th>{DIAS[d]}</th>{COMIDAS.map(([k]) => <td data-dia={d} data-comida={k}>Por confirmar</td>)}</tr>)}</tbody>
+    <table id="menu" data-u={SUPABASE.url} data-k={SUPABASE.clavePublica}>
+      <caption class="sr-only">Menú semanal por día y comida</caption>
+      <thead>
+        <tr><th scope="col">Día</th>{COMIDAS.map(([, etiqueta]) => <th scope="col">{etiqueta}</th>)}</tr>
+      </thead>
+      <tbody>
+        {[1, 2, 3, 4, 5, 6].map((d) => (
+          <tr>
+            <th scope="row">{DIAS[d]}</th>
+            {COMIDAS.map(([clave]) => <td data-dia={d} data-comida={clave}>Por confirmar</td>)}
+          </tr>
+        ))}
+      </tbody>
     </table>
   </div>
+  <p id="menuEstado" class="muted" role="status"></p>
   <script>
-    const t = document.getElementById('menu');
-    if (t) {
-      const Z = 'America/Bogota';
-      const iso = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-      const hoy = new Date(new Date().toLocaleString('en-US', { timeZone: Z }));
-      const dow = hoy.getDay();
-      const lunes = new Date(hoy); lunes.setDate(hoy.getDate() - ((dow + 6) % 7));
-      const proxima = new Date(lunes); proxima.setDate(lunes.getDate() + 7);
-      const q = `${t.dataset.u}/rest/v1/menu_semanal?select=semana,dia,comida,plato&semana=gte.${iso(lunes)}&semana=lte.${iso(proxima)}`;
-      fetch(q, { headers: { apikey: t.dataset.k!, Authorization: `Bearer ${t.dataset.k}` } })
-        .then(r => (r.ok ? r.json() : []))
-        .then((filas: { semana: string; dia: number; comida: string; plato: string }[]) => {
-          const con = (s: string) => filas.filter(f => f.semana === s && f.plato.trim());
-          // Domingo: si ya está la semana siguiente, se muestra esa
-          const fin = dow === 0;
-          const semana = fin && con(iso(proxima)).length ? iso(proxima) : iso(lunes);
-          for (const f of con(semana)) {
-            const td = t.querySelector(`td[data-dia="${f.dia}"][data-comida="${f.comida}"]`);
-            if (td) td.textContent = f.plato;
-          }
-          const ini = new Date(semana + 'T12:00:00'), sab = new Date(ini); sab.setDate(ini.getDate() + 5);
-          const f = (d: Date, y = false) => d.toLocaleDateString('es-CO', { day: 'numeric', month: 'long', ...(y ? { year: 'numeric' } : {}) });
-          const e = document.getElementById('menuSemana');
-          if (e) e.textContent = `Semana del ${f(ini)} al ${f(sab, true)}`;
-        })
-        .catch(() => {});
+    interface Fila {
+      semana: string;
+      dia: number;
+      comida: string;
+      plato: string;
+    }
+
+    const tabla = document.getElementById('menu');
+    const titulo = document.getElementById('menuSemana');
+    const estado = document.getElementById('menuEstado');
+
+    const ZONA = 'America/Bogota';
+    const iso = (d: Date): string => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    const formatoFecha = (d: Date, conAnio = false): string =>
+      d.toLocaleDateString('es-CO', { day: 'numeric', month: 'long', ...(conAnio ? { year: 'numeric' } : {}) });
+
+    async function cargar(t: HTMLElement): Promise<void> {
+      const hoy = new Date(new Date().toLocaleString('en-US', { timeZone: ZONA }));
+      const diaSemana = hoy.getDay();
+      const lunes = new Date(hoy);
+      lunes.setDate(hoy.getDate() - ((diaSemana + 6) % 7));
+      const proxima = new Date(lunes);
+      proxima.setDate(lunes.getDate() + 7);
+
+      const clave = t.dataset.k ?? '';
+      const consulta = new URLSearchParams({ select: 'semana,dia,comida,plato' });
+      consulta.append('semana', `gte.${iso(lunes)}`);
+      consulta.append('semana', `lte.${iso(proxima)}`);
+
+      const respuesta = await fetch(`${t.dataset.u}/rest/v1/menu_semanal?${consulta}`, {
+        headers: { apikey: clave, Authorization: `Bearer ${clave}` },
+      });
+      if (!respuesta.ok) throw new Error(`HTTP ${respuesta.status}`);
+      const filas: Fila[] = await respuesta.json();
+
+      const conPlato = (semana: string): Fila[] => filas.filter((f) => f.semana === semana && f.plato.trim());
+      const semana = diaSemana === 0 && conPlato(iso(proxima)).length ? iso(proxima) : iso(lunes);
+
+      for (const f of conPlato(semana)) {
+        const celda = t.querySelector(`td[data-dia="${f.dia}"][data-comida="${f.comida}"]`);
+        if (celda) celda.textContent = f.plato;
+      }
+
+      const inicio = new Date(`${semana}T12:00:00`);
+      const sabado = new Date(inicio);
+      sabado.setDate(inicio.getDate() + 5);
+      if (titulo) titulo.textContent = `Semana del ${formatoFecha(inicio)} al ${formatoFecha(sabado, true)}`;
+    }
+
+    if (tabla) {
+      cargar(tabla).catch(() => {
+        if (estado) estado.textContent = 'No pudimos cargar el menú ahora. Los platos aparecen como "Por confirmar".';
+      });
     }
   </script>
 </Layout>

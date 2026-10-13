@@ -1,8 +1,24 @@
 ---
 import Layout from '../layouts/Layout.astro';
 import { SITE, DIAS } from '../lib/site';
+
+const [abre, cierra] = SITE.horarios[1] ?? ['', ''];
 ---
 <Layout title="Horarios">
-  <header class="page-head reveal"><p class="eyebrow">Cuándo encontrarnos</p><h1>Horarios</h1><p class="lead">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p></header>
-  <div class="tabla reveal"><table><tbody>{DIAS.map((n, i) => <tr><th>{n}</th><td>{SITE.horarios[i] ? SITE.horarios[i].join(" – ") : "Cerrado"}</td></tr>)}</tbody></table></div>
+  <header class="page-head reveal">
+    <p class="eyebrow">Cuándo encontrarnos</p>
+    <h1>Horarios</h1>
+    <p class="lead">Abrimos de lunes a viernes, de {abre} a {cierra}.</p>
+  </header>
+  <div class="tabla reveal">
+    <table>
+      <caption class="sr-only">Horario de atención por día</caption>
+      <tbody>
+        {DIAS.map((dia, i) => {
+          const franja = SITE.horarios[i];
+          return <tr><th scope="row">{dia}</th><td>{franja ? franja.join(' – ') : 'Cerrado'}</td></tr>;
+        })}
+      </tbody>
+    </table>
+  </div>
 </Layout>
