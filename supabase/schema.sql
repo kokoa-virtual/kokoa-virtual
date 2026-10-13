@@ -9,10 +9,10 @@ create table perfiles(
   oculto boolean not null default false,
   creado timestamptz not null default now());
 
-create function es_admin() returns boolean language sql stable security definer set search_path=public as
+create function es_admin() returns boolean language sql stable security definer set search_path=public,pg_temp as
 $$ select exists(select 1 from perfiles where id=auth.uid() and rol='admin') $$;
 
-create function nuevo_usuario() returns trigger language plpgsql security definer set search_path=public as $$
+create function nuevo_usuario() returns trigger language plpgsql security definer set search_path=public,pg_temp as $$
 begin
   insert into perfiles(id,apodo,nombre,apellido,telefono,correo,animal) values(
     new.id, coalesce(new.raw_user_meta_data->>'apodo', split_part(new.email,'@',1)),
@@ -21,7 +21,7 @@ begin
     coalesce(new.raw_user_meta_data->>'animal',''));
   return new;
 end $$;
-create function validar_codigo() returns trigger language plpgsql security definer set search_path=public as $$
+create function validar_codigo() returns trigger language plpgsql security definer set search_path=public,pg_temp as $$
 begin
   if coalesce(new.raw_user_meta_data->>'codigo','') <> coalesce((select valor from config where clave='codigo_registro'),'#') then
     raise exception 'Código de registro incorrecto';
@@ -31,7 +31,7 @@ end $$;
 create trigger validar_codigo before insert on auth.users for each row execute function validar_codigo();
 create trigger al_crear_usuario after insert on auth.users for each row execute function nuevo_usuario();
 
-create function proteger_rol() returns trigger language plpgsql as $$
+create function proteger_rol() returns trigger language plpgsql set search_path=public,pg_temp as $$
 begin
   if new.rol is distinct from old.rol and auth.uid() is not null then
     if not es_admin() then raise exception 'Solo un admin puede cambiar roles'; end if;
@@ -71,7 +71,7 @@ create table bitacora(id bigint generated always as identity primary key, t time
   clase text default 'cnt', texto text not null, apodo text);
 
 create function registrar_movimiento(p_sku text, p_delta numeric, p_motivo text default '', p_vence date default null)
-returns alimentos language plpgsql security definer set search_path=public as $$
+returns alimentos language plpgsql security definer set search_path=public,pg_temp as $$
 declare a alimentos; ap text; resto numeric; l jsonb; nl jsonb := '[]'; q numeric; t numeric;
 begin
   if auth.uid() is null then raise exception 'Sin sesión'; end if;
@@ -95,7 +95,7 @@ begin
 end $$;
 
 create function registrar_comida(p_tipo text, p_nombre text, p_items jsonb) returns void
-language plpgsql security definer set search_path=public as $$
+language plpgsql security definer set search_path=public,pg_temp as $$
 declare x jsonb; ap text;
 begin
   if auth.uid() is null then raise exception 'Sin sesión'; end if;
@@ -106,16 +106,16 @@ begin
   insert into comidas(tipo,nombre,items,apodo) values(p_tipo,p_nombre,p_items,ap);
 end $$;
 
-create function eliminar_usuario(p_id uuid) returns void language plpgsql security definer set search_path=public,auth as $$
+create function eliminar_usuario(p_id uuid) returns void language plpgsql security definer set search_path=public,auth,pg_temp as $$
 begin
   if p_id <> auth.uid() and not es_admin() then raise exception 'No autorizado'; end if;
   if exists (select 1 from perfiles where id=p_id and lower(apodo)='kokoa') then raise exception 'Kokoa no se puede eliminar'; end if;
   delete from auth.users where id=p_id;
 end $$;
 
-create function correo_de_usuario(p_apodo text) returns text language sql stable security definer set search_path=public,auth as
+create function correo_de_usuario(p_apodo text) returns text language sql stable security definer set search_path=public,auth,pg_temp as
 $$ select u.email::text from auth.users u join perfiles p on p.id=u.id where lower(p.apodo)=lower(trim(p_apodo)) limit 1 $$;
-create function ping() returns text language sql as $$ select 'ok' $$;
+create function ping() returns text language sql set search_path='' as $$ select 'ok' $$;
 
 alter table perfiles enable row level security;  alter table zonas enable row level security;
 alter table tipos enable row level security;     alter table alimentos enable row level security;
@@ -123,13 +123,13 @@ alter table movimientos enable row level security; alter table comidas enable ro
 alter table bitacora enable row level security;
 alter table config enable row level security;
 
-create policy ver_perfil   on perfiles for select to authenticated using (id=auth.uid() or (es_admin() and not oculto));
-create policy editar_perfil on perfiles for update to authenticated using (id=auth.uid() or es_admin()) with check (id=auth.uid() or es_admin());
+create policy ver_perfil   on perfiles for select to authenticated using (id=(select auth.uid()) or ((select es_admin()) and not oculto));
+create policy editar_perfil on perfiles for update to authenticated using (id=(select auth.uid()) or (select es_admin())) with check (id=(select auth.uid()) or (select es_admin()));
 
 create policy ver_zonas  on zonas for select to authenticated using (true);
-create policy adm_zonas  on zonas for all to authenticated using (es_admin()) with check (es_admin());
+create policy adm_zonas  on zonas for all to authenticated using ((select es_admin())) with check ((select es_admin()));
 create policy ver_tipos  on tipos for select to authenticated using (true);
-create policy adm_tipos  on tipos for all to authenticated using (es_admin()) with check (es_admin());
+create policy adm_tipos  on tipos for all to authenticated using ((select es_admin())) with check ((select es_admin()));
 
 create policy ver_ali    on alimentos for select to authenticated using (true);
 create policy crear_ali  on alimentos for insert to authenticated with check (stock=0 and lotes='[]'::jsonb);
@@ -140,7 +140,7 @@ revoke update on alimentos from authenticated;
 grant update(nombre,tipo,unidad,zona,vence,minimo,conteo) on alimentos to authenticated;
 revoke insert,update,delete on movimientos, comidas from authenticated;
 
-create policy adm_config on config for all to authenticated using (es_admin()) with check (es_admin());
+create policy adm_config on config for all to authenticated using ((select es_admin())) with check ((select es_admin()));
 create policy ver_mov on movimientos for select to authenticated using (true);
 create policy ver_com on comidas     for select to authenticated using (true);
 create policy ver_bit on bitacora    for select to authenticated using (true);
@@ -166,7 +166,7 @@ grant select, insert, update, delete on config to authenticated;
 grant select, insert, delete on alimentos to authenticated;
 grant select, insert, update, delete on zonas, tipos to authenticated;
 create or replace function crear_usuario(p_apodo text, p_clave text, p_nombre text, p_apellido text, p_telefono text, p_correo text, p_animal text, p_rol rol_usuario)
-returns void language plpgsql security definer set search_path=public,auth,extensions as $$
+returns void language plpgsql security definer set search_path=public,auth,extensions,pg_temp as $$
 declare uid uuid := gen_random_uuid(); cod text; em text;
 begin
   if not es_admin() then raise exception 'No autorizado'; end if;

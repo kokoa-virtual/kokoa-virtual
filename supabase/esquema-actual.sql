@@ -1,19 +1,7 @@
--- =====================================================================
--- esquema-actual.sql — Kokoa Virtual
--- Reconstruido el 2026-10-12 a partir del volcado de catálogo de Supabase.
--- Sirve para DOCUMENTAR y para recrear la base en un proyecto nuevo.
--- NO lo ejecutes sobre la base en producción.
--- Inferido (no venía en el volcado): columnas "id bigint" como IDENTITY,
--- permisos por columna, el tipo rol_usuario y la secuencia prestamo_seq.
--- No incluye datos, tareas programadas, funciones edge ni ajustes de Auth.
--- =====================================================================
-
 create type rol_usuario as enum ('admin','estudiante');
 create sequence if not exists prestamo_seq;
 grant usage on schema public to anon, authenticated;
 
-
--- ---------- TABLAS ----------
 create table public.alimentos(
   sku text not null,
   nombre text not null,
@@ -227,7 +215,6 @@ create table public.zonas(
   orden integer not null default 0
 );
 
--- ---------- RESTRICCIONES ----------
 alter table public.alimentos add PRIMARY KEY (sku);
 alter table public.bitacora add PRIMARY KEY (id);
 alter table public.cnt_asientos add PRIMARY KEY (id);
@@ -296,7 +283,6 @@ alter table public.tipos add CHECK ((nombre !~ '[<>"`]'::text)) NOT VALID;
 alter table public.zonas add CHECK ((id !~ '[<>"''`&]'::text)) NOT VALID;
 alter table public.zonas add CHECK ((nombre !~ '[<>"`]'::text)) NOT VALID;
 
--- ---------- ÍNDICES ----------
 CREATE INDEX IF NOT EXISTS alimentos_tipo_idx ON public.alimentos USING btree (tipo);
 CREATE INDEX IF NOT EXISTS alimentos_zona_idx ON public.alimentos USING btree (zona);
 CREATE INDEX IF NOT EXISTS bitacora_t_idx ON public.bitacora USING btree (t DESC);
@@ -319,7 +305,6 @@ CREATE INDEX IF NOT EXISTS prestamo_items_pendientes_idx ON public.prestamo_item
 CREATE INDEX IF NOT EXISTS prestamo_items_implemento_id_idx ON public.prestamo_items USING btree (implemento_id);
 CREATE INDEX IF NOT EXISTS prestamo_items_impl_idx ON public.prestamo_items USING btree (implemento_id);
 
--- ---------- RLS ----------
 alter table public.alimentos enable row level security;
 alter table public.bitacora enable row level security;
 alter table public.cnt_asientos enable row level security;
@@ -346,12 +331,11 @@ alter table public.tipos enable row level security;
 alter table public.tipos_implemento enable row level security;
 alter table public.zonas enable row level security;
 
--- ---------- FUNCIONES ----------
 CREATE OR REPLACE FUNCTION public.borrar_historial(p_tabla text DEFAULT 'todo'::text, p_id bigint DEFAULT NULL::bigint)
  RETURNS void
  LANGUAGE plpgsql
  SECURITY DEFINER
- SET search_path TO 'public'
+ SET search_path TO 'public', 'pg_temp'
 AS $function$
 begin
   if not es_admin() then raise exception 'No autorizado'; end if;
@@ -370,12 +354,11 @@ CREATE OR REPLACE FUNCTION public.borrar_historial_prestamos(p_id bigint DEFAULT
  RETURNS void
  LANGUAGE plpgsql
  SECURITY DEFINER
- SET search_path TO 'public'
+ SET search_path TO 'public', 'pg_temp'
 AS $function$
 begin
   if not es_admin() then raise exception 'No autorizado'; end if;
 
-  -- Un solo registro del historial
   if p_id is not null then
     delete from prestamo_eventos where id = p_id;
     return;
@@ -385,14 +368,11 @@ begin
     raise exception 'Tipo inválido';
   end if;
 
-  -- Movimientos generales (ediciones)
   if p_tipo = 'generales' then
     delete from prestamo_eventos where tipo = 'edicion';
     return;
   end if;
 
-  -- Préstamos y devoluciones (y todo): también se limpian los préstamos ya cerrados,
-  -- que son los que alimentan el gráfico. Los préstamos con algo pendiente NO se tocan.
   if p_tipo = 'prestamos' then
     delete from prestamo_eventos where tipo <> 'edicion';
   else
@@ -411,13 +391,13 @@ CREATE OR REPLACE FUNCTION public.cnt_admin()
  RETURNS boolean
  LANGUAGE sql
  STABLE SECURITY DEFINER
- SET search_path TO 'public'
+ SET search_path TO 'public', 'pg_temp'
 AS $function$ select exists(select 1 from perfiles where id=auth.uid() and rol='admin') $function$;
 CREATE OR REPLACE FUNCTION public.cnt_anular(p_id bigint, p_motivo text)
  RETURNS jsonb
  LANGUAGE plpgsql
  SECURITY DEFINER
- SET search_path TO 'public'
+ SET search_path TO 'public', 'pg_temp'
 AS $function$
 declare v_f date; v_num text; r record; st numeric; q numeric; rev jsonb := '[]';
 begin
@@ -443,7 +423,7 @@ CREATE OR REPLACE FUNCTION public.cnt_conciliar(p_extracto bigint, p_linea bigin
  RETURNS void
  LANGUAGE plpgsql
  SECURITY DEFINER
- SET search_path TO 'public'
+ SET search_path TO 'public', 'pg_temp'
 AS $function$
 declare v numeric;
 begin
@@ -459,7 +439,7 @@ CREATE OR REPLACE FUNCTION public.cnt_conciliar_nuevo(p_extracto bigint, p_contr
  RETURNS text
  LANGUAGE plpgsql
  SECURITY DEFINER
- SET search_path TO 'public'
+ SET search_path TO 'public', 'pg_temp'
 AS $function$
 declare e cnt_extractos; v numeric; v_tipo text; v_num text; v_id bigint; v_lb bigint; v_ap text;
 begin
@@ -487,7 +467,7 @@ CREATE OR REPLACE FUNCTION public.cnt_costo_alimentos(p_periodo text, p_final nu
  RETURNS jsonb
  LANGUAGE plpgsql
  SECURITY DEFINER
- SET search_path TO 'public'
+ SET search_path TO 'public', 'pg_temp'
 AS $function$
 declare v_fin date; v_libros numeric; v_costo numeric; v_num text; v_lin jsonb;
 begin
@@ -514,7 +494,7 @@ CREATE OR REPLACE FUNCTION public.cnt_crear_asiento(p_cab jsonb, p_lineas jsonb)
  RETURNS text
  LANGUAGE plpgsql
  SECURITY DEFINER
- SET search_path TO 'public'
+ SET search_path TO 'public', 'pg_temp'
 AS $function$
 declare
   v_f date := (p_cab->>'fecha')::date; v_tipo text := p_cab->>'tipo';
@@ -544,11 +524,11 @@ CREATE OR REPLACE FUNCTION public.cnt_crear_asiento_precios(p_cab jsonb, p_linea
  RETURNS text
  LANGUAGE plpgsql
  SECURITY DEFINER
- SET search_path TO 'public'
+ SET search_path TO 'public', 'pg_temp'
 AS $function$
 declare v_num text; v_id bigint;
 begin
-  v_num := cnt_crear_asiento(p_cab, p_lineas);   -- valida admin, período cerrado y que cuadre
+  v_num := cnt_crear_asiento(p_cab, p_lineas);
   select id into v_id from cnt_asientos where numero = v_num and tipo = (p_cab->>'tipo') order by id desc limit 1;
   insert into cnt_precios(fecha, sku, nombre, unidad, cantidad, valor, asiento_id, tercero_id)
   select (p_cab->>'fecha')::date, nullif(x->>'sku',''), left(x->>'nombre',80), nullif(x->>'unidad',''),
@@ -560,7 +540,7 @@ CREATE OR REPLACE FUNCTION public.cnt_eliminar_asientos(p_ids bigint[])
  RETURNS jsonb
  LANGUAGE plpgsql
  SECURITY DEFINER
- SET search_path TO 'public'
+ SET search_path TO 'public', 'pg_temp'
 AS $function$
 declare a record; r record; st numeric; q numeric; n int := 0; rev jsonb := '[]';
 begin
@@ -570,7 +550,7 @@ begin
   for a in select id, numero, fecha from cnt_asientos where id = any(p_ids) order by id for update loop
     if exists(select 1 from cnt_cierres where periodo = to_char(a.fecha,'YYYY-MM')) then
       raise exception 'El período % está cerrado: ábrelo para eliminar %', to_char(a.fecha,'YYYY-MM'), a.numero; end if;
-    -- Si la compra entró al inventario y no se había devuelto (anulación), se descuenta ahora.
+
     for r in select id, sku, nombre, inv_cant from cnt_precios
              where asiento_id = a.id and inv_cant > 0 and not inv_rev order by id loop
       select stock into st from alimentos where sku = r.sku for update;
@@ -595,7 +575,7 @@ CREATE OR REPLACE FUNCTION public.cnt_eliminar_tercero(p_id bigint)
  RETURNS void
  LANGUAGE plpgsql
  SECURITY DEFINER
- SET search_path TO 'public'
+ SET search_path TO 'public', 'pg_temp'
 AS $function$
 declare t record;
 begin
@@ -622,7 +602,7 @@ CREATE OR REPLACE FUNCTION public.cnt_ext_libre(p_id bigint)
  RETURNS boolean
  LANGUAGE sql
  STABLE SECURITY DEFINER
- SET search_path TO 'public'
+ SET search_path TO 'public', 'pg_temp'
 AS $function$
   select exists(select 1 from cnt_extractos e where e.id=p_id and (e.linea_id is null or exists(
     select 1 from cnt_lineas l join cnt_asientos a on a.id=l.asiento_id
@@ -631,7 +611,7 @@ CREATE OR REPLACE FUNCTION public.cnt_inventario_control()
  RETURNS jsonb
  LANGUAGE plpgsql
  STABLE SECURITY DEFINER
- SET search_path TO 'public'
+ SET search_path TO 'public', 'pg_temp'
 AS $function$
 declare v_l numeric; v_s numeric;
 begin
@@ -649,11 +629,11 @@ CREATE OR REPLACE FUNCTION public.cnt_registrar_compra(p_cab jsonb, p_lineas jso
  RETURNS jsonb
  LANGUAGE plpgsql
  SECURITY DEFINER
- SET search_path TO 'public'
+ SET search_path TO 'public', 'pg_temp'
 AS $function$
 declare v_num text; v_id bigint; r record; a alimentos; ent jsonb := '[]'; omi jsonb := '[]';
 begin
-  v_num := cnt_crear_asiento_precios(p_cab, p_lineas, p_precios);  -- valida admin, período cerrado y cuadre
+  v_num := cnt_crear_asiento_precios(p_cab, p_lineas, p_precios);
   select id into v_id from cnt_asientos where numero=v_num order by id desc limit 1;
   for r in select id, sku, nombre, unidad, cantidad from cnt_precios
            where asiento_id=v_id and sku is not null and cantidad>0 order by id loop
@@ -672,7 +652,7 @@ CREATE OR REPLACE FUNCTION public.cnt_siguiente_numero(p_tipo text, p_fecha date
  RETURNS text
  LANGUAGE plpgsql
  SECURITY DEFINER
- SET search_path TO 'public'
+ SET search_path TO 'public', 'pg_temp'
 AS $function$
 declare v_pre text; v_n int;
 begin
@@ -686,7 +666,7 @@ CREATE OR REPLACE FUNCTION public.cnt_soporte_generado(p_ids bigint[], p_num tex
  RETURNS void
  LANGUAGE plpgsql
  SECURITY DEFINER
- SET search_path TO 'public'
+ SET search_path TO 'public', 'pg_temp'
 AS $function$
 begin
   if not cnt_admin() then raise exception 'Solo un admin puede marcar documentos soporte'; end if;
@@ -698,7 +678,7 @@ CREATE OR REPLACE FUNCTION public.cnt_tercero_no_obligado(p_id bigint)
  RETURNS void
  LANGUAGE plpgsql
  SECURITY DEFINER
- SET search_path TO 'public'
+ SET search_path TO 'public', 'pg_temp'
 AS $function$
 begin
   if not cnt_admin() then raise exception 'Solo un admin puede editar terceros'; end if;
@@ -708,7 +688,7 @@ CREATE OR REPLACE FUNCTION public.correo_de_usuario(p_apodo text)
  RETURNS text
  LANGUAGE sql
  STABLE SECURITY DEFINER
- SET search_path TO 'public', 'auth'
+ SET search_path TO 'public', 'auth', 'pg_temp'
 AS $function$
   select coalesce(
     (select u.email::text from auth.users u join perfiles p on p.id = u.id
@@ -719,7 +699,7 @@ CREATE OR REPLACE FUNCTION public.crear_prestamo(p_nombre text, p_documento text
  RETURNS prestamos
  LANGUAGE plpgsql
  SECURITY DEFINER
- SET search_path TO 'public'
+ SET search_path TO 'public', 'pg_temp'
 AS $function$
 declare ap text; pr prestamos; im implementos; n int := 0;
 begin
@@ -745,7 +725,7 @@ CREATE OR REPLACE FUNCTION public.crear_usuario(p_apodo text, p_clave text, p_no
  RETURNS void
  LANGUAGE plpgsql
  SECURITY DEFINER
- SET search_path TO 'public', 'auth', 'extensions'
+ SET search_path TO 'public', 'auth', 'extensions', 'pg_temp'
 AS $function$
 declare uid uuid := gen_random_uuid(); cod text; em text;
 begin
@@ -772,7 +752,7 @@ CREATE OR REPLACE FUNCTION public.eliminar_estado_implemento(p_clave text, p_des
  RETURNS void
  LANGUAGE plpgsql
  SECURITY DEFINER
- SET search_path TO 'public'
+ SET search_path TO 'public', 'pg_temp'
 AS $function$
 begin
   if not es_admin() then raise exception 'Solo administradores'; end if;
@@ -784,7 +764,7 @@ CREATE OR REPLACE FUNCTION public.eliminar_tipo_implemento(p_nombre text, p_dest
  RETURNS void
  LANGUAGE plpgsql
  SECURITY DEFINER
- SET search_path TO 'public'
+ SET search_path TO 'public', 'pg_temp'
 AS $function$
 begin
   if not es_admin() then raise exception 'Solo administradores'; end if;
@@ -796,7 +776,7 @@ CREATE OR REPLACE FUNCTION public.eliminar_usuario(p_id uuid)
  RETURNS void
  LANGUAGE plpgsql
  SECURITY DEFINER
- SET search_path TO 'public', 'auth'
+ SET search_path TO 'public', 'auth', 'pg_temp'
 AS $function$
 begin
   if auth.uid() is null then raise exception 'Sin sesión'; end if;
@@ -809,13 +789,13 @@ CREATE OR REPLACE FUNCTION public.es_admin()
  RETURNS boolean
  LANGUAGE sql
  STABLE SECURITY DEFINER
- SET search_path TO 'public'
+ SET search_path TO 'public', 'pg_temp'
 AS $function$ select exists(select 1 from perfiles where id=auth.uid() and rol='admin') $function$;
 CREATE OR REPLACE FUNCTION public.es_super()
  RETURNS boolean
  LANGUAGE sql
  STABLE SECURITY DEFINER
- SET search_path TO 'public'
+ SET search_path TO 'public', 'pg_temp'
 AS $function$
   select exists(select 1 from perfiles
                  where id = auth.uid() and rol = 'admin' and lower(apodo) in ('kokoa','joa'))
@@ -824,7 +804,7 @@ CREATE OR REPLACE FUNCTION public.inv_mover(p_sku text, p_delta numeric, p_motiv
  RETURNS void
  LANGUAGE plpgsql
  SECURITY DEFINER
- SET search_path TO 'public'
+ SET search_path TO 'public', 'pg_temp'
 AS $function$
 declare a alimentos; resto numeric; l jsonb; nl jsonb := '[]'; q numeric; t numeric; ap text;
 begin
@@ -849,15 +829,14 @@ CREATE OR REPLACE FUNCTION public.limpiar_historial_anual()
  RETURNS void
  LANGUAGE plpgsql
  SECURITY DEFINER
- SET search_path TO 'public'
+ SET search_path TO 'public', 'pg_temp'
 AS $function$
 begin
-  -- Alimentos (solo historial)
+
   delete from movimientos where true;
   delete from comidas     where true;
   delete from bitacora    where true;
 
-  -- Préstamos (solo historial)
   delete from prestamo_eventos where true;
   delete from prestamo_items
    where prestamo_id in (
@@ -871,7 +850,7 @@ CREATE OR REPLACE FUNCTION public.marcar_limpio(p_id bigint)
  RETURNS void
  LANGUAGE plpgsql
  SECURITY DEFINER
- SET search_path TO 'public'
+ SET search_path TO 'public', 'pg_temp'
 AS $function$
 begin
   if auth.uid() is null then raise exception 'Sin sesión'; end if;
@@ -881,7 +860,7 @@ CREATE OR REPLACE FUNCTION public.nuevo_usuario()
  RETURNS trigger
  LANGUAGE plpgsql
  SECURITY DEFINER
- SET search_path TO 'public'
+ SET search_path TO 'public', 'pg_temp'
 AS $function$
 begin
   insert into perfiles(id,apodo,nombre,apellido,telefono,correo,animal) values(
@@ -918,7 +897,7 @@ CREATE OR REPLACE FUNCTION public.proteger_rol()
  SET search_path TO 'public', 'pg_temp'
 AS $function$
 begin
-  if auth.uid() is null then return new; end if;            -- editor SQL / mantenimiento
+  if auth.uid() is null then return new; end if;
   if new.rol is distinct from old.rol then
     if not es_admin() then raise exception 'Solo un admin puede cambiar roles'; end if;
     if lower(old.apodo) in ('kokoa','joa') then raise exception 'El rol de Kokoa y Joa no se puede cambiar'; end if;
@@ -934,7 +913,7 @@ CREATE OR REPLACE FUNCTION public.registrar_comida(p_tipo text, p_nombre text, p
  RETURNS void
  LANGUAGE plpgsql
  SECURITY DEFINER
- SET search_path TO 'public'
+ SET search_path TO 'public', 'pg_temp'
 AS $function$
 declare x jsonb; ap text;
 begin
@@ -949,7 +928,7 @@ CREATE OR REPLACE FUNCTION public.registrar_devolucion(p_item bigint, p_condicio
  RETURNS void
  LANGUAGE plpgsql
  SECURITY DEFINER
- SET search_path TO 'public'
+ SET search_path TO 'public', 'pg_temp'
 AS $function$
 declare it prestamo_items; ap text; pr prestamos;
 begin
@@ -972,7 +951,7 @@ CREATE OR REPLACE FUNCTION public.registrar_edicion_prestamos(p_detalle text)
  RETURNS void
  LANGUAGE plpgsql
  SECURITY DEFINER
- SET search_path TO 'public'
+ SET search_path TO 'public', 'pg_temp'
 AS $function$
 begin
   if not es_admin() then raise exception 'Solo administradores'; end if;
@@ -983,7 +962,7 @@ CREATE OR REPLACE FUNCTION public.registrar_movimiento(p_sku text, p_delta numer
  RETURNS alimentos
  LANGUAGE plpgsql
  SECURITY DEFINER
- SET search_path TO 'public'
+ SET search_path TO 'public', 'pg_temp'
 AS $function$
 declare a alimentos; ap text; resto numeric; l jsonb; nl jsonb := '[]'; q numeric; t numeric;
 begin
@@ -1039,7 +1018,7 @@ CREATE OR REPLACE FUNCTION public.validar_codigo()
  RETURNS trigger
  LANGUAGE plpgsql
  SECURITY DEFINER
- SET search_path TO 'public'
+ SET search_path TO 'public', 'pg_temp'
 AS $function$
 begin
   if coalesce(new.raw_user_meta_data->>'codigo','') <> coalesce((select valor from config where clave='codigo_registro'),'#') then
@@ -1048,7 +1027,6 @@ begin
   return new;
 end $function$;
 
--- permisos de ejecución (por defecto Postgres da EXECUTE a PUBLIC; aquí se cierra)
 revoke all on function public.borrar_historial(text,bigint) from public, anon, authenticated, service_role;
 grant execute on function public.borrar_historial(text,bigint) to authenticated;
 revoke all on function public.borrar_historial_prestamos(bigint,text) from public, anon, authenticated, service_role;
@@ -1118,7 +1096,6 @@ grant execute on function public.registrar_movimiento(text,numeric,text,date) to
 revoke all on function public.rls_auto_enable() from public, anon, authenticated, service_role;
 revoke all on function public.validar_codigo() from public, anon, authenticated, service_role;
 
--- ---------- TRIGGERS ----------
 CREATE TRIGGER al_crear_usuario AFTER INSERT ON auth.users FOR EACH ROW EXECUTE FUNCTION nuevo_usuario();
 CREATE TRIGGER validar_codigo BEFORE INSERT ON auth.users FOR EACH ROW EXECUTE FUNCTION validar_codigo();
 CREATE TRIGGER proteger_joa BEFORE UPDATE ON public.perfiles FOR EACH ROW EXECUTE FUNCTION proteger_joa();
@@ -1126,7 +1103,6 @@ CREATE TRIGGER proteger_rol BEFORE UPDATE ON public.perfiles FOR EACH ROW EXECUT
 create event trigger rls_auto_enable on ddl_command_end
   when tag in ('CREATE TABLE','CREATE TABLE AS','SELECT INTO') execute function public.rls_auto_enable();
 
--- ---------- POLÍTICAS RLS ----------
 create policy ver_ali on public.alimentos for SELECT to authenticated
   using (true);
 create policy crear_ali on public.alimentos for INSERT to authenticated
@@ -1238,7 +1214,6 @@ create policy adm_zonas_u on public.zonas for UPDATE to authenticated
 create policy adm_zonas_i on public.zonas for INSERT to authenticated
   with check (( SELECT es_admin() AS es_admin));
 
--- ---------- PERMISOS DE TABLA ----------
 grant DELETE, INSERT, SELECT on public.alimentos to authenticated;
 grant INSERT, SELECT on public.bitacora to authenticated;
 grant SELECT on public.cnt_asientos to authenticated;
@@ -1264,12 +1239,9 @@ grant DELETE, INSERT, SELECT, UPDATE on public.tipos to authenticated;
 grant DELETE, INSERT, SELECT, UPDATE on public.tipos_implemento to authenticated;
 grant DELETE, INSERT, SELECT, UPDATE on public.zonas to authenticated;
 
--- Permisos por columna (INFERIDOS del uso en la app; verifícalos con la consulta
--- de docs/DECISIONES.md antes de confiar en ellos):
 grant update(nombre,tipo,unidad,zona,vence,minimo,conteo) on public.alimentos to authenticated;
 grant update(apodo,nombre,apellido,telefono,correo,animal,oculto,rol) on public.perfiles to authenticated;
 
--- ---------- REALTIME ----------
 alter publication supabase_realtime add table public.alimentos;
 alter publication supabase_realtime add table public.bitacora;
 alter publication supabase_realtime add table public.comidas;

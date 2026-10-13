@@ -28,13 +28,13 @@ revoke all on implementos, prestamos, prestamo_items, prestamo_eventos from anon
 grant select on prestamos, prestamo_items, prestamo_eventos, implementos to authenticated;
 grant insert, update, delete on implementos to authenticated;
 create policy ver_impl on implementos for select to authenticated using (true);
-create policy adm_impl on implementos for all to authenticated using (es_admin()) with check (es_admin());
+create policy adm_impl on implementos for all to authenticated using ((select es_admin())) with check ((select es_admin()));
 create policy ver_prest on prestamos for select to authenticated using (true);
 create policy ver_pitem on prestamo_items for select to authenticated using (true);
 create policy ver_pev on prestamo_eventos for select to authenticated using (true);
 
 create function crear_prestamo(p_nombre text, p_documento text, p_telefono text, p_ids bigint[], p_notas text default '')
-returns prestamos language plpgsql security definer set search_path=public as $$
+returns prestamos language plpgsql security definer set search_path=public,pg_temp as $$
 declare ap text; pr prestamos; im implementos; n int := 0;
 begin
   if auth.uid() is null then raise exception 'Sin sesión'; end if;
@@ -57,7 +57,7 @@ begin
 end $$;
 
 create function registrar_devolucion(p_item bigint, p_condicion text, p_limpio boolean, p_novedad text default '')
-returns void language plpgsql security definer set search_path=public as $$
+returns void language plpgsql security definer set search_path=public,pg_temp as $$
 declare it prestamo_items; ap text; pr prestamos;
 begin
   if auth.uid() is null then raise exception 'Sin sesión'; end if;
@@ -76,7 +76,7 @@ begin
     values(pr.id,pr.numero,'devolucion',it.nombre||' · '||p_condicion||case when p_limpio then '' else ' · sin limpiar' end,ap);
 end $$;
 
-create function marcar_limpio(p_id bigint) returns void language plpgsql security definer set search_path=public as $$
+create function marcar_limpio(p_id bigint) returns void language plpgsql security definer set search_path=public,pg_temp as $$
 begin
   if auth.uid() is null then raise exception 'Sin sesión'; end if;
   update implementos set estado='disponible' where id=p_id and estado='por_limpiar';

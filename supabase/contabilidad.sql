@@ -1,5 +1,5 @@
 create or replace function cnt_admin() returns boolean
-language sql stable security definer set search_path=public as
+language sql stable security definer set search_path=public,pg_temp as
 $$ select exists(select 1 from perfiles where id=auth.uid() and rol='admin') $$;
 
 create table if not exists cnt_cuentas(
@@ -41,18 +41,18 @@ alter table cnt_lineas enable row level security;
 alter table cnt_cierres enable row level security;
 
 drop policy if exists cnt_cuentas_all on cnt_cuentas;
-create policy cnt_cuentas_all on cnt_cuentas for all using(cnt_admin()) with check(cnt_admin());
+create policy cnt_cuentas_all on cnt_cuentas for all using((select cnt_admin())) with check((select cnt_admin()));
 drop policy if exists cnt_terceros_all on cnt_terceros;
-create policy cnt_terceros_all on cnt_terceros for all using(cnt_admin()) with check(cnt_admin());
+create policy cnt_terceros_all on cnt_terceros for all using((select cnt_admin())) with check((select cnt_admin()));
 drop policy if exists cnt_cierres_all on cnt_cierres;
-create policy cnt_cierres_all on cnt_cierres for all using(cnt_admin()) with check(cnt_admin());
+create policy cnt_cierres_all on cnt_cierres for all using((select cnt_admin())) with check((select cnt_admin()));
 drop policy if exists cnt_asientos_sel on cnt_asientos;
-create policy cnt_asientos_sel on cnt_asientos for select using(cnt_admin());
+create policy cnt_asientos_sel on cnt_asientos for select using((select cnt_admin()));
 drop policy if exists cnt_lineas_sel on cnt_lineas;
-create policy cnt_lineas_sel on cnt_lineas for select using(cnt_admin());
+create policy cnt_lineas_sel on cnt_lineas for select using((select cnt_admin()));
 
 create or replace function cnt_crear_asiento(p_cab jsonb, p_lineas jsonb) returns text
-language plpgsql security definer set search_path=public as $$
+language plpgsql security definer set search_path=public,pg_temp as $$
 declare
   v_f date := (p_cab->>'fecha')::date; v_tipo text := p_cab->>'tipo';
   v_d numeric; v_c numeric; v_id bigint; v_num text; v_ap text;
@@ -80,7 +80,7 @@ begin
 end $$;
 
 create or replace function cnt_anular(p_id bigint, p_motivo text) returns void
-language plpgsql security definer set search_path=public as $$
+language plpgsql security definer set search_path=public,pg_temp as $$
 declare v_f date;
 begin
   if not cnt_admin() then raise exception 'Solo un admin puede anular asientos'; end if;
