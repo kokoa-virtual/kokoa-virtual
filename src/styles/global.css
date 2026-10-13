@@ -1,22 +1,23 @@
 :root{
-  --ground:#F3F5F0;--sheet:#fff;--ink:#1D2A22;--soft:#55655A;--rule:#DCE3DC;
-  --btn:#1B6542;--on-btn:#fff;--gold:#d5a84a;--on-gold:#1D2A22;--mint:#D9EADF;--earth:#f5f1e8;
-  --hd1:#214d2c;--hd2:#397247;--on-hd:#fff;--ok:#4ade80;--bad:#f2a9a1;
+  --ground:#F3F4F0;--sheet:#fff;--ink:#17221C;--soft:#4F5C54;--rule:#DAE0DA;
+  --btn:#1C5E3D;--on-btn:#fff;--gold:#D9B35F;--on-gold:#17221C;--mint:#E0EEE4;--earth:#f3efe6;
+  --hd1:#1C5038;--hd2:#2D684A;--on-hd:#fff;--ok:#5FAE80;--bad:#F0A39B;
   --sh-1:0 1px 2px rgba(22,44,30,.06),0 10px 22px -16px rgba(22,44,30,.28);
   --sh-2:0 18px 40px -18px rgba(22,44,30,.40);
-  --r-sm:10px;--r-in:12px;--r-lg:20px;--hd:#1E5B3E;--ease:cubic-bezier(.2,.8,.2,1);
+  --r-sm:10px;--r-in:12px;--r-lg:20px;--hd:#1C5038;--ease:cubic-bezier(.2,.8,.2,1);
   --serif:"Figtree","Noto Emoji",system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
   --font:"Figtree","Noto Emoji",system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
   --gut:max(1rem,env(safe-area-inset-left),env(safe-area-inset-right));
   color-scheme:light dark;
 }
+/* Modo oscuro: negro neutro con verde solo en acentos (hue ~160). Elevacion = superficies mas claras, sin sombras de color. */
 @media(prefers-color-scheme:dark){:root:not([data-theme=light]){
-  --ground:#0E1411;--sheet:#151D18;--ink:#E4ECE6;--soft:#A3B7AA;--rule:#2B3A31;
-  --btn:#7CC79A;--on-btn:#0E1411;--mint:#24402F;--earth:#1a211c;--hd1:#0B1410;--hd2:#1B3326;
+  --ground:#0F1110;--sheet:#171A18;--ink:#E5E9E6;--soft:#A5ADA7;--rule:#2C322F;
+  --btn:#70B78D;--on-btn:#0F1110;--mint:#1E2B24;--earth:#1B1F1C;--hd:#152C21;--hd1:#152C21;--hd2:#193829;
   --sh-1:inset 0 1px 0 rgba(255,255,255,.05);--sh-2:0 18px 40px -14px rgba(0,0,0,.6)}}
 :root[data-theme=dark]{
-  --ground:#0E1411;--sheet:#151D18;--ink:#E4ECE6;--soft:#A3B7AA;--rule:#2B3A31;
-  --btn:#7CC79A;--on-btn:#0E1411;--mint:#24402F;--earth:#1a211c;--hd1:#0B1410;--hd2:#1B3326;
+  --ground:#0F1110;--sheet:#171A18;--ink:#E5E9E6;--soft:#A5ADA7;--rule:#2C322F;
+  --btn:#70B78D;--on-btn:#0F1110;--mint:#1E2B24;--earth:#1B1F1C;--hd:#152C21;--hd1:#152C21;--hd2:#193829;
   --sh-1:inset 0 1px 0 rgba(255,255,255,.05);--sh-2:0 18px 40px -14px rgba(0,0,0,.6);color-scheme:dark}
 :root[data-theme=light]{color-scheme:light}
 
