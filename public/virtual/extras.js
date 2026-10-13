@@ -1,16 +1,7 @@
-/* extras.js — Kokoa Virtual
-   · Tarjeta en el panel "Editar": Comidas semanales
-     (desayuno, almuerzo y cena de lunes a sábado, tabla menu_semanal). Editar: admins.
-     Historial de semanas: lo ve y lo puede borrar cualquier usuario.
-   · Tarjeta "Auditoría contable" en "Editar": lista la tabla cnt_auditoria (solo lectura).
-   Ambas tarjetas salen en el "Editar" de Alimentos, Préstamos y Contabilidad.
-   Se carga después de movil.js. Para deshacer: quitar el <script> en index.html.
-   Usa SB, esc, $ y currentUser, definidos por app.js. */
 (() => {
   const DIAS = ["", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"];
   const admin = () => typeof esAdmin === "function" && esAdmin();
 
-  // ---------- tarjetas dentro del panel "Editar" ----------
   const CARDS =
     '<div class="editor-card" data-extras="1"><h3>Comidas semanales</h3>' +
     '<p class="small-note" style="margin:0">Desayuno, almuerzo y cena de lunes a sábado. Es el menú que ve el público; cada semana queda en un historial.</p>' +
@@ -19,7 +10,6 @@
     '<p class="small-note" style="margin:0">Quién cambió qué y cuándo en la contabilidad.</p>' +
     '<div class="pick"><button type="button" class="ghost" data-ex="aud">Ver</button></div></div>';
 
-  // Editar en Alimentos y Contabilidad usa #adminBody; en Préstamos usa #tpBody (se crea al primer clic).
   function inyectar(id) {
     const cuerpo = document.getElementById(id);
     if (!cuerpo || !admin()) return;
@@ -43,33 +33,40 @@
     espera.observe(document.body, { childList: true });
   }
 
-  // ---------- ventana propia ----------
   let fondo = null;
+  let previo = null;
+  function cerrarVentana() {
+    if (!fondo || fondo.hidden) return;
+    fondo.hidden = true;
+    if (previo && previo.isConnected) previo.focus();
+    previo = null;
+  }
   function ventana(titulo) {
     if (!fondo) {
       fondo = document.createElement("div");
       fondo.className = "modal-backdrop";
       fondo.hidden = true;
       fondo.innerHTML =
-        '<section class="modal mwin" role="dialog" aria-modal="true" aria-labelledby="exTit" style="max-width:760px">' +
+        '<section class="modal mwin" role="dialog" aria-modal="true" aria-labelledby="exTit" tabindex="-1" style="max-width:760px">' +
         '<div class="modal-head"><h2 id="exTit"></h2><button type="button" class="ghost" data-ex-x="1">Cerrar</button></div>' +
         '<div class="mwb" id="exBody"></div></section>';
       document.body.appendChild(fondo);
       fondo.addEventListener("click", (e) => {
-        if (e.target === fondo || e.target.closest("[data-ex-x]")) fondo.hidden = true;
+        if (e.target === fondo || e.target.closest("[data-ex-x]")) cerrarVentana();
       });
       addEventListener("keydown", (e) => {
-        if (e.key === "Escape" && !fondo.hidden) fondo.hidden = true;
+        if (e.key === "Escape" && !fondo.hidden) cerrarVentana();
       });
     }
-    document.body.appendChild(fondo); // al final del body: queda por encima del modal Editar de cada modo
+    document.body.appendChild(fondo);
     fondo.querySelector("#exTit").textContent = titulo;
+    if (fondo.hidden) previo = document.activeElement;
     fondo.hidden = false;
+    fondo.querySelector(".modal").focus();
     return fondo.querySelector("#exBody");
   }
   const E = (s) => (typeof esc === "function" ? esc(s) : String(s ?? "").replace(/[&<>"']/g, (c) => "&#" + c.charCodeAt(0) + ";"));
 
-  // ---------- comidas semanales (menú del sitio público + historial) ----------
   const COMIDAS = [["desayuno", "Desayuno"], ["almuerzo", "Almuerzo"], ["cena", "Cena"]];
   const MESES = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"];
   const iso = (d) => d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
@@ -86,28 +83,35 @@
     const m = a.getMonth() === b.getMonth() ? "" : " de " + MESES[a.getMonth()];
     return "Semana del " + a.getDate() + m + " al " + b.getDate() + " de " + MESES[b.getMonth()] + " de " + b.getFullYear();
   }
+  const nota = (cuerpo, texto) => { cuerpo.innerHTML = '<p class="small-note">' + E(texto) + "</p>"; };
   const logueado = () => typeof currentUser !== "undefined" && !!currentUser;
 
   async function semanas(semSel) {
     const cuerpo = ventana("Comidas semanales");
-    cuerpo.innerHTML = '<p class="small-note">Cargando…</p>';
+    nota(cuerpo, "Cargando…");
     const sem = semSel || lunesDe();
-    const [h, a] = await Promise.all([
-      SB.from("menu_semanal").select("semana,dia,comida,plato").neq("plato", "").order("semana", { ascending: false }).limit(1000),
-      admin() ? SB.from("menu_semanal").select("dia,comida,plato").eq("semana", sem) : Promise.resolve({ data: [] }),
-    ]);
-    if (h.error || a.error) {
-      cuerpo.innerHTML = '<p class="small-note">' + E((h.error || a.error).message) + "</p>";
+    let h, a;
+    try {
+      [h, a] = await Promise.all([
+        SB.from("menu_semanal").select("semana,dia,comida,plato").neq("plato", "").order("semana", { ascending: false }).limit(1000),
+        admin() ? SB.from("menu_semanal").select("dia,comida,plato").eq("semana", sem) : Promise.resolve({ data: [] }),
+      ]);
+    } catch {
+      nota(cuerpo, "No se pudo cargar el menú. Revisa tu conexión e inténtalo de nuevo.");
       return;
     }
-    // --- editor (solo admins) ---
+    if (h.error || a.error) {
+      nota(cuerpo, (h.error || a.error).message);
+      return;
+    }
+
     let editor = "";
     if (admin()) {
       const por = {};
       a.data.forEach((f) => (por[f.dia + "|" + f.comida] = f.plato));
       editor =
         '<h3 style="margin:0 0 6px">Editar semana</h3>' +
-        '<label>Elige cualquier día de la semana<input type="date" id="exSemFecha" value="' + sem + '"></label>' +
+        '<label>Elige cualquier día de la semana<input type="date" id="exSemFecha" value="' + E(sem) + '"></label>' +
         '<p class="small-note" style="margin:6px 0">' + E(rotulo(sem)) + ". Lo que escribas aquí es lo que ve el público.</p>" +
         '<form class="aform" id="exSemForm" autocomplete="off"><div class="tbl"><table style="min-width:520px"><thead><tr><th>Día</th>' +
         COMIDAS.map(([, l]) => "<th>" + l + "</th>").join("") + "</tr></thead><tbody>" +
@@ -117,7 +121,7 @@
         ).join("") +
         '</tbody></table></div><p class="small-note" id="exSemMsg" role="status"></p><div><button type="submit">Guardar semana</button></div></form>';
     }
-    // --- historial (todos) ---
+
     const grupos = new Map();
     h.data.forEach((f) => { if (!grupos.has(f.semana)) grupos.set(f.semana, []); grupos.get(f.semana).push(f); });
     const hist = [...grupos.entries()].map(([s, fs]) => {
@@ -126,7 +130,7 @@
         "<tr><th>" + DIAS[d] + "</th>" + COMIDAS.map(([k]) => "<td>" + E(por[d + "|" + k] || "—") + "</td>").join("") + "</tr>").join("");
       return '<details class="cn-det" style="margin:6px 0"><summary>' + E(rotulo(s)) + (s === lunesDe() ? " · esta semana" : "") + "</summary>" +
         '<div class="tbl"><table style="min-width:520px"><thead><tr><th>Día</th>' + COMIDAS.map(([, l]) => "<th>" + l + "</th>").join("") + "</tr></thead><tbody>" + filas + "</tbody></table></div>" +
-        '<button type="button" class="ghost danger" data-ex-del="' + s + '">Eliminar esta semana</button></details>';
+        '<button type="button" class="ghost danger" data-ex-del="' + E(s) + '">Eliminar esta semana</button></details>';
     }).join("");
     cuerpo.innerHTML = editor + '<h3 style="margin:18px 0 6px">Historial de comidas semanales</h3>' +
       (hist || '<p class="small-note">Aún no hay semanas guardadas.</p>') +
@@ -146,20 +150,30 @@
           filas.push({ semana: sem, dia: d, comida: k, plato, actualizado: new Date().toISOString(), apodo: quien });
         }
         m.textContent = "Guardando…";
-        const x = await SB.from("menu_semanal").upsert(filas, { onConflict: "semana,dia,comida" });
-        if (x.error) { m.textContent = x.error.message; return; }
+        try {
+          const x = await SB.from("menu_semanal").upsert(filas, { onConflict: "semana,dia,comida" });
+          if (x.error) { m.textContent = x.error.message; return; }
+        } catch {
+          m.textContent = "No se pudo guardar. Revisa tu conexión e inténtalo de nuevo.";
+          return;
+        }
         semanas(sem);
       });
     }
   }
   async function borrarSemana(sem) {
     if (!confirm("¿Eliminar del historial la " + rotulo(sem).toLowerCase() + "? No se puede deshacer.")) return;
-    const r = await SB.from("menu_semanal").delete().eq("semana", sem);
+    let r;
+    try {
+      r = await SB.from("menu_semanal").delete().eq("semana", sem);
+    } catch {
+      alert("No se pudo eliminar. Revisa tu conexión e inténtalo de nuevo.");
+      return;
+    }
     if (r.error) { alert(r.error.message); return; }
-    semanas(admin() ? undefined : undefined);
+    semanas();
   }
 
-  // ---------- auditoría contable ----------
   const NOMBRES = {
     cnt_asientos: "Asientos", cnt_lineas: "Líneas", cnt_terceros: "Terceros", cnt_cuentas: "Cuentas",
     cnt_presupuesto: "Presupuesto", cnt_cierres: "Cierres", cnt_extractos: "Extractos",
@@ -179,12 +193,18 @@
   }
   async function auditoria(tabla) {
     const cuerpo = ventana("Auditoría contable");
-    cuerpo.innerHTML = '<p class="small-note">Cargando…</p>';
+    nota(cuerpo, "Cargando…");
     let q = SB.from("cnt_auditoria").select("*").order("t", { ascending: false }).limit(200);
     if (tabla) q = q.eq("tabla", tabla);
-    const r = await q;
+    let r;
+    try {
+      r = await q;
+    } catch {
+      nota(cuerpo, "No se pudo cargar la auditoría. Revisa tu conexión e inténtalo de nuevo.");
+      return;
+    }
     if (r.error) {
-      cuerpo.innerHTML = '<p class="small-note">' + E(r.error.message) + "</p>";
+      nota(cuerpo, r.error.message);
       return;
     }
     const opts =

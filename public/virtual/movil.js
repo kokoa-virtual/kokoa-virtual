@@ -86,10 +86,6 @@
     });
   }
 
-  // ---------- Préstamos › Devolver: Estado y Tipo en listas desplegables ----------
-  // Igual que Zona/Tipo en Alimentos: en móvil los botones de #pdf1/#pdf2 se
-  // reemplazan por dos listas. Cada lista "hace clic" en el botón original, así
-  // que el filtrado sigue siendo el de prestamos.js. Para deshacer: quitar este bloque.
   const esc = v => String(v == null ? "" : v).replace(/[&<>"']/g, c => "&#" + c.charCodeAt(0) + ";");
   function opciones(caja, attr, nombres) {
     const out = [];
@@ -116,7 +112,7 @@
       if (pnl.classList.contains("psel-on")) pnl.classList.remove("psel-on");
       return;
     }
-    if (document.querySelector(".pk-back")) return; // con la lista abierta no se toca
+    if (document.querySelector(".pk-back")) return;
     const o1 = opciones(f1, "data-pf", { todos: "Todos" });
     const o2 = opciones(f2, "data-pc");
     const firma = JSON.stringify([o1, o2]);
@@ -146,7 +142,6 @@
     setTimeout(pedir, 60);
   });
 
-  // Botón "Últimas devoluciones" (en móvil la lista del panel queda oculta): misma ventana que "Últimos movimientos" en Alimentos.
   function botonUltimasDev() {
     const lista = $("pdf3"), principal = document.querySelector("#pv1 .pr-main");
     if (!lista || !principal || $("pdOpen") || typeof mWin !== "function") return;

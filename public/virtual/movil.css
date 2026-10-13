@@ -1,15 +1,5 @@
-/* ==========================================================================
-   movil.css — ajustes móviles de Kokoa Virtual
-   Se carga DESPUÉS de estilos.css. Para deshacer todo: quitar el <link> en
-   index.html. Alto de toque único: --toque (44 px).
-   ========================================================================== */
-
 :root { --toque: 44px; }
 
-/* --------------------------------------------------------------------------
-   3. Alturas de casillas y botones: un solo alto (44 px) en móvil.
-   Solo se usa min-height (nunca height) para no romper filas flex/grid.
-   -------------------------------------------------------------------------- */
 @media (max-width: 760px) {
   html body :is(
     input:not([type=checkbox]):not([type=radio]):not([type=hidden]):not([type=range]),
@@ -38,14 +28,10 @@
   ) {
     min-height: var(--toque) !important;
   }
-  /* Excepción deliberada del diseño original: el selector del nombre en las tarjetas del inventario es compacto */
+
   html body #v1 table.inv td.nm .csel { min-height: 28px !important; }
 }
 
-/* --------------------------------------------------------------------------
-   4. Caneca de movimientos: el dibujo no cambia, pero el área que responde
-   al dedo pasa a 44 x 44 px (antes ~30 x 26) y da respuesta al tocar.
-   -------------------------------------------------------------------------- */
 .hdel { position: relative; touch-action: manipulation; }
 
 @media (max-width: 760px), (pointer: coarse) {
@@ -63,7 +49,6 @@
   }
 }
 
-/* Panel de alertas (campana) en móvil */
 @media (max-width: 760px) {
   #alertPanel {
     overscroll-behavior: contain;
@@ -72,7 +57,7 @@
     padding-right: max(12px, env(safe-area-inset-right, 0px));
     padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px));
   }
-  /* En columna, flex-basis:220px se vuelve ALTO: se anula */
+
   #alertPanel .alerts li > div { flex: 0 0 auto; width: 100%; }
   #alertPanel .alerts li .ab {
     display: flex;
@@ -86,10 +71,6 @@
   }
 }
 
-/* --------------------------------------------------------------------------
-   8. Letra de 16 px en campos de escritura (iPhone hace zoom si es menor).
-   Solo input/textarea/select: .csel y .dsel son botones y no provocan zoom.
-   -------------------------------------------------------------------------- */
 @media (max-width: 760px) {
   html body :is(
     input:not([type=checkbox]):not([type=radio]):not([type=hidden]):not([type=range]),
@@ -100,25 +81,11 @@
   }
 }
 
-/* --------------------------------------------------------------------------
-   6. Espacio bajo el contenido = alto real de la barra inferior (la mide
-   movil.js y lo guarda en --barra-h). Antes eran 62 px fijos y la barra mide
-   más con la barra de gestos del iPhone.
-   -------------------------------------------------------------------------- */
 @media (max-width: 760px) {
   html { scroll-padding-bottom: calc(var(--barra-h, 62px) + 12px); }
   html body { padding-bottom: calc(var(--barra-h, 62px) + 12px); }
 }
 
-/* --------------------------------------------------------------------------
-   9. Cinco niveles de pantalla. Ya no se añaden cortes sueltos: cada nivel
-   fija unas pocas medidas (variables) y las reglas las usan.
-     XS  hasta 359 px   (iPhone SE, Android pequeños)
-     S   360 a 389 px   (la mayoría de Android)
-     M   390 a 429 px   (iPhone 12 a 16)
-     L   430 a 760 px   (Pro Max, plegables, tablet vertical)
-     D   desde 761 px   (escritorio/tablet: sin cambios)
-   -------------------------------------------------------------------------- */
 :root { --px: 16px; --fs-h1: 22px; --fs-tab: 12px; --pad-btn: 10px; }
 @media (max-width: 359px) {
   :root { --px: 8px;  --fs-h1: 19px; --fs-tab: 10.5px; --pad-btn: 7px; }
@@ -142,10 +109,6 @@
   html body header #bell { padding-left: var(--pad-btn); padding-right: var(--pad-btn); }
 }
 
-/* --------------------------------------------------------------------------
-   7. Alturas con dvh (Safari/Chrome móvil no descuentan la barra del navegador
-   con vh). Bloque generado desde los vh de estilos.css, con la misma media query.
-   -------------------------------------------------------------------------- */
 @supports (height: 1dvh) {
   .slist { max-height: min(60dvh,380px); }
   .modal { max-height: min(88dvh,900px); }
@@ -157,10 +120,6 @@
   .mwb .mvl { max-height: 60dvh; }
 }
 
-/* ==========================================================================
-   10. Barra inferior única + cabecera compacta (solo móvil, body.kb).
-   body.kb lo pone movil.js. Sin ese script no se aplica nada de este bloque.
-   ========================================================================== */
 @media (max-width: 760px) {
   html body.kb #cnt .cn-bb,
   html body.kb #cnt .cn-gm { display: none !important; }
@@ -262,9 +221,6 @@
   html body.kb #loggedUser { position: absolute; width: 1px; height: 1px; max-width: none; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap; }
 }
 
-/* --------------------------------------------------------------------------
-   11. Contabilidad: cifras de las tarjetas, zonas táctiles y textos pequeños.
-   -------------------------------------------------------------------------- */
 @media (max-width: 760px) {
   html body.kb #cnt .cn-strip,
   html body.kb #cnt .cn-kpi { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
@@ -301,14 +257,6 @@
   nav.views .tab > .ti svg { width: 16px; height: 16px; }
 }
 
-/* --------------------------------------------------------------------------
-   12. Préstamos en móvil.
-   · Prestar: Implementos a prestar → lista (con scroll propio) → datos de quien recibe.
-   · Devolver: Estado y Tipo en listas desplegables (como Zona/Tipo en Alimentos);
-     la fila de pestañas de estado sobraba (era lo mismo) y la lista de
-     últimas devoluciones pasa a una ventana (botón #pdOpen).
-   Para deshacer: borrar esta sección y el bloque "listasDevolver" de movil.js.
-   -------------------------------------------------------------------------- */
 @media (max-width: 560px) {
   html body .qgrid.pqgrid > .pqmain { display: contents !important; }
   html body .qgrid.pqgrid > .pqmain > #pf { order: 1; }
@@ -330,16 +278,8 @@
   html body .mwb #pdf3 { display: grid; }
 }
 
-/* ==========================================================================
-   13. Ajustes móviles (revisión de alturas, etiquetas y listas).
-   Para deshacer: borrar esta sección completa.
-   ========================================================================== */
 @media (max-width: 760px) {
 
-  /* --- 13a. Botones de una misma hilera: mismo alto -------------------------
-     Antes "Crear/Agregar ..." se partía en 2 líneas y quedaba más alto que
-     "Eliminar ...". Las hileras estiran sus botones al mismo alto y todos
-     tienen el alto de toque (44 px). */
   html body :is(.sechead, .irt, .qbtns, .abtns, .editor-actions, .pick, .tkb, .ab, .pq, .pqty, .cal-f, .pr-foot) {
     align-items: stretch;
   }
@@ -363,19 +303,12 @@
   html body .sechead > .m-only { flex: 1 1 0; min-width: 0; }
   html body .sechead > .ghost.danger { flex: 0 0 auto; }
 
-  /* --- 13b. Alimentos, modo lista: Cantidad y Mínimo ya no se montan --------
-     Causa: td.ed tenía min-width:120px dentro de una columna de ~70 px, así
-     que Cantidad se salía de su columna y tapaba a Mínimo. Ahora Ubicación
-     ocupa una fila y Cantidad / Mínimo se reparten la siguiente a medias. */
   html body #v1 table.inv td.ed { min-width: 0 !important; }
   html body #v1 table.inv td.loc { grid-column: 1 / -1; order: 3; }
   html body #v1 table.inv td[data-label^="Cantidad"] { grid-column: 1 / 3; order: 4; }
   html body #v1 table.inv td[data-label="Mínimo"]    { grid-column: 3 / 5; order: 5; }
   html body #v1 table.inv td.ed input:not([type=hidden]) { width: 100% !important; max-width: 100%; min-width: 0; }
 
-  /* --- 13c. Préstamos, modo lista (tablas .impt y .pcurt) -------------------
-     Dos columnas fijas en cualquier ancho (antes, hasta 400 px, quedaba todo
-     apilado en una columna) y cada tipo de fila reparte sus controles. */
   html body #pv1 table.impt tbody > tr {
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 8px 10px;
@@ -386,13 +319,10 @@
   html body #pv1 table.impt td.act { grid-column: 1 / -1; }
   html body #pv1 table.impt td.act button { width: 100%; min-height: var(--toque) !important; height: var(--toque); }
 
-  /* Lista de administrador (Toda la cocina, Disponibles...): cada control en
-     su fila, y Cantidad junto a Guardar, con el mismo alto. */
   html body #pv1 table.impt tr:has(.gst) td[data-label]:not(.ed):not(.act) { grid-column: 1 / -1; }
   html body #pv1 table.impt tr:has(.gst) td.ed  { grid-column: 1; }
   html body #pv1 table.impt tr:has(.gst) td.act { grid-column: 2; align-self: end; }
 
-  /* Por devolver / Vencidos: quién lo tiene, fechas, condición y botón. */
   html body #pv1 table.impt tr[data-row] td[data-label="Prestado a"]            { grid-column: 1 / -1; order: 1; }
   html body #pv1 table.impt tr[data-row] td[data-label="Tipo de implemento"]    { grid-column: 1; order: 2; }
   html body #pv1 table.impt tr[data-row] td[data-label="Devolver antes de"]     { grid-column: 2; order: 3; }
@@ -402,7 +332,6 @@
   html body #pv1 table.impt tr[data-row] td.act                                 { grid-column: 1 / -1; order: 7; }
   html body #pv1 table.impt td[data-label="Limpio"] .pr-check { min-height: var(--toque); }
 
-  /* Préstamos en curso: dos columnas y botones Recibir / Ticket iguales. */
   html body table.pcurt tbody > tr { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px 10px; }
   html body table.pcurt td { min-width: 0; }
   html body table.pcurt td.nm,
@@ -413,15 +342,6 @@
   html body table.pcurt td.act button { width: 100%; min-height: var(--toque) !important; }
 }
 
-/* ==========================================================================
-   14. Orden de las secciones en móvil y Devolver más compacto.
-   Para deshacer: borrar esta sección y, en la sección 12, volver a poner
-   el orden pMain 1 / qleft 2 / pf 3.
-   ========================================================================== */
-
-/* --- 14a. Comidas: Quitar (una sola columna, hasta 900 px) -----------------
-   Destino (Desayuno, Almuerzo...) -> Armando -> Filtrar por + Elementos
-   disponibles -> Últimas comidas (esta última ya va después de la cuadrícula). */
 @media (max-width: 900px) {
   html body #v0 .qgrid > #qDest { order: 1; }
   html body #v0 .qgrid > #qMain { order: 2; }
@@ -430,20 +350,11 @@
 
 @media (max-width: 760px) {
 
-  /* --- 14b. Devolver, filtros: igual que Zona y Tipo en Alimentos -----------
-     Un recuadro con dos listas en la misma hilera (Estado | Tipo), cada una con
-     su nombre encima. Las etiquetas con scroll lateral (#ptabs) se ocultan. */
   html body #pv1 .pr-pg { gap: 8px; }
   html body #pv1 #ptabs { display: none; }
   html body #pdOpen { margin: 0 0 6px; }
   html body #pv1 .pr-main .itool { margin: 0 0 6px; gap: 6px; }
 
-  /* --- 14c. Devolver, cuadrícula de administrador ---------------------------
-     Antes cada campo ocupaba una fila. Ahora:
-       Nombre
-       Tipo            | Cantidad
-       Estado          | Condición
-       Detalles        | Guardar                                           */
   html body #pv1 .cgrid .icard[data-g]:has(.gst) {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -460,8 +371,6 @@
   html body #pv1 .cgrid .icard[data-g]:has(.gst) > button[data-isave] { order: 6; width: 100%; }
   html body #pv1 .cgrid .icard[data-g] .gst { grid-template-columns: 46px minmax(0, 1fr); margin-top: 0; }
 
-  /* --- 14d. Devolver, cuadrícula de Por devolver / Vencidos ------------------
-     Condición y Limpio comparten fila; todo lo demás, una fila corta. */
   html body #pv1 .cgrid .rcard[data-row] {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -479,3 +388,25 @@
   html body #pv1 .cgrid .rcard[data-row] > .fld:has(.pn2) { order: 7; }
   html body #pv1 .cgrid .rcard[data-row] > button { order: 8; }
 }
+
+header h1 > #brandBtn {
+  background: none;
+  color: inherit;
+  padding: 0;
+  min-height: 0;
+  font-weight: inherit;
+  letter-spacing: inherit;
+  line-height: inherit;
+  text-align: left;
+  white-space: inherit;
+  overflow: inherit;
+  text-overflow: inherit;
+  filter: none;
+}
+.w-full { width: 100%; }
+.tw-640 { min-width: 640px; }
+.modal.modal-760 { width: min(760px, 100%); }
+.modal.modal-640 { width: min(640px, 100%); }
+.editor-actions.between { justify-content: space-between; gap: 10px; }
+.editor-actions.between.mid { align-items: center; }
+input.find-full { width: 100%; margin: 10px 0 12px; }

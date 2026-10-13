@@ -1,4 +1,4 @@
-const V = "kokoa-v21";
+const V = "kokoa-v22";
 const SHELL = ["./", "./index.html", "./estilos.css", "./app.js", "./prestamos.js", "./contabilidad.js", "./movil.css", "./movil.js", "./extras.js", "./manifest.webmanifest", "../fonts/fuentes.css", "../fonts/figtree.woff", "../fonts/noto-emoji.woff", "./vendor/supabase.js", "./vendor/jspdf.min.js", "./icons/icon-192.png", "./icons/apple-touch-icon.png"];
 const ESPERA_RED = 3000;
 
@@ -23,7 +23,7 @@ async function conRed(e) {
   try {
     const r = await Promise.race([red, new Promise(ok => { t = setTimeout(() => ok(null), ESPERA_RED); })]);
     if (r) return r;
-  } catch (_) { clearTimeout(t); }
+  } catch { clearTimeout(t); }
   const hit = (await c.match(q)) || (q.mode === "navigate" ? await c.match("./index.html") : null);
   if (hit) { e.waitUntil(red.catch(() => {})); return hit; }
   return red.catch(() => Response.error());
@@ -38,13 +38,23 @@ self.addEventListener("fetch", e => {
   else e.respondWith(conRed(e));
 });
 
+function urlSegura(destino) {
+  const base = self.registration.scope;
+  try {
+    const u = new URL(destino || "./index.html", base);
+    return u.origin === location.origin ? u.href : new URL("./index.html", base).href;
+  } catch {
+    return new URL("./index.html", base).href;
+  }
+}
+
 self.addEventListener("push", e => {
   let d = {};
-  try { d = e.data ? e.data.json() : {}; } catch (_) { d = { body: e.data ? e.data.text() : "" }; }
+  try { d = e.data ? e.data.json() : {}; } catch { d = { body: e.data ? e.data.text() : "" }; }
   e.waitUntil(self.registration.showNotification(d.title || "Kokoa Virtual", {
     body: d.body || "Hay alertas nuevas del inventario.",
     icon: "icons/icon-192.png", badge: "icons/icon-192.png",
-    tag: d.tag || "kokoa", renotify: !!d.tag, data: { url: d.url || "./index.html" }
+    tag: d.tag || "kokoa", renotify: !!d.tag, data: { url: urlSegura(d.url) }
   }));
 });
 self.addEventListener("notificationclick", e => {
