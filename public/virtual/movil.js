@@ -100,7 +100,6 @@
       const nodo = b.firstChild && b.firstChild.nodeType === 3 ? b.firstChild.textContent : b.textContent;
       let t = nombres && nombres[v] ? nombres[v] : nodo.trim();
       if (n !== "") t += " (" + n + ")";
-      if (peq && peq.classList.contains("low")) t += " \u26A0";
       out.push([v, t, b.getAttribute("aria-pressed") === "true"]);
     });
     return out;

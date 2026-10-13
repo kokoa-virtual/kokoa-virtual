@@ -124,7 +124,7 @@
   :root { --px: 8px;  --fs-h1: 19px; --fs-tab: 10.5px; --pad-btn: 7px; }
 }
 @media (min-width: 360px) and (max-width: 389px) {
-  :root { --px: 10px; --fs-h1: 20px; --fs-tab: 11.5px; --pad-btn: 8px; }
+  :root { --px: 10px; --fs-h1: 20px; --fs-tab: 12px; --pad-btn: 8px; }
 }
 @media (min-width: 390px) and (max-width: 429px) {
   :root { --px: 12px; --fs-h1: 20px; --fs-tab: 12px;   --pad-btn: 10px; }
@@ -171,7 +171,7 @@
     grid-template-columns: repeat(5, minmax(0, 1fr));
     gap: 2px; min-height: 56px;
     padding: 2px 4px calc(2px + env(safe-area-inset-bottom, 0px));
-    border-top: 1px solid var(--rule); border-radius: 0;
+    border-top: 1px solid var(--rule); border-radius:0;
     background: var(--sheet);
   }
   html body.kb nav.views .vgl,
@@ -187,8 +187,8 @@
   html body.kb nav.views .tab {
     display: flex; flex-direction: column; align-items: center; justify-content: center;
     gap: 2px; min-height: 52px; padding: 4px 2px; margin: 0;
-    font-size: 11px; line-height: 1.1; letter-spacing: 0; white-space: nowrap;
-    border-radius: 12px; background: none; box-shadow: none; color: var(--soft);
+    font-size:12px; line-height: 1.1; letter-spacing: 0; white-space: nowrap;
+    border-radius:var(--r-in); background: none; box-shadow:none; color: var(--soft);
     order: 0 !important; flex: none;
   }
   html body.kb nav.views .tab > span:not(.ti) { max-width: 100%; overflow: hidden; text-overflow: ellipsis; }
@@ -228,13 +228,13 @@
     position: static; display: inline-flex; flex-direction: row; align-items: center; justify-content: center;
     width: 0 !important; min-width: 100%; height: 44px !important; min-height: 44px !important;
     padding: 0 6px !important; margin: 0 !important; order: 0 !important;
-    border-radius: 14px; background: #ffffff1a; border: 1.5px solid #ffffff73; overflow: hidden;
+    border-radius:var(--r-in); background: #ffffff1a; border: 1.5px solid #ffffff73; overflow: hidden;
   }
   html body.kb header #modo .sg { flex-direction: row !important; gap: 5px !important; min-width: 0; white-space: nowrap; padding: 0 !important; color: #fff !important; background: none !important; }
-  html body.kb header #modo .sg b { font-size: 12px !important; letter-spacing: 0 !important; overflow: hidden; text-overflow: ellipsis; }
+  html body.kb header #modo .sg b { font-size:12px !important; letter-spacing: 0 !important; overflow: hidden; text-overflow: ellipsis; }
   html body.kb header #theme.vtog {
     position: relative; width: 44px !important; height: 44px !important; min-height: 44px !important;
-    margin: 0 !important; padding: 0 !important; order: 0 !important; border-radius: 14px;
+    margin: 0 !important; padding: 0 !important; order: 0 !important; border-radius:var(--r-in);
     background: #ffffff1a; border: 1.5px solid #ffffff73;
   }
   html body.kb header #theme.vtog .ico { color: #fff !important; }
@@ -242,19 +242,19 @@
   html body.kb #kMenu {
     position: fixed; right: max(12px, env(safe-area-inset-right, 0px)); z-index: 70;
     display: grid; gap: 2px; min-width: 200px; padding: 6px;
-    background: var(--float); border: 1px solid var(--rule); border-radius: 16px; box-shadow: var(--sh-2);
+    background: var(--float); border: 1px solid var(--rule); border-radius:var(--r-lg); box-shadow:var(--sh-2);
   }
   html body.kb #kMenu[hidden] { display: none; }
   html body.kb #kMenu button {
     width: 100% !important; min-height: 48px !important; justify-content: flex-start; text-align: left;
-    padding: 0 14px; border: 0 !important; border-radius: 10px; background: transparent !important; color: var(--ink) !important;
+    padding: 0 14px; border: 0 !important; border-radius:var(--r-sm); background: transparent !important; color: var(--ink) !important;
     font-size: 16px; white-space: nowrap;
   }
   html body.kb #kMenu button:active { background: var(--blue) !important; }
-  html body.kb #kMenu #logoutBtn { color: var(--alert-t) !important; border-top: 1px solid var(--rule) !important; border-radius: 0 0 10px 10px; }
+  html body.kb #kMenu #logoutBtn { color: var(--alert-t) !important; border-top: 1px solid var(--rule) !important; border-radius:0 0 var(--r-sm) var(--r-sm); }
 }
 @media (max-width: 359px) {
-  html body.kb nav.views .tab { font-size: 10px; padding-left: 0; padding-right: 0; }
+  html body.kb nav.views .tab { font-size:11px; padding-left: 0; padding-right: 0; }
   html body.kb header .brand h1 { font-size: 17px; }
   html body.kb header #bell { padding-left: 6px; padding-right: 6px; }
 }
@@ -283,7 +283,7 @@
   html body.kb .tabs .tab { min-height: 44px; }
 
   html body.kb .qdest { overflow-wrap: break-word; }
-  html body.kb .pie { font-size: 11px; line-height: 1.3; }
+  html body.kb .pie { font-size:12px; line-height: 1.3; }
 }
 .dsel:after {
   content: ""; width: 18px; height: 18px; flex: none; background: var(--soft);
@@ -324,7 +324,7 @@
   html body #pv1 .pnl.psel-on > #pdf1,
   html body #pv1 .pnl.psel-on > #pdf2 { display: none; }
   html body #pdsel { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-  html body #pdsel label { display: flex; flex-direction: column; gap: 2px; font-size: 12px; color: var(--soft); min-width: 0; }
+  html body #pdsel label { display: flex; flex-direction: column; gap: 2px; font-size:14px; color: var(--soft); min-width: 0; }
   html body #pdsel select { width: 100%; min-width: 0; font: inherit; font-size: 15px; text-overflow: ellipsis; }
   html body #pdOpen { width: 100%; margin: 0 0 10px; }
   html body .mwb #pdf3 { display: grid; }
@@ -430,15 +430,10 @@
 
 @media (max-width: 760px) {
 
-  /* --- 14b. Devolver, filtros: sin tarjeta, dos filas de lista --------------
-     Estado y Tipo son listas desplegables (como Zona/Tipo en Alimentos), una
-     fila cada una con su nombre al lado. Las etiquetas con scroll lateral
-     (#ptabs) se ocultan: la lista de Estado hace lo mismo. */
+  /* --- 14b. Devolver, filtros: igual que Zona y Tipo en Alimentos -----------
+     Un recuadro con dos listas en la misma hilera (Estado | Tipo), cada una con
+     su nombre encima. Las etiquetas con scroll lateral (#ptabs) se ocultan. */
   html body #pv1 .pr-pg { gap: 8px; }
-  html body #pv1 .pnl.psel-on { padding: 0; background: none; border: 0; box-shadow: none; }
-  html body #pdsel { grid-template-columns: minmax(0, 1fr); gap: 6px; margin-bottom: 6px; }
-  html body #pdsel label { flex-direction: row; align-items: center; gap: 10px; }
-  html body #pdsel label select { flex: 1 1 auto; width: auto; }
   html body #pv1 #ptabs { display: none; }
   html body #pdOpen { margin: 0 0 6px; }
   html body #pv1 .pr-main .itool { margin: 0 0 6px; gap: 6px; }
