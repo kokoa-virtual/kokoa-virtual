@@ -1,0 +1,486 @@
+/* ==========================================================================
+   movil.css — ajustes móviles de Kokoa Virtual
+   Se carga DESPUÉS de estilos.css. Para deshacer todo: quitar el <link> en
+   index.html. Alto de toque único: --toque (44 px).
+   ========================================================================== */
+
+:root { --toque: 44px; }
+
+/* --------------------------------------------------------------------------
+   3. Alturas de casillas y botones: un solo alto (44 px) en móvil.
+   Solo se usa min-height (nunca height) para no romper filas flex/grid.
+   -------------------------------------------------------------------------- */
+@media (max-width: 760px) {
+  html body :is(
+    input:not([type=checkbox]):not([type=radio]):not([type=hidden]):not([type=range]),
+    select:not(.cs-src),
+    textarea,
+    .csel,
+    .dsel,
+    header #bell,
+    header .htools #exp,
+    header .htools #adminBtn,
+    header .htools #usersBtn,
+    header .htools .scan input,
+    header .htools .scan button,
+    #sessionUser #meBtn,
+    #sessionUser #logoutBtn,
+    .arrow,
+    .fbtn,
+    .irt .vtog,
+    .add button,
+    .abtns button,
+    #v1 table.inv button[data-save],
+    .cgrid .icard > button,
+    .gst button,
+    .gst input,
+    .gst select
+  ) {
+    min-height: var(--toque) !important;
+  }
+  /* Excepción deliberada del diseño original: el selector del nombre en las tarjetas del inventario es compacto */
+  html body #v1 table.inv td.nm .csel { min-height: 28px !important; }
+}
+
+/* --------------------------------------------------------------------------
+   4. Caneca de movimientos: el dibujo no cambia, pero el área que responde
+   al dedo pasa a 44 x 44 px (antes ~30 x 26) y da respuesta al tocar.
+   -------------------------------------------------------------------------- */
+.hdel { position: relative; touch-action: manipulation; }
+
+@media (max-width: 760px), (pointer: coarse) {
+  .hdel::after {
+    content: "";
+    position: absolute;
+    top: -9px;
+    bottom: -9px;
+    left: -7px;
+    right: -7px;
+  }
+  .hdel:active {
+    color: var(--alert-t);
+    background: color-mix(in srgb, var(--alert) 22%, transparent);
+  }
+}
+
+/* Panel de alertas (campana) en móvil */
+@media (max-width: 760px) {
+  #alertPanel {
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+    padding-left: max(12px, env(safe-area-inset-left, 0px));
+    padding-right: max(12px, env(safe-area-inset-right, 0px));
+    padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+  }
+  /* En columna, flex-basis:220px se vuelve ALTO: se anula */
+  #alertPanel .alerts li > div { flex: 0 0 auto; width: 100%; }
+  #alertPanel .alerts li .ab {
+    display: flex;
+    gap: 8px;
+    width: 100%;
+  }
+  #alertPanel .alerts li .ab button {
+    flex: 1 1 0;
+    min-width: 0;
+    min-height: var(--toque);
+  }
+}
+
+/* --------------------------------------------------------------------------
+   8. Letra de 16 px en campos de escritura (iPhone hace zoom si es menor).
+   Solo input/textarea/select: .csel y .dsel son botones y no provocan zoom.
+   -------------------------------------------------------------------------- */
+@media (max-width: 760px) {
+  html body :is(
+    input:not([type=checkbox]):not([type=radio]):not([type=hidden]):not([type=range]),
+    textarea,
+    select:not(.cs-src)
+  ) {
+    font-size: 16px !important;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   6. Espacio bajo el contenido = alto real de la barra inferior (la mide
+   movil.js y lo guarda en --barra-h). Antes eran 62 px fijos y la barra mide
+   más con la barra de gestos del iPhone.
+   -------------------------------------------------------------------------- */
+@media (max-width: 760px) {
+  html { scroll-padding-bottom: calc(var(--barra-h, 62px) + 12px); }
+  html body { padding-bottom: calc(var(--barra-h, 62px) + 12px); }
+}
+
+/* --------------------------------------------------------------------------
+   9. Cinco niveles de pantalla. Ya no se añaden cortes sueltos: cada nivel
+   fija unas pocas medidas (variables) y las reglas las usan.
+     XS  hasta 359 px   (iPhone SE, Android pequeños)
+     S   360 a 389 px   (la mayoría de Android)
+     M   390 a 429 px   (iPhone 12 a 16)
+     L   430 a 760 px   (Pro Max, plegables, tablet vertical)
+     D   desde 761 px   (escritorio/tablet: sin cambios)
+   -------------------------------------------------------------------------- */
+:root { --px: 16px; --fs-h1: 22px; --fs-tab: 12px; --pad-btn: 10px; }
+@media (max-width: 359px) {
+  :root { --px: 8px;  --fs-h1: 19px; --fs-tab: 10.5px; --pad-btn: 7px; }
+}
+@media (min-width: 360px) and (max-width: 389px) {
+  :root { --px: 10px; --fs-h1: 20px; --fs-tab: 11.5px; --pad-btn: 8px; }
+}
+@media (min-width: 390px) and (max-width: 429px) {
+  :root { --px: 12px; --fs-h1: 20px; --fs-tab: 12px;   --pad-btn: 10px; }
+}
+@media (min-width: 430px) and (max-width: 760px) {
+  :root { --px: 16px; --fs-h1: 22px; --fs-tab: 12px;   --pad-btn: 10px; }
+}
+@media (max-width: 760px) {
+  html body header { padding-left: var(--px); padding-right: var(--px); }
+  html body header .brand h1 { font-size: var(--fs-h1); }
+  html body main { padding-left: var(--px); padding-right: var(--px); }
+  html body nav.views .tab { font-size: var(--fs-tab); }
+  html body #sessionUser #meBtn,
+  html body #sessionUser #logoutBtn { padding-left: var(--pad-btn); padding-right: var(--pad-btn); }
+  html body header #bell { padding-left: var(--pad-btn); padding-right: var(--pad-btn); }
+}
+
+/* --------------------------------------------------------------------------
+   7. Alturas con dvh (Safari/Chrome móvil no descuentan la barra del navegador
+   con vh). Bloque generado desde los vh de estilos.css, con la misma media query.
+   -------------------------------------------------------------------------- */
+@supports (height: 1dvh) {
+  .slist { max-height: min(60dvh,380px); }
+  .modal { max-height: min(88dvh,900px); }
+  .zones .mvl { max-height: min(46dvh,380px); }
+  .dlist { max-height: min(46dvh,420px); }
+  .pk { max-height: 80dvh; }
+  .pr-list { max-height: min(52dvh,440px); }
+  .rtl { max-height: min(50dvh,420px); }
+  .mwb .mvl { max-height: 60dvh; }
+}
+
+/* ==========================================================================
+   10. Barra inferior única + cabecera compacta (solo móvil, body.kb).
+   body.kb lo pone movil.js. Sin ese script no se aplica nada de este bloque.
+   ========================================================================== */
+@media (max-width: 760px) {
+  html body.kb #cnt .cn-bb,
+  html body.kb #cnt .cn-gm { display: none !important; }
+
+  html body.kb nav.views {
+    position: fixed; top: auto; left: 0; right: 0; bottom: 0; z-index: 60;
+    display: grid !important;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 2px; min-height: 56px;
+    padding: 2px 4px calc(2px + env(safe-area-inset-bottom, 0px));
+    border-top: 1px solid var(--rule); border-radius: 0;
+    background: var(--sheet);
+  }
+  html body.kb nav.views .vgl,
+  html body.kb nav.views .vgr,
+  html body.kb nav.views .vgr2 { display: contents !important; }
+  html body.kb.cnt-on nav.views #vtabs,
+  html body.kb.cnt-on nav.views #vtabs2 { display: none !important; }
+  html body.kb:not(.cnt-on) nav.views #cntL,
+  html body.kb:not(.cnt-on) nav.views #cntR { display: none !important; }
+  html body.kb.cnt-on nav.views #cntL,
+  html body.kb.cnt-on nav.views #cntR { display: contents !important; }
+
+  html body.kb nav.views .tab {
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 2px; min-height: 52px; padding: 4px 2px; margin: 0;
+    font-size: 11px; line-height: 1.1; letter-spacing: 0; white-space: nowrap;
+    border-radius: 12px; background: none; box-shadow: none; color: var(--soft);
+    order: 0 !important; flex: none;
+  }
+  html body.kb nav.views .tab > span:not(.ti) { max-width: 100%; overflow: hidden; text-overflow: ellipsis; }
+  html body.kb nav.views .tab .l-lg,
+  html body.kb nav.views .tab .cl { display: none !important; }
+  html body.kb nav.views .tab .l-sm,
+  html body.kb nav.views .tab .cs { display: block !important; }
+  html body.kb nav.views .tab .ti { display: grid; place-items: center; height: 22px; }
+  html body.kb nav.views .tab[aria-pressed="true"] { background: var(--blue); color: var(--blue-t); font-weight: 700; }
+
+  html body.kb header {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) auto auto auto;
+    grid-template-rows: auto auto;
+    gap: 6px;
+    padding: calc(8px + env(safe-area-inset-top, 0px)) var(--px) 8px;
+    align-items: center;
+  }
+  html body.kb header .hright,
+  html body.kb header .htools { display: contents !important; }
+  html body.kb header .brand { grid-column: 1 !important; grid-row: 1 !important; min-width: 0; }
+  html body.kb header #bell { grid-column: 2 !important; grid-row: 1 !important; width: auto; }
+  html body.kb header #sessionUser { grid-column: 3 !important; grid-row: 1 !important; justify-self: end; }
+  html body.kb header #kMenuBtn { grid-column: 4 !important; grid-row: 1 !important; width: 44px; min-height: 44px; padding: 0; display: grid; place-items: center; }
+  html body.kb header .htools .scan { grid-column: 1 !important; grid-row: 2 !important; width: auto; min-width: 0; }
+  html body.kb header #modo { grid-column: 2 / 4 !important; grid-row: 2 !important; justify-self: stretch; }
+  html body.kb header #theme { grid-column: 4 !important; grid-row: 2 !important; }
+
+  html body.kb header .brand h1 { font-size: var(--fs-h1); line-height: 44px; }
+  html body.kb #brandBtn { display: block; min-height: 44px; cursor: pointer; }
+  html body.kb header .scan button { min-width: 44px; }
+  html body.kb header #bell { padding-left: var(--pad-btn); padding-right: var(--pad-btn); }
+  html body.kb #sessionUser #meBtn { min-width: 44px; justify-content: center; padding-left: var(--pad-btn); padding-right: var(--pad-btn); }
+  html body.kb #loggedUser { display: inline-block; max-width: 7ch; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+  html body.kb header #modo.mseg {
+    position: static; display: inline-flex; flex-direction: row; align-items: center; justify-content: center;
+    width: 0 !important; min-width: 100%; height: 44px !important; min-height: 44px !important;
+    padding: 0 6px !important; margin: 0 !important; order: 0 !important;
+    border-radius: 14px; background: #ffffff1a; border: 1.5px solid #ffffff73; overflow: hidden;
+  }
+  html body.kb header #modo .sg { flex-direction: row !important; gap: 5px !important; min-width: 0; white-space: nowrap; padding: 0 !important; color: #fff !important; background: none !important; }
+  html body.kb header #modo .sg b { font-size: 12px !important; letter-spacing: 0 !important; overflow: hidden; text-overflow: ellipsis; }
+  html body.kb header #theme.vtog {
+    position: relative; width: 44px !important; height: 44px !important; min-height: 44px !important;
+    margin: 0 !important; padding: 0 !important; order: 0 !important; border-radius: 14px;
+    background: #ffffff1a; border: 1.5px solid #ffffff73;
+  }
+  html body.kb header #theme.vtog .ico { color: #fff !important; }
+
+  html body.kb #kMenu {
+    position: fixed; right: max(12px, env(safe-area-inset-right, 0px)); z-index: 70;
+    display: grid; gap: 2px; min-width: 200px; padding: 6px;
+    background: var(--float); border: 1px solid var(--rule); border-radius: 16px; box-shadow: var(--sh-2);
+  }
+  html body.kb #kMenu[hidden] { display: none; }
+  html body.kb #kMenu button {
+    width: 100% !important; min-height: 48px !important; justify-content: flex-start; text-align: left;
+    padding: 0 14px; border: 0 !important; border-radius: 10px; background: transparent !important; color: var(--ink) !important;
+    font-size: 16px; white-space: nowrap;
+  }
+  html body.kb #kMenu button:active { background: var(--blue) !important; }
+  html body.kb #kMenu #logoutBtn { color: var(--alert-t) !important; border-top: 1px solid var(--rule) !important; border-radius: 0 0 10px 10px; }
+}
+@media (max-width: 359px) {
+  html body.kb nav.views .tab { font-size: 10px; padding-left: 0; padding-right: 0; }
+  html body.kb header .brand h1 { font-size: 17px; }
+  html body.kb header #bell { padding-left: 6px; padding-right: 6px; }
+}
+@media (max-width: 429px) {
+  html body.kb #loggedUser { position: absolute; width: 1px; height: 1px; max-width: none; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap; }
+}
+
+/* --------------------------------------------------------------------------
+   11. Contabilidad: cifras de las tarjetas, zonas táctiles y textos pequeños.
+   -------------------------------------------------------------------------- */
+@media (max-width: 760px) {
+  html body.kb #cnt .cn-strip,
+  html body.kb #cnt .cn-kpi { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+  html body.kb #cnt .cn-strip > :last-child,
+  html body.kb #cnt .cn-kpi > :last-child { grid-column: 1 / -1; }
+  html body.kb #cnt .cn-st b,
+  html body.kb #cnt .cn-kpi b {
+    font-size: clamp(14px, 4.4vw, 17px); white-space: nowrap; overflow-wrap: normal; word-break: keep-all;
+  }
+  html body.kb #cnt .cn-st .sub,
+  html body.kb #cnt .cn-kpi .sub { white-space: normal; overflow-wrap: break-word; }
+
+  html body.kb #cnt .cnq-ln { min-height: 44px !important; display: inline-flex; align-items: center; }
+  html body.kb #cnt summary,
+  html body.kb summary { min-height: 44px !important; padding-top: 10px !important; padding-bottom: 10px !important; box-sizing: border-box; }
+  html body.kb .tabs .tab { min-height: 44px; }
+
+  html body.kb .qdest { overflow-wrap: break-word; }
+  html body.kb .pie { font-size: 11px; line-height: 1.3; }
+}
+.dsel:after {
+  content: ""; width: 18px; height: 18px; flex: none; background: var(--soft);
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='5' width='18' height='16' rx='2'/%3E%3Cpath d='M3 10h18M8 3v4M16 3v4'/%3E%3C/svg%3E") center / contain no-repeat;
+          mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='5' width='18' height='16' rx='2'/%3E%3Cpath d='M3 10h18M8 3v4M16 3v4'/%3E%3C/svg%3E") center / contain no-repeat;
+}
+@media (min-width: 761px) {
+  nav.views .tab > .ti { display: inline-grid; place-items: center; align-self: center; flex: none; }
+  nav.views .tab > .ti svg { width: 18px; height: 18px; }
+  nav.views .tab { align-items: center; gap: 6px; padding-left: 12px; padding-right: 12px; }
+  nav.views .tab > .ti svg { width: 17px; height: 17px; }
+}
+@media (min-width: 761px) and (max-width: 1199px) {
+  nav.views .tab { gap: 4px; padding-left: 8px; padding-right: 8px; }
+  nav.views .tab > .ti svg { width: 16px; height: 16px; }
+}
+
+/* --------------------------------------------------------------------------
+   12. Préstamos en móvil.
+   · Prestar: Implementos a prestar → lista (con scroll propio) → datos de quien recibe.
+   · Devolver: Estado y Tipo en listas desplegables (como Zona/Tipo en Alimentos);
+     la fila de pestañas de estado sobraba (era lo mismo) y la lista de
+     últimas devoluciones pasa a una ventana (botón #pdOpen).
+   Para deshacer: borrar esta sección y el bloque "listasDevolver" de movil.js.
+   -------------------------------------------------------------------------- */
+@media (max-width: 560px) {
+  html body .qgrid.pqgrid > .pqmain { display: contents !important; }
+  html body .qgrid.pqgrid > .pqmain > #pf { order: 1; }
+  html body .qgrid.pqgrid > .pqmain > #pMain { order: 2; }
+  html body .qgrid.pqgrid > .qleft { order: 3; }
+  html body .pqgrid .qscroll {
+    display: block !important; max-height: min(42dvh, 19rem); overflow-y: auto; overscroll-behavior: contain;
+    scrollbar-width: thin; padding-right: 4px;
+  }
+}
+@media (max-width: 760px) {
+  html body #pv1 .pnl.psel-on { padding: 8px 10px; }
+  html body #pv1 .pnl.psel-on > #pdf1,
+  html body #pv1 .pnl.psel-on > #pdf2 { display: none; }
+  html body #pdsel { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  html body #pdsel label { display: flex; flex-direction: column; gap: 2px; font-size: 12px; color: var(--soft); min-width: 0; }
+  html body #pdsel select { width: 100%; min-width: 0; font: inherit; font-size: 15px; text-overflow: ellipsis; }
+  html body #pdOpen { width: 100%; margin: 0 0 10px; }
+  html body .mwb #pdf3 { display: grid; }
+}
+
+/* ==========================================================================
+   13. Ajustes móviles (revisión de alturas, etiquetas y listas).
+   Para deshacer: borrar esta sección completa.
+   ========================================================================== */
+@media (max-width: 760px) {
+
+  /* --- 13a. Botones de una misma hilera: mismo alto -------------------------
+     Antes "Crear/Agregar ..." se partía en 2 líneas y quedaba más alto que
+     "Eliminar ...". Las hileras estiran sus botones al mismo alto y todos
+     tienen el alto de toque (44 px). */
+  html body :is(.sechead, .irt, .qbtns, .abtns, .editor-actions, .pick, .tkb, .ab, .pq, .pqty, .cal-f, .pr-foot) {
+    align-items: stretch;
+  }
+  html body :is(
+    .sechead button, .secbtn, .m-only, .qbtns button, .abtns button, .pr-foot button,
+    .editor-actions button, .pick button, .tkb button, .ab button, .pq button, .pqty button, .cal-f button,
+    #pdOpen, #pultOpen
+  ) {
+    min-height: var(--toque) !important;
+  }
+  html body .sechead > button {
+    height: auto;
+    line-height: 1.2;
+    padding-top: 8px;
+    padding-bottom: 8px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+  }
+  html body .sechead > .m-only { flex: 1 1 0; min-width: 0; }
+  html body .sechead > .ghost.danger { flex: 0 0 auto; }
+
+  /* --- 13b. Alimentos, modo lista: Cantidad y Mínimo ya no se montan --------
+     Causa: td.ed tenía min-width:120px dentro de una columna de ~70 px, así
+     que Cantidad se salía de su columna y tapaba a Mínimo. Ahora Ubicación
+     ocupa una fila y Cantidad / Mínimo se reparten la siguiente a medias. */
+  html body #v1 table.inv td.ed { min-width: 0 !important; }
+  html body #v1 table.inv td.loc { grid-column: 1 / -1; order: 3; }
+  html body #v1 table.inv td[data-label^="Cantidad"] { grid-column: 1 / 3; order: 4; }
+  html body #v1 table.inv td[data-label="Mínimo"]    { grid-column: 3 / 5; order: 5; }
+  html body #v1 table.inv td.ed input:not([type=hidden]) { width: 100% !important; max-width: 100%; min-width: 0; }
+
+  /* --- 13c. Préstamos, modo lista (tablas .impt y .pcurt) -------------------
+     Dos columnas fijas en cualquier ancho (antes, hasta 400 px, quedaba todo
+     apilado en una columna) y cada tipo de fila reparte sus controles. */
+  html body #pv1 table.impt tbody > tr {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px 10px;
+    align-items: end;
+  }
+  html body #pv1 table.impt td { min-width: 0 !important; width: auto; overflow: visible; }
+  html body #pv1 table.impt td.nm { grid-column: 1 / -1; align-self: center; }
+  html body #pv1 table.impt td.act { grid-column: 1 / -1; }
+  html body #pv1 table.impt td.act button { width: 100%; min-height: var(--toque) !important; height: var(--toque); }
+
+  /* Lista de administrador (Toda la cocina, Disponibles...): cada control en
+     su fila, y Cantidad junto a Guardar, con el mismo alto. */
+  html body #pv1 table.impt tr:has(.gst) td[data-label]:not(.ed):not(.act) { grid-column: 1 / -1; }
+  html body #pv1 table.impt tr:has(.gst) td.ed  { grid-column: 1; }
+  html body #pv1 table.impt tr:has(.gst) td.act { grid-column: 2; align-self: end; }
+
+  /* Por devolver / Vencidos: quién lo tiene, fechas, condición y botón. */
+  html body #pv1 table.impt tr[data-row] td[data-label="Prestado a"]            { grid-column: 1 / -1; order: 1; }
+  html body #pv1 table.impt tr[data-row] td[data-label="Tipo de implemento"]    { grid-column: 1; order: 2; }
+  html body #pv1 table.impt tr[data-row] td[data-label="Devolver antes de"]     { grid-column: 2; order: 3; }
+  html body #pv1 table.impt tr[data-row] td[data-label="Condición al recibir"]  { grid-column: 1; order: 4; }
+  html body #pv1 table.impt tr[data-row] td[data-label="Limpio"]                { grid-column: 2; order: 5; align-self: end; }
+  html body #pv1 table.impt tr[data-row] td[data-label="Novedad"]               { grid-column: 1 / -1; order: 6; }
+  html body #pv1 table.impt tr[data-row] td.act                                 { grid-column: 1 / -1; order: 7; }
+  html body #pv1 table.impt td[data-label="Limpio"] .pr-check { min-height: var(--toque); }
+
+  /* Préstamos en curso: dos columnas y botones Recibir / Ticket iguales. */
+  html body table.pcurt tbody > tr { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px 10px; }
+  html body table.pcurt td { min-width: 0; }
+  html body table.pcurt td.nm,
+  html body table.pcurt td[data-label="Prestatario"],
+  html body table.pcurt td[data-label="Pendiente"],
+  html body table.pcurt td.act { grid-column: 1 / -1; }
+  html body table.pcurt td.act { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  html body table.pcurt td.act button { width: 100%; min-height: var(--toque) !important; }
+}
+
+/* ==========================================================================
+   14. Orden de las secciones en móvil y Devolver más compacto.
+   Para deshacer: borrar esta sección y, en la sección 12, volver a poner
+   el orden pMain 1 / qleft 2 / pf 3.
+   ========================================================================== */
+
+/* --- 14a. Comidas: Quitar (una sola columna, hasta 900 px) -----------------
+   Destino (Desayuno, Almuerzo...) -> Armando -> Filtrar por + Elementos
+   disponibles -> Últimas comidas (esta última ya va después de la cuadrícula). */
+@media (max-width: 900px) {
+  html body #v0 .qgrid > #qDest { order: 1; }
+  html body #v0 .qgrid > #qMain { order: 2; }
+  html body #v0 .qgrid > .qleft { order: 3; }
+}
+
+@media (max-width: 760px) {
+
+  /* --- 14b. Devolver, filtros: sin tarjeta, dos filas de lista --------------
+     Estado y Tipo son listas desplegables (como Zona/Tipo en Alimentos), una
+     fila cada una con su nombre al lado. Las etiquetas con scroll lateral
+     (#ptabs) se ocultan: la lista de Estado hace lo mismo. */
+  html body #pv1 .pr-pg { gap: 8px; }
+  html body #pv1 .pnl.psel-on { padding: 0; background: none; border: 0; box-shadow: none; }
+  html body #pdsel { grid-template-columns: minmax(0, 1fr); gap: 6px; margin-bottom: 6px; }
+  html body #pdsel label { flex-direction: row; align-items: center; gap: 10px; }
+  html body #pdsel label select { flex: 1 1 auto; width: auto; }
+  html body #pv1 #ptabs { display: none; }
+  html body #pdOpen { margin: 0 0 6px; }
+  html body #pv1 .pr-main .itool { margin: 0 0 6px; gap: 6px; }
+
+  /* --- 14c. Devolver, cuadrícula de administrador ---------------------------
+     Antes cada campo ocupaba una fila. Ahora:
+       Nombre
+       Tipo            | Cantidad
+       Estado          | Condición
+       Detalles        | Guardar                                           */
+  html body #pv1 .cgrid .icard[data-g]:has(.gst) {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 6px 8px;
+    align-items: end;
+  }
+  html body #pv1 .cgrid .icard[data-g]:has(.gst) > * { min-width: 0; margin: 0; }
+  html body #pv1 .cgrid .icard[data-g]:has(.gst) > .ihw { grid-column: 1 / -1; align-self: center; order: 0; }
+  html body #pv1 .cgrid .icard[data-g]:has(.gst) > .fld:has([data-tipo]) { order: 1; }
+  html body #pv1 .cgrid .icard[data-g]:has(.gst) > .fld:has([data-cant]) { order: 2; }
+  html body #pv1 .cgrid .icard[data-g]:has(.gst) > .fld:has([data-gstt]) { order: 3; }
+  html body #pv1 .cgrid .icard[data-g]:has(.gst) > .fld:has([data-gcnd]) { order: 4; }
+  html body #pv1 .cgrid .icard[data-g]:has(.gst) > .fld:has([data-acc]) { order: 5; }
+  html body #pv1 .cgrid .icard[data-g]:has(.gst) > button[data-isave] { order: 6; width: 100%; }
+  html body #pv1 .cgrid .icard[data-g] .gst { grid-template-columns: 46px minmax(0, 1fr); margin-top: 0; }
+
+  /* --- 14d. Devolver, cuadrícula de Por devolver / Vencidos ------------------
+     Condición y Limpio comparten fila; todo lo demás, una fila corta. */
+  html body #pv1 .cgrid .rcard[data-row] {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 4px 8px;
+    align-items: end;
+  }
+  html body #pv1 .cgrid .rcard[data-row] > * { grid-column: 1 / -1; min-width: 0; margin: 0; }
+  html body #pv1 .cgrid .rcard[data-row] > .rtop { order: 0; }
+  html body #pv1 .cgrid .rcard[data-row] > span.sku { order: 1; }
+  html body #pv1 .cgrid .rcard[data-row] > .rwho { order: 2; }
+  html body #pv1 .cgrid .rcard[data-row] > .rdue { order: 3; }
+  html body #pv1 .cgrid .rcard[data-row] > div.sku { order: 4; }
+  html body #pv1 .cgrid .rcard[data-row] > .fld:has(.pc) { grid-column: 1; order: 5; }
+  html body #pv1 .cgrid .rcard[data-row] > label.pr-check { grid-column: 2; order: 6; min-height: var(--toque); }
+  html body #pv1 .cgrid .rcard[data-row] > .fld:has(.pn2) { order: 7; }
+  html body #pv1 .cgrid .rcard[data-row] > button { order: 8; }
+}

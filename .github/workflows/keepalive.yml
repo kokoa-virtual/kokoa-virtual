@@ -1,0 +1,13 @@
+name: keepalive
+on:
+  schedule: [{cron: '0 12 */3 * *'}]
+  workflow_dispatch:
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          code=$(curl -sS -o body.txt -w "%{http_code}" -X POST "${{ secrets.SUPABASE_URL }}/rest/v1/rpc/ping" -H "apikey: ${{ secrets.SUPABASE_ANON_KEY }}" -H "Content-Type: application/json" -d '{}')
+          cat body.txt
+          echo
+          [ "$code" = "200" ]
