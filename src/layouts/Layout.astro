@@ -14,7 +14,8 @@ const here = Astro.url.pathname.replace(/\/$/, '');
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>{full}</title><meta name="description" content={description} /><link rel="canonical" href={canon} />
   <meta property="og:title" content={full} /><meta property="og:description" content={description} /><meta property="og:type" content="website" /><meta property="og:locale" content="es_CO" />
-  <meta name="theme-color" content="#214d2c" />
+  <meta name="theme-color" content="#1C5038" media="(prefers-color-scheme: light)" />
+  <meta name="theme-color" content="#152C21" media="(prefers-color-scheme: dark)" />
   <link rel="icon" href={u('/logo.png')} type="image/png" /><link rel="apple-touch-icon" href={u('/logo.png')} />
   <link rel="preload" href={u('/fonts/figtree.woff')} as="font" type="font/woff" crossorigin />
   <link rel="stylesheet" href={u('/fonts/fuentes.css')} />
